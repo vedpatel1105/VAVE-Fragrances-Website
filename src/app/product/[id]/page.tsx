@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
@@ -27,6 +27,7 @@ import {
   Thermometer,
   Sun,
   Package,
+  Maximize2,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import SimpleNavbar from "@/src/app/components/SimpleNavbar"
@@ -38,7 +39,7 @@ import { motion, AnimatePresence } from "framer-motion"
 const baseUrl = "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public"
 const perfumes = [
   {
-    id: 1,
+    id: 8,
     name: "Havoc",
     tagline: "Woody • Aromatic • Masculine",
     price: 350,
@@ -92,13 +93,13 @@ const perfumes = [
       base: ["Cedarwood", "Vetiver", "Musk"],
     },
     layeringOptions: [
-      { id: 5, name: "Oceane", description: "Creates a refreshing aquatic blend" },
-      { id: 4, name: "Euphoria", description: "Adds a floral dimension to the freshness" },
-      { id: 8, name: "Mehfil", description: "Creates a sophisticated spicy-fresh blend" },
+      { id: 1, name: "Oceane", description: "Creates a refreshing aquatic blend" },
+      { id: 2, name: "Euphoria", description: "Adds a floral dimension to the freshness" },
+      { id: 5, name: "Mehfil", description: "Creates a sophisticated spicy-fresh blend" },
     ],
   },
   {
-    id: 2,
+    id: 4,
     name: "Lavior",
     tagline: "Herbal • Smoky • Unique",
     price: 350,
@@ -152,8 +153,8 @@ const perfumes = [
       base: ["Agarwood (Oud)", "Patchouli", "Musk"],
     },
     layeringOptions: [
-      { id: 6, name: "Velora", description: "Creates a rich, luxurious oriental blend" },
-      { id: 7, name: "Obsession", description: "Intensifies the oriental character" },
+      { id: 7, name: "Velora", description: "Creates a rich, luxurious oriental blend" },
+      { id: 6, name: "Obsession", description: "Intensifies the oriental character" },
       { id: 3, name: "Duskfall", description: "Adds mystery and depth" },
     ],
   },
@@ -212,13 +213,13 @@ const perfumes = [
       base: ["Olibanum", "Guaiac Wood", "Ambergris"],
     },
     layeringOptions: [
-      { id: 7, name: "Obsession", description: "Creates an intense, bold evening scent" },
-      { id: 4, name: "Euphoria", description: "Adds a floral brightness to the mystery" },
-      { id: 2, name: "lavior", description: "Enhances the oriental character" },
+      { id: 6, name: "Obsession", description: "Creates an intense, bold evening scent" },
+      { id: 2, name: "Euphoria", description: "Adds a floral brightness to the mystery" },
+      { id: 4, name: "lavior", description: "Enhances the oriental character" },
     ],
   },
   {
-    id: 4,
+    id: 2,
     name: "Euphoria",
     tagline: "Floral • Romantic • Feminine",
     price: 350,
@@ -272,13 +273,13 @@ const perfumes = [
       base: ["Sandalwood", "Patchouli", "Vanilla"],
     },
     layeringOptions: [
-      { id: 5, name: "Oceane", description: "Creates a fresh, uplifting blend" },
+      { id: 1, name: "Oceane", description: "Creates a fresh, uplifting blend" },
       { id: 3, name: "Duskfall", description: "Adds mystery to the floral character" },
-      { id: 6, name: "Velora", description: "Enhances the richness of the florals" },
+      { id: 7, name: "Velora", description: "Enhances the richness of the florals" },
     ],
   },
   {
-    id: 5,
+    id: 1,
     name: "Oceane",
     tagline: "Fresh • Aquatic • Sporty",
     price: 350,
@@ -332,13 +333,13 @@ const perfumes = [
       base: ["Vetiver", "Tonka Bean", "Musk"],
     },
     layeringOptions: [
-      { id: 1, name: "Havoc", description: "Creates a fresh, masculine blend" },
-      { id: 4, name: "Euphoria", description: "Adds floral brightness to the aquatic base" },
-      { id: 6, name: "Velora", description: "Creates an interesting contrast of fresh and warm" },
+      { id: 8, name: "Havoc", description: "Creates a fresh, masculine blend" },
+      { id: 2, name: "Euphoria", description: "Adds floral brightness to the aquatic base" },
+      { id: 7, name: "Velora", description: "Creates an interesting contrast of fresh and warm" },
     ],
   },
   {
-    id: 6,
+    id: 7,
     name: "Velora",
     tagline: "Gourmand • Warm • Seductive",
     price: 450,
@@ -392,13 +393,13 @@ const perfumes = [
       base: ["Vanilla", "Patchouli", "Cedarwood"],
     },
     layeringOptions: [
-      { id: 2, name: "lavior", description: "Creates a rich, complex oriental blend" },
-      { id: 7, name: "Obsession", description: "Intensifies the warm, spicy character" },
-      { id: 4, name: "Euphoria", description: "Adds a floral brightness to the warmth" },
+      { id: 4, name: "lavior", description: "Creates a rich, complex oriental blend" },
+      { id: 6, name: "Obsession", description: "Intensifies the warm, spicy character" },
+      { id: 2, name: "Euphoria", description: "Adds a floral brightness to the warmth" },
     ],
   },
   {
-    id: 7,
+    id: 6,
     name: "Obsession",
     tagline: "Spicy • Intense • Addictive",
     price: 450,
@@ -453,12 +454,12 @@ const perfumes = [
     },
     layeringOptions: [
       { id: 3, name: "Duskfall", description: "Creates a mysterious, intense evening scent" },
-      { id: 6, name: "Velora", description: "Enhances the rich, warm character" },
-      { id: 8, name: "Mehfil", description: "Creates a complex, spicy oriental masterpiece" },
+      { id: 7, name: "Velora", description: "Enhances the rich, warm character" },
+      { id: 5, name: "Mehfil", description: "Creates a complex, spicy oriental masterpiece" },
     ],
   },
   {
-    id: 8,
+    id: 5,
     name: "Mehfil",
     tagline: "Amber • Sweet • Opulent",
     price: 450,
@@ -512,9 +513,9 @@ const perfumes = [
       base: ["Fir Resin", "Cedarwood", "Musk"],
     },
     layeringOptions: [
-      { id: 7, name: "Obsession", description: "Creates an intense, rich oriental masterpiece" },
-      { id: 1, name: "Havoc", description: "Adds freshness to the rich spicy character" },
-      { id: 2, name: "lavior", description: "Enhances the oriental character with herbal notes" },
+      { id: 6, name: "Obsession", description: "Creates an intense, rich oriental masterpiece" },
+      { id: 8, name: "Havoc", description: "Adds freshness to the rich spicy character" },
+      { id: 4, name: "lavior", description: "Enhances the oriental character with herbal notes" },
     ],
   },
 ]
@@ -533,9 +534,6 @@ export default function ProductDetailPage() {
   const [showFullDescription, setShowFullDescription] = useState(false)
   const [activeTab, setActiveTab] = useState("description")
   const [isFullscreenGallery, setIsFullscreenGallery] = useState(false)
-  const [isZoomed, setIsZoomed] = useState(false)
-  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 })
-  const imageRef = useRef<HTMLDivElement>(null)
 
   // Find the current product based on the ID in the URL
   const productId = Number(params.id)
@@ -583,22 +581,12 @@ export default function ProductDetailPage() {
     }
   }, [isFullscreenGallery])
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageRef.current || !isZoomed) return
-
-    const { left, top, width, height } = imageRef.current.getBoundingClientRect()
-    const x = ((e.clientX - left) / width) * 100
-    const y = ((e.clientY - top) / height) * 100
-
-    setZoomPosition({ x, y })
-  }
-
   const handleNextImage = () => {
-    setCurrentImage((prev) => (prev + 1) % product.images[selectedSize].length)
+    setCurrentImage((prev) => (prev + 1) % product.images[selectedSize as "30ml" | "50ml"].length)
   }
 
   const handlePrevImage = () => {
-    setCurrentImage((prev) => (prev - 1 + product.images[selectedSize].length) % product.images[selectedSize].length)
+    setCurrentImage((prev) => (prev - 1 + product.images[selectedSize as "30ml" | "50ml"].length) % product.images[selectedSize as "30ml" | "50ml"].length)
   }
 
   const addToCart = () => {
@@ -622,7 +610,7 @@ export default function ProductDetailPage() {
               id: product.id,
               name: product.name,
               price: selectedSize === "30ml" ? product.price : product.priceXL,
-              image: product.images[selectedSize][0],
+              image: product.images[selectedSize as "30ml" | "50ml"][0],
               quantity: quantity,
               size: selectedSize,
             },
@@ -663,18 +651,32 @@ export default function ProductDetailPage() {
     })
   }
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: product.name,
-        text: product.description,
-        url: window.location.href,
-      })
-    } else {
-      navigator.clipboard.writeText(window.location.href)
+  // Update the share function to include the current URL and handle more share methods
+  const handleShare = async () => {
+    const shareData = {
+      title: product.name,
+      text: product.description,
+      url: window.location.href
+    }
+
+    try {
+      if (navigator.share) {
+        // Use native share if available (mobile devices)
+        await navigator.share(shareData)
+      } else {
+        // Fallback to clipboard with enhanced feedback
+        await navigator.clipboard.writeText(window.location.href)
+        toast({
+          title: "Link Copied!",
+          description: "Share link has been copied to your clipboard",
+        })
+      }
+    } catch (error) {
+      console.error("Error sharing:", error)
       toast({
-        title: "Link Copied",
-        description: "Product link has been copied to clipboard.",
+        title: "Sharing failed",
+        description: "Please try copying the URL manually",
+        variant: "destructive"
       })
     }
   }
@@ -733,29 +735,17 @@ export default function ProductDetailPage() {
             >
               {/* Main Image with Zoom Effect */}
               <div
-                ref={imageRef}
                 className="relative aspect-square rounded-2xl overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 shadow-lg group cursor-pointer"
-                onMouseEnter={() => setIsZoomed(true)}
-                onMouseLeave={() => setIsZoomed(false)}
-                onMouseMove={handleMouseMove}
                 onClick={() => setIsFullscreenGallery(true)}
               >
-                <motion.div
-                  className={`absolute inset-0 transition-transform duration-200 ease-out ${
-                    isZoomed ? "scale-125" : "scale-100"
-                  }`}
-                  style={{
-                    transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                  }}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <Image
-                    src={product.images[selectedSize][currentImage] || "/placeholder.svg?height=600&width=600"}
-                    alt={`${product.name} ${selectedSize} - ${imageLabels[currentImage]}`}
-                    fill
-                    className="object-contain p-4"
-                  />
-                </motion.div>
+                <Image
+                  src={product.images[selectedSize as "30ml" | "50ml"][currentImage] || "/placeholder.svg?height=600&width=600"}
+                  alt={`${product.name} ${selectedSize} - ${imageLabels[currentImage]}`}
+                  fill
+                  className="object-contain p-4"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority
+                />
 
                 {/* Badges */}
                 <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
@@ -838,9 +828,9 @@ export default function ProductDetailPage() {
 
                 {/* Fullscreen indicator */}
                 <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <motion.div whileHover={{ scale: 1.1 }} className="bg-white/20 backdrop-blur-md p-3 rounded-full">
+                  <div className="bg-white/20 backdrop-blur-md p-3 rounded-full">
                     <ZoomIn className="h-6 w-6 text-white" />
-                  </motion.div>
+                  </div>
                 </div>
 
                 {/* Navigation Arrows */}
@@ -875,7 +865,7 @@ export default function ProductDetailPage() {
                 transition={{ duration: 0.5, delay: 0.4 }}
                 className="grid grid-cols-4 gap-3"
               >
-                {product.images[selectedSize].map((image, index) => (
+                {product.images[selectedSize as "30ml" | "50ml"].map((image, index) => (
                   <motion.button
                     key={`${selectedSize}-thumb-${index}`}
                     className={`relative aspect-square rounded-lg overflow-hidden transition-all duration-300 ${
@@ -980,7 +970,7 @@ export default function ProductDetailPage() {
                       >
                         <path
                           fillRule="evenodd"
-                          d="M10 15.934l-6.18 3.254 1.18-6.875L.5 7.938l6.902-1.004L10 .79l2.598 6.144 6.902 1.004-4.5 4.375 1.18 6.875L10 15.934z"
+                          d="M10 15.934l-6.18 3.254 1.18-6.875L.5 7.938l6.902-1.004L10 .79l2.598 6.144 6.902  1.004-4.5 4.375 1.18 6.875L10 15.934z"
                           clipRule="evenodd"
                         />
                       </motion.svg>
@@ -1079,29 +1069,29 @@ export default function ProductDetailPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.2 }}
-                className="mb-8 grid grid-cols-2 gap-4"
+                className="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-4"
               >
                 <motion.div
                   whileHover={{ scale: 1.02 }}
-                  className="flex items-center p-4 rounded-xl bg-white/5 backdrop-blur-md border border-white/10"
+                  className="flex items-center p-6 rounded-xl bg-white/5 backdrop-blur-md border border-white/10"
                 >
-                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mr-4">
+                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mr-4 flex-shrink-0">
                     <Droplets className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-white">High Concentration</h4>
+                    <h4 className="font-medium text-white text-lg">High Concentration</h4>
                     <p className="text-sm text-gray-300">25% Perfume Oil</p>
                   </div>
                 </motion.div>
                 <motion.div
                   whileHover={{ scale: 1.02 }}
-                  className="flex items-center p-4 rounded-xl bg-white/5 backdrop-blur-md border border-white/10"
+                  className="flex items-center p-6 rounded-xl bg-white/5 backdrop-blur-md border border-white/10"
                 >
-                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mr-4">
+                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mr-4 flex-shrink-0">
                     <Clock className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-white">Long Lasting</h4>
+                    <h4 className="font-medium text-white text-lg">Long Lasting</h4>
                     <p className="text-sm text-gray-300">8+ hours longevity</p>
                   </div>
                 </motion.div>
@@ -1149,29 +1139,31 @@ export default function ProductDetailPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1.4 }}
-                className="flex flex-col md:flex-row gap-4 mb-8"
+                className="flex flex-col sm:flex-row gap-4 mb-8"
               >
-                <div className="flex items-center bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
-                  <motion.button
-                    whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => quantity > 1 && setQuantity(quantity - 1)}
-                    className="p-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={quantity <= 1}
-                  >
-                    <Minus className="h-5 w-5 text-white" />
-                  </motion.button>
-                  <div className="px-8 py-4 min-w-[80px] text-center font-bold text-xl text-white bg-white/5">
-                    {quantity}
+                <div className="flex-shrink-0 w-full sm:w-auto">
+                  <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden flex justify-between items-center">
+                    <motion.button
+                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => quantity > 1 && setQuantity(quantity - 1)}
+                      className="p-4 w-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center"
+                      disabled={quantity <= 1}
+                    >
+                      <Minus className="h-6 w-6 text-white" />
+                    </motion.button>
+                    <div className="px-8 py-4 min-w-[80px] text-center font-bold text-2xl text-white">
+                      {quantity}
+                    </div>
+                    <motion.button
+                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="p-4 w-20 transition-colors flex justify-center"
+                    >
+                      <Plus className="h-6 w-6 text-white" />
+                    </motion.button>
                   </div>
-                  <motion.button
-                    whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.1)" }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="p-4 transition-colors"
-                  >
-                    <Plus className="h-5 w-5 text-white" />
-                  </motion.button>
                 </div>
 
                 <motion.button
@@ -1601,10 +1593,11 @@ export default function ProductDetailPage() {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 viewport={{ once: true, margin: "-100px" }}
                 whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                className="group relative rounded-xl overflow-hidden cursor-pointer bg-white/10 backdrop-blur-md border border-white/20"
+                className="group cursor-pointer"
                 onClick={() => router.push(`/product/${perfume.id}`)}
               >
-                <div className="relative aspect-square">
+                {/* Image Container */}
+                <div className="relative aspect-square rounded-xl overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 mb-4">
                   <Image
                     src={perfume.images["30ml"][0] || "/placeholder.svg?height=600&width=600"}
                     alt={perfume.name}
@@ -1612,11 +1605,13 @@ export default function ProductDetailPage() {
                     className="object-contain p-4 group-hover:scale-110 transition-transform duration-300"
                   />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex flex-col justify-end p-4 text-white">
-                  <h3 className="font-bold text-lg">{perfume.name}</h3>
-                  <p className="text-xs opacity-80">{perfume.tagline}</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-lg font-bold">₹{perfume.price}</span>
+                
+                {/* Product Info - Below Image */}
+                <div className="space-y-2">
+                  <h3 className="font-bold text-base sm:text-lg text-white">{perfume.name}</h3>
+                  <p className="text-xs text-white/80">{perfume.tagline}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm sm:text-lg font-bold text-white">₹{perfume.price}</span>
                     <div className="flex">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <svg
@@ -1629,7 +1624,7 @@ export default function ProductDetailPage() {
                         >
                           <path
                             fillRule="evenodd"
-                            d="M10 15.934l-6.18 3.254 1.18-6.875L.5 7.938l6.902-1.004L10 .79l2.598 6.144 6.902 1.004-4.5 4.375 1.18 6.875L10 15.934z"
+                            d="M10 15.934l-6.18 3.254 1.18-6.875L.5 7.938l6.902-1.004L10 .79l2.598 6.144 6.902  1.004-4.5 4.375 1.18 6.875L10 15.934z"
                             clipRule="evenodd"
                           />
                         </svg>
@@ -1647,6 +1642,7 @@ export default function ProductDetailPage() {
       <AnimatePresence>
         {isFullscreenGallery && (
           <motion.div
+
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1664,7 +1660,7 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
-              {product.images[selectedSize].map((_, index) => (
+              {product.images[selectedSize as "30ml" | "50ml"].map((_, index) => (
                 <motion.button
                   key={index}
                   onClick={() => setCurrentImage(index)}
@@ -1701,7 +1697,7 @@ export default function ProductDetailPage() {
 
             <div className="flex flex-col items-center">
               <Image
-                src={product.images[selectedSize][currentImage] || "/placeholder.svg?height=800&width=800"}
+                src={product.images[selectedSize as "30ml" | "50ml"][currentImage] || "/placeholder.svg?height=800&width=800"}
                 alt={`${product.name} ${selectedSize} - ${imageLabels[currentImage]}`}
                 width={800}
                 height={800}
