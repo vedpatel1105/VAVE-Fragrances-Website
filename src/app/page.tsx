@@ -27,10 +27,6 @@ const allProducts = [
     id: 1,
     name: "Oceane",
     price: 350,
-    images: {
-      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/oceane30.jpg",
-      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/oceane50.jpg"
-    },
     image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/oceane30.jpg",
     description: "A deep, aquatic fragrance that evokes the mystery of the ocean.",
     rating: 4.8,
@@ -46,10 +42,6 @@ const allProducts = [
     id: 2,
     name: "Euphoria",
     price: 350,
-    images: {
-      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/euphoria30.jpg",
-      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/euphoria50.jpg"
-    },
     image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/euphoria30.jpg",
     description: "An exhilarating blend of fruity and floral notes that lifts your spirits.",
     rating: 4.6,
@@ -66,10 +58,6 @@ const allProducts = [
     id: 3,
     name: "Duskfall",
     price: 350,
-    images: {
-      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/duskfall30.jpg",
-      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/duskfall50.jpg"
-    },
     image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/duskfall30.jpg",
     description: "A mysterious and alluring scent perfect for evening wear.",
     rating: 4.9,
@@ -85,10 +73,6 @@ const allProducts = [
     id: 4,
     name: "Lavior",
     price: 350,
-    images: {
-      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/lavior30.jpg",
-      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/lavior50.jpg"
-    },
     image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/lavior30.jpg",
     description: "A luxurious floral fragrance with hints of lavender and vanilla.",
     rating: 4.7,
@@ -105,10 +89,6 @@ const allProducts = [
     id: 5,
     name: "Mehfil",
     price: 350,
-    images: {
-      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/mehfil30.jpg",
-      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/mehfil50.jpg"
-    },
     image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/mehfil30.jpg",
     description: "A mysterious and alluring scent perfect for evening wear.",
     rating: 4.9,
@@ -125,10 +105,6 @@ const allProducts = [
     id: 6,
     name: "Obsession",
     price: 350,
-    images: {
-      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/obsession30.jpg",
-      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/obsession50.jpg"
-    },
     image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/obsession30.jpg",
     description: "A mysterious and alluring scent perfect for evening wear.",
     rating: 4.9,
@@ -144,10 +120,6 @@ const allProducts = [
     id: 7,
     name: "Velora",
     price: 350,
-    images: {
-      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/velora30.jpg",
-      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/velora50.jpg"
-    },
     image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/velora30.jpg",
     description: "A mysterious and alluring scent perfect for evening wear.",
     rating: 4.9,
@@ -164,10 +136,6 @@ const allProducts = [
     id: 8,
     name: "Havoc",
     price: 350,
-    images: {
-      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/havoc30.jpg",
-      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/havoc50.jpg"
-    },
     image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/havoc30.jpg",
     description: "A fresh and invigorating scent with notes of citrus and ocean breeze.",
     rating: 4.8,
@@ -608,36 +576,15 @@ export default function Home() {
               {allProducts.map((product) => (
                 <div key={product.id} className="transform transition-transform duration-300 hover:-translate-y-2">
                   <EnhancedProductCard
-                    product={{
-                      ...product,
-                      image: product.images?.[(selectedSizes[product.id] || "30ml") as "30ml" | "50ml"] || product.image
-                    }}
+                    product={product}
                     onAddToCart={(product, quantity) =>
                       addToCart(product, quantity, selectedSizes[product.id] || product.sizes[0].size)
                     }
                     onAddToWishlist={addToWishlist}
-                    onQuickView={(p) =>
-                      handleQuickView({
-                        ...p,
-                        image:
-                          product.images?.[
-                            (selectedSizes[product.id] || "30ml") as "30ml" | "50ml"
-                          ] || product.image,
-                      })
-                    }
+                    onQuickView={handleQuickView}
                     inWishlist={wishlist.includes(product.id)}
                     selectedSize={selectedSizes[product.id] || product.sizes[0].size}
-                    onSizeSelect={(size: string) => {
-                      handleSizeSelect(product.id, size)
-                      // Update the product image when size changes
-                      const updatedProduct = {
-                        ...product,
-                        image: product.images?.[size as "30ml" | "50ml"] || product.image
-                      }
-                      if (selectedProduct?.id === product.id) {
-                        setSelectedProduct(updatedProduct)
-                      }
-                    }}
+                    onSizeSelect={(size: string) => handleSizeSelect(product.id, size)}
                   />
                 </div>
               ))}
@@ -921,7 +868,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
               <div className="aspect-square relative">
                 <Image
-                  src={selectedProduct.images?.[selectedSizes[selectedProduct.id] || "30ml"] || selectedProduct.image}
+                  src={selectedProduct.image || "/placeholder.svg"}
                   alt={selectedProduct.name}
                   fill
                   className="object-contain"
