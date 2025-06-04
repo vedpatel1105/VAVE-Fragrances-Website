@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 
@@ -36,7 +37,9 @@ export default function Hero() {
           transition={{ delay: 0.6, duration: 0.8 }}
         >
           <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 transition-colors">
-            Explore Collection
+            <Link href="/collection">
+              Explore Collection
+            </Link>
           </Button>
         </motion.div>
       </motion.div>
