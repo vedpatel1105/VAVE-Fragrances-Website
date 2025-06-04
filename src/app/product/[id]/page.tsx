@@ -697,24 +697,24 @@ export default function ProductDetailPage() {
           />
 
           <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 p-8">
-            {/* Product Images - Left Column (5 cols) */}
+            {/* Product Images - Left Column (6 cols instead of 5 for larger display) */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="lg:col-span-5 space-y-6"
+              className="lg:col-span-6 space-y-6"
             >
-              {/* Main Image with Zoom Effect */}
+              {/* Main Image */}
               <div
-                className="relative aspect-square rounded-2xl overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 shadow-lg group cursor-pointer"
+                className="relative aspect-square rounded-2xl overflow-hidden bg-black/5 backdrop-blur-md border border-white/20 shadow-lg group cursor-pointer"
                 onClick={() => setIsFullscreenGallery(true)}
               >
                 <Image
                   src={product.images[selectedSize as "30ml" | "50ml"][currentImage] || "/placeholder.svg?height=600&width=600"}
                   alt={`${product.name} ${selectedSize} - ${imageLabels[currentImage]}`}
                   fill
-                  className="object-contain p-4"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover w-full h-full"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 40vw"
                   priority
                 />
 
@@ -829,28 +829,22 @@ export default function ProductDetailPage() {
                 </motion.button>
               </div>
 
-              {/* Clear Photo Grid - 2x2 Grid */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-                className="grid grid-cols-4 gap-3"
-              >
+              {/* Thumbnail Grid */}
+              <div className="grid grid-cols-4 gap-4">
                 {product.images[selectedSize as "30ml" | "50ml"].map((image, index) => (
                   <motion.button
                     key={`${selectedSize}-thumb-${index}`}
                     className={`relative aspect-square rounded-lg overflow-hidden transition-all duration-300 ${
-                      currentImage === index ? "ring-2 ring-white" : "ring-1 ring-gray-600 hover:ring-gray-400"
+                      currentImage === index 
+                        ? "ring-2 ring-white/80 scale-105 z-10" 
+                        : "ring-1 ring-white/20 hover:ring-white/40"
                     }`}
                     onClick={() => setCurrentImage(index)}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.5 + index * 0.1 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     <Image
-                      src={image || "/placeholder.svg?height=100&width=100"}
+                      src={image}
                       alt={`${product.name} - ${imageLabels[index]}`}
                       fill
                       className="object-cover"
@@ -862,32 +856,6 @@ export default function ProductDetailPage() {
                     </div>
                   </motion.button>
                 ))}
-              </motion.div>
-
-              {/* Size Selection for Mobile */}
-              <div className="lg:hidden mt-6">
-                <h3 className="text-sm font-medium mb-3 text-gray-200">SELECT SIZE</h3>
-                <div className="flex gap-4">
-                  {product.sizeOptions.map((option) => (
-                    <motion.button
-                      key={option.size}
-                      onClick={() => {
-                        setSelectedSize(option.size)
-                        setCurrentImage(0) // Reset to first image when changing size
-                      }}
-                      className={`flex-1 py-3 rounded-xl border transition-all duration-300 ${
-                        selectedSize === option.size
-                          ? "border-white bg-white/10 text-white font-bold"
-                          : "border-gray-600 text-gray-300 hover:border-gray-400"
-                      }`}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      <div className="font-bold text-lg">{option.size}</div>
-                      <div className="text-sm">₹{option.price}</div>
-                    </motion.button>
-                  ))}
-                </div>
               </div>
             </motion.div>
 
@@ -1617,7 +1585,7 @@ export default function ProductDetailPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+            className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
           >
             <div className="absolute top-4 right-4 z-10">
               <motion.button
@@ -1666,14 +1634,16 @@ export default function ProductDetailPage() {
               </motion.button>
             </div>
 
-            <div className="flex flex-col items-center">
-              <Image
-                src={product.images[selectedSize as "30ml" | "50ml"][currentImage] || "/placeholder.svg?height=800&width=800"}
-                alt={`${product.name} ${selectedSize} - ${imageLabels[currentImage]}`}
-                width={800}
-                height={800}
-                className="object-contain max-h-[80vh] max-w-[80vw]"
-              />
+            <div className="flex flex-col items-center max-w-[90vw] max-h-[90vh]">
+              <div className="relative w-full h-full">
+                <Image
+                  src={product.images[selectedSize as "30ml" | "50ml"][currentImage]}
+                  alt={`${product.name} ${selectedSize} - ${imageLabels[currentImage]}`}
+                  width={1200}
+                  height={1200}
+                  className="object-contain w-full h-full transform scale-110 transition-transform duration-500"
+                />
+              </div>
               <p className="text-white mt-4 text-lg font-medium">{imageLabels[currentImage]}</p>
             </div>
           </motion.div>
