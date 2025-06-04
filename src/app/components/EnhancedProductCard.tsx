@@ -136,38 +136,37 @@ export default function EnhancedProductCard({
         />
       </motion.button>
 
-      {/* Image section with interactive hover effects */}
-      <div className="relative aspect-[4/5] w-full overflow-hidden cursor-pointer" onClick={handleViewProduct}>
-        <Image
-          src={product.image || "/placeholder.svg"}
-          alt={product.name}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-110 group-hover:blur-[2px]"
-          priority
+      {/* Image section with edge-to-edge fit */}
+      <div className="relative aspect-[4/5] w-full cursor-pointer group" onClick={handleViewProduct}>
+        <motion.div 
+          className="absolute inset-0"
+          whileHover={{ scale: 1.05 }}
+          transition={{ duration: 0.4 }}
+        >
+          <Image
+            src={product.image || "/placeholder.svg"}
+            alt={product.name}
+            fill
+            className="object-cover w-full h-full"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority
+          />
+        </motion.div>
+        
+        {/* Overlay on hover */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          whileHover={{ opacity: 1 }}
         />
-
-        {/* Enhanced hover overlay with animations */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center gap-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileHover={{ scale: 1.05 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center gap-4"
-          >
-            <Button
-              variant="secondary"
-              className="bg-white text-black hover:bg-white/90 font-medium px-6"
-              onClick={handleViewProduct}
-            >
-              View Details
-            </Button>
-            <span className="text-white/90 text-sm">Click to explore more</span>
-          </motion.div>
-        </div>
       </div>
 
-      {/* Enhanced content section with size selection */}
-      <div className="p-4 bg-gradient-to-t from-black via-black/95 to-transparent">
+      {/* Content section */}
+      <motion.div 
+        className="p-4 bg-gradient-to-t from-black via-black/95 to-transparent"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
         <div className="flex justify-between items-start mb-2">
           <h3
             className="text-lg font-bold text-white cursor-pointer hover:text-accent transition-colors"
@@ -185,58 +184,26 @@ export default function EnhancedProductCard({
 
         <p className="text-sm text-gray-300 line-clamp-2 mb-4 font-light">{product.description}</p>
 
-        {/* Enhanced fragrance notes */}
-        {product.fragranceNotes && product.fragranceNotes.length > 0 && (
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-2">
-              {product.fragranceNotes.slice(0, 2).map((note, index) => (
-                <span
-                  key={index}
-                  className="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-gray-800/80 to-gray-700/80 text-white/90 border border-white/10"
-                >
-                  {note}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Size options with interactive buttons */}
-        <div className="my-3">
-          <div className="flex gap-2 mb-2">
-            {product.sizes?.map((size: any) => (
-              <motion.button
-                key={`${product.id}-${size.size}`}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onSizeSelect(size.size)
-                }}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all
-                  ${
-                    selectedSize === size.size
-                      ? "bg-white text-black shadow-lg"
-                      : "bg-gray-800/50 text-white hover:bg-gray-700/50 border border-white/10"
-                  }`}
-              >
-                {size.size} - ₹{size.price}
-              </motion.button>
-            ))}
-          </div>
+        {/* Size Selection */}
+        <div className="flex gap-2 mb-4">
+          {product.sizes?.map((size) => (
+            <button
+              key={size.size}
+              onClick={() => onSizeSelect(size.size)}
+              className={`px-3 py-1 rounded-full text-sm transition-all ${
+                selectedSize === size.size
+                  ? "bg-white text-black font-medium"
+                  : "bg-white/10 text-white hover:bg-white/20"
+              }`}
+            >
+              {size.size}
+            </button>
+          ))}
         </div>
 
-        {/* Enhanced price section */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-baseline">
-            <span className="text-xl font-bold text-white">₹{getCurrentPrice()}</span>
-            {product.discount && (
-              <span className="ml-2 text-sm line-through text-gray-500">
-                ₹{Math.round(getCurrentPrice() * (100 / (100 - product.discount)))}
-              </span>
-            )}
-          </div>
-          {product.reviews && <span className="text-xs text-gray-400">{product.reviews} reviews</span>}
+        {/* Price */}
+        <div className="text-lg font-bold text-white mb-2">
+          ₹{getCurrentPrice()}
         </div>
 
         {/* Enhanced action buttons with animations */}
@@ -264,7 +231,7 @@ export default function EnhancedProductCard({
             Buy Now
           </motion.button>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   )
 }
