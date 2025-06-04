@@ -21,13 +21,16 @@ import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-// Sample products data
+// Update product data structure to include size-specific images
 const allProducts = [
   {
     id: 1,
     name: "Oceane",
     price: 350,
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/oceane30.jpg",
+    images: {
+      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/oceane30.jpg",
+      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/oceane50.jpg"
+    },
     description: "A deep, aquatic fragrance that evokes the mystery of the ocean.",
     rating: 4.8,
     reviews: 112,
@@ -42,7 +45,10 @@ const allProducts = [
     id: 2,
     name: "Euphoria",
     price: 350,
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/euphoria30.jpg",
+    images: {
+      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/euphoria30.jpg",
+      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/euphoria50.jpg"
+    },
     description: "An exhilarating blend of fruity and floral notes that lifts your spirits.",
     rating: 4.6,
     reviews: 87,
@@ -58,7 +64,10 @@ const allProducts = [
     id: 3,
     name: "Duskfall",
     price: 350,
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/duskfall30.jpg",
+    images: {
+      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/duskfall30.jpg",
+      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/duskfall50.jpg"
+    },
     description: "A mysterious and alluring scent perfect for evening wear.",
     rating: 4.9,
     reviews: 156,
@@ -73,7 +82,10 @@ const allProducts = [
     id: 4,
     name: "Lavior",
     price: 350,
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/lavior30.jpg",
+    images: {
+      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/lavior30.jpg",
+      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/lavior50.jpg"
+    },
     description: "A luxurious floral fragrance with hints of lavender and vanilla.",
     rating: 4.7,
     reviews: 98,
@@ -89,7 +101,10 @@ const allProducts = [
     id: 5,
     name: "Mehfil",
     price: 350,
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/mehfil30.jpg",
+    images: {
+      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/mehfil30.jpg",
+      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/mehfil50.jpg"
+    },
     description: "A mysterious and alluring scent perfect for evening wear.",
     rating: 4.9,
     reviews: 156,
@@ -105,7 +120,10 @@ const allProducts = [
     id: 6,
     name: "Obsession",
     price: 350,
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/obsession30.jpg",
+    images: {
+      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/obsession30.jpg",
+      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/obsession50.jpg"
+    },
     description: "A mysterious and alluring scent perfect for evening wear.",
     rating: 4.9,
     reviews: 156,
@@ -120,7 +138,10 @@ const allProducts = [
     id: 7,
     name: "Velora",
     price: 350,
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/velora30.jpg",
+    images: {
+      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/velora30.jpg",
+      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/velora50.jpg"
+    },
     description: "A mysterious and alluring scent perfect for evening wear.",
     rating: 4.9,
     reviews: 156,
@@ -136,7 +157,10 @@ const allProducts = [
     id: 8,
     name: "Havoc",
     price: 350,
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/havoc30.jpg",
+    images: {
+      "30ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/havoc30.jpg",
+      "50ml": "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/havoc50.jpg"
+    },
     description: "A fresh and invigorating scent with notes of citrus and ocean breeze.",
     rating: 4.8,
     reviews: 124,
@@ -576,7 +600,11 @@ export default function Home() {
               {allProducts.map((product) => (
                 <div key={product.id} className="transform transition-transform duration-300 hover:-translate-y-2">
                   <EnhancedProductCard
-                    product={product}
+                    product={{
+                      ...product,
+                      // Use the size-specific image based on selected size
+                      image: product.images?.[selectedSizes[product.id] as "30ml" | "50ml" || "30ml"] || product.images
+                    }}
                     onAddToCart={(product, quantity) =>
                       addToCart(product, quantity, selectedSizes[product.id] || product.sizes[0].size)
                     }
@@ -584,7 +612,7 @@ export default function Home() {
                     onQuickView={handleQuickView}
                     inWishlist={wishlist.includes(product.id)}
                     selectedSize={selectedSizes[product.id] || product.sizes[0].size}
-                    onSizeSelect={(size: string) => handleSizeSelect(product.id, size)}
+                    onSizeSelect={(size) => handleSizeSelect(product.id, size)}
                   />
                 </div>
               ))}
@@ -823,9 +851,9 @@ export default function Home() {
                   {/* CTA */}
                   <div className="text-center">
                     <Link href="/layering">
-                      <Button className="bg-white text-black hover:bg-gray-200 px-8 py-4 text-lg font-semibold rounded-xl transform hover:scale-105 transition-all duration-300">
-                        Explore Full Layering Experience
-                        <ArrowRight className="ml-2 h-5 w-5" />
+                      <Button className="w-full sm:w-auto bg-white text-black hover:bg-gray-200 px-4 sm:px-8 py-3 text-sm sm:text-base font-semibold rounded-xl transform hover:scale-105 transition-all duration-300">
+                        <span className="truncate">Explore Full Layering Experience</span>
+                        <ArrowRight className="ml-2 h-5 w-5 flex-shrink-0" />
                       </Button>
                     </Link>
                   </div>
