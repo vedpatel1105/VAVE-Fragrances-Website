@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react"
 import SimpleNavbar from "@/src/app/components/SimpleNavbar"
 import Footer from "@/src/app/components/Footer"
 import { Button } from "@/components/ui/button"
@@ -645,7 +645,7 @@ export default function ScentFinderPage() {
                           </div>
                           <div className="text-right">
                             <div className="text-lg font-bold text-white">
-                              ₹{product.sizes.find((s) => s.size === selectedSize)?.price || product.sizes[0].price}
+                              ₹{product.sizes.find((s: { size: string }) => s.size === selectedSize)?.price || product.sizes[0].price}
                             </div>
                             <div className="text-sm text-gray-400">{selectedSize}</div>
                           </div>
@@ -660,7 +660,7 @@ export default function ScentFinderPage() {
                             <div className="text-center">
                               <h5 className="text-xs font-medium uppercase text-gray-400 mb-2">Top Notes</h5>
                               <div className="space-y-1">
-                                {product.notes.top.map((note, i) => (
+                                {product.notes.top.map((note: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined, i: Key | null | undefined) => (
                                   <div key={i} className="text-xs text-gray-200 bg-white/10 rounded-full px-2 py-1">
                                     {note}
                                   </div>
@@ -670,7 +670,7 @@ export default function ScentFinderPage() {
                             <div className="text-center">
                               <h5 className="text-xs font-medium uppercase text-gray-400 mb-2">Heart Notes</h5>
                               <div className="space-y-1">
-                                {product.notes.heart.map((note, i) => (
+                                {product.notes.heart.map((note: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined, i: Key | null | undefined) => (
                                   <div key={i} className="text-xs text-gray-200 bg-white/10 rounded-full px-2 py-1">
                                     {note}
                                   </div>
@@ -680,7 +680,7 @@ export default function ScentFinderPage() {
                             <div className="text-center">
                               <h5 className="text-xs font-medium uppercase text-gray-400 mb-2">Base Notes</h5>
                               <div className="space-y-1">
-                                {product.notes.base.map((note, i) => (
+                                {product.notes.base.map((note: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined, i: Key | null | undefined) => (
                                   <div key={i} className="text-xs text-gray-200 bg-white/10 rounded-full px-2 py-1">
                                     {note}
                                   </div>
@@ -711,14 +711,14 @@ export default function ScentFinderPage() {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <Button
-                              className="bg-white/20 hover:bg-white/30 text-white backdrop-blur-xl border border-white/20"
+                              className="w-full bg-white/20 hover:bg-white/30 text-white backdrop-blur-xl border border-white/20 text-sm sm:text-base"
                               onClick={() => addToCart(product)}
                               disabled={isAddingToCart[product.id]}
                             >
                               {isAddingToCart[product.id] ? (
-                                <span className="flex items-center">
+                                <span className="flex items-center justify-center">
                                   <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
                                   Adding...
                                 </span>
@@ -732,7 +732,7 @@ export default function ScentFinderPage() {
 
                             <Link
                               href={`/product/${product.id}`}
-                              className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-md font-medium transition-colors backdrop-blur-xl border border-white/20"
+                              className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-md font-medium transition-colors backdrop-blur-xl border border-white/20 text-sm sm:text-base"
                             >
                               <Eye className="h-4 w-4" />
                               View Details
@@ -740,7 +740,7 @@ export default function ScentFinderPage() {
 
                             <Link
                               href={`/checkout?product=${product.id}&size=${selectedSize}`}
-                              className="flex items-center justify-center gap-2 bg-white/30 hover:bg-white/40 text-white py-2 px-4 rounded-md font-medium transition-colors backdrop-blur-xl border border-white/30"
+                              className="w-full flex items-center justify-center gap-2 bg-white/30 hover:bg-white/40 text-white py-2 px-4 rounded-md font-medium transition-colors backdrop-blur-xl border border-white/30 text-sm sm:text-base"
                             >
                               <Zap className="h-4 w-4" />
                               Buy Now
