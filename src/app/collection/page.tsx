@@ -15,7 +15,7 @@ import { ChevronRight } from "lucide-react"
 // Add product data (use the same data from layering page)
 const allProducts = [
   {
-    id: 1,
+    id: 8,
     name: "Havoc",
     price: 350,
     images: {
@@ -40,7 +40,7 @@ const allProducts = [
     },
   },
    {
-    id: 2,
+    id: 4,
     name: "Lavior",
     price: 350,
     images: {
@@ -79,7 +79,7 @@ const allProducts = [
     fragranceNotes: ["Vetiver", "Sandalwood"],
   },
   {
-    id: 4,
+    id: 2,
     name: "Euphoria",
     price: 350,
     images: {
@@ -99,7 +99,7 @@ const allProducts = [
     fragranceNotes: ["Rose", "Jasmine"],
   },
   {
-    id: 5,
+    id: 1,
     name: "Oceane",
     price: 350,
     images: {
@@ -156,7 +156,7 @@ const allProducts = [
     fragranceNotes: ["Vetiver", "Sandalwood"],
   },
    {
-    id: 8,
+    id: 5,
     name: "Mehfil",
     price: 350,
     images: {
