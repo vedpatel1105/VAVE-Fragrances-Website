@@ -105,14 +105,7 @@ export default function SimpleNavbar({ setIsCartOpen, cartItemsCount = 0 }: Simp
               </Link>
             </motion.div>
 
-            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-              <Link
-                href="/auth/login"
-                className="p-2 rounded-full transition-colors bg-white/10 hover:bg-white/20 block"
-              >
-                <User className="h-5 w-5 text-white" />
-              </Link>
-            </motion.div>
+       
 
             <motion.button
               whileHover={{ scale: 1.1 }}
