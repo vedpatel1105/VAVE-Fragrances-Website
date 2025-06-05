@@ -13,6 +13,8 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 // FAQ data organized by categories
+type FAQCategory = keyof typeof faqData;
+
 const faqData = {
   products: [
     {
@@ -154,7 +156,7 @@ const faqData = {
 export default function FAQPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<{ category: string; question: string; answer: string }[]>([])
-  const [activeTab, setActiveTab] = useState("all")
+  const [activeTab, setActiveTab] = useState<FAQCategory | "all">("all")
 
   // Handle search
   const handleSearch = (e: React.FormEvent) => {
@@ -185,7 +187,7 @@ export default function FAQPage() {
       return Object.entries(faqData).flatMap(([category, questions]) => questions.map((q) => ({ ...q, category })))
     }
 
-    return faqData[activeTab]?.map((q) => ({ ...q, category: activeTab })) || []
+    return faqData[activeTab as FAQCategory]?.map((q) => ({ ...q, category: activeTab })) || []
   }
 
   // Display search results or active tab FAQs
@@ -279,7 +281,7 @@ export default function FAQPage() {
 
           {/* FAQ Categories */}
           {(!searchQuery || searchResults.length === 0) && (
-            <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+            <Tabs defaultValue="all" value={activeTab} onVolumeChange={setActiveTab}>
               <TabsList className="w-full grid grid-cols-6">
                 <TabsTrigger value="all">All</TabsTrigger>
                 <TabsTrigger value="products">Products</TabsTrigger>
@@ -313,16 +315,7 @@ export default function FAQPage() {
           )}
 
           {/* Still Need Help */}
-          <div className="mt-16 bg-accent/10 p-8 rounded-lg text-center">
-            <h2 className="text-2xl font-bold mb-4">Still Have Questions?</h2>
-            <p className="text-gray-700 dark:text-gray-300 mb-6 max-w-lg mx-auto">
-              Can't find the answer you're looking for? Our customer support team is here to help.
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button>Contact Support</Button>
-              <Button variant="outline">Live Chat</Button>
-            </div>
-          </div>
+         
         </motion.div>
       </main>
       <Footer />
