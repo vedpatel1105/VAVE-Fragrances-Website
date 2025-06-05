@@ -365,8 +365,8 @@ export default function LayeringPage() {
 														<Image
 															src={perfume.image || "/placeholder.svg"}
 															alt={perfume.name}
-															width={60}
-															height={60}
+															width={170}
+															height={170}
 															className="object-contain transition-transform duration-500 group-hover:scale-125"
 														/>
 														<div className="absolute inset-0 bg-gradient-to-t from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -423,8 +423,8 @@ export default function LayeringPage() {
 														<Image
 															src={perfume.image || "/placeholder.svg"}
 															alt={perfume.name}
-															width={60}
-															height={60}
+															width={170}
+															height={170}
 															className="object-contain transition-transform duration-500 group-hover:scale-125"
 														/>
 														<div className="absolute inset-0 bg-gradient-to-t from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -477,8 +477,8 @@ export default function LayeringPage() {
 														<Image
 															src={selectedPerfume1.image || "/placeholder.svg"}
 															alt={selectedPerfume1.name}
-															width={80}
-															height={80}
+															width={170}
+															height={170}
 															className="object-contain"
 														/>
 													</div>
@@ -493,8 +493,8 @@ export default function LayeringPage() {
 														<Image
 															src={selectedPerfume2.image || "/placeholder.svg"}
 															alt={selectedPerfume2.name}
-															width={80}
-															height={80}
+															width={170}
+															height={170}
 															className="object-contain"
 														/>
 													</div>
@@ -618,8 +618,8 @@ export default function LayeringPage() {
 													<Image
 														src={perfume1?.image || "/placeholder.svg"}
 														alt={combo.name1}
-														width={50}
-														height={50}
+														width={170}
+														height={170}
 														className="object-contain"
 													/>
 												</div>
@@ -630,8 +630,8 @@ export default function LayeringPage() {
 													<Image
 														src={perfume2?.image || "/placeholder.svg"}
 														alt={combo.name2}
-														width={50}
-														height={50}
+														width={170}
+														height={170}
 														className="object-contain"
 													/>
 												</div>
