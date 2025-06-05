@@ -623,17 +623,15 @@ export default function Home() {
                         }}
                       >
                         <SelectTrigger className="w-full h-16 bg-black/40 backdrop-blur-md border-white/20 text-white">
-                          <div className="flex items-center space-x-3 w-full">
+                          <div className="flex items-center space-x-3">
                             {selectedFragrance1 && (
-                              <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                                <Image
-                                  src={selectedFragrance1.image || "/placeholder.svg"}
-                                  alt={selectedFragrance1.name}
-                                  fill
-                                  className="object-cover"
-                                  sizes="64px"
-                                />
-                              </div>
+                              <Image
+                                src={selectedFragrance1.image || "/placeholder.svg"}
+                                alt={selectedFragrance1.name}
+                                width={40}
+                                height={40}
+                                className="object-contain"
+                              />
                             )}
                             <SelectValue placeholder="Select first fragrance" />
                           </div>
@@ -645,16 +643,14 @@ export default function Home() {
                               value={fragrance.id.toString()}
                               className="text-white hover:bg-white/10"
                             >
-                              <div className="flex items-center space-x-3 w-full">
-                                <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                                  <Image
-                                    src={fragrance.image || "/placeholder.svg"}
-                                    alt={fragrance.name}
-                                    fill
-                                    className="object-cover"
-                                    sizes="48px"
-                                  />
-                                </div>
+                              <div className="flex items-center space-x-3">
+                                <Image
+                                  src={fragrance.image || "/placeholder.svg"}
+                                  alt={fragrance.name}
+                                  width={30}
+                                  height={30}
+                                  className="object-contain"
+                                />
                                 <div>
                                   <div className="font-medium">{fragrance.name}</div>
                                   <div className="text-sm text-gray-400">{fragrance.category}</div>
@@ -676,17 +672,15 @@ export default function Home() {
                         }}
                       >
                         <SelectTrigger className="w-full h-16 bg-black/40 backdrop-blur-md border-white/20 text-white">
-                          <div className="flex items-center space-x-3 w-full">
+                          <div className="flex items-center space-x-3">
                             {selectedFragrance2 && (
-                              <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                                <Image
-                                  src={selectedFragrance2.image || "/placeholder.svg"}
-                                  alt={selectedFragrance2.name}
-                                  fill
-                                  className="object-cover"
-                                  sizes="64px"
-                                />
-                              </div>
+                              <Image
+                                src={selectedFragrance2.image || "/placeholder.svg"}
+                                alt={selectedFragrance2.name}
+                                width={40}
+                                height={40}
+                                className="object-contain"
+                              />
                             )}
                             <SelectValue placeholder="Select second fragrance" />
                           </div>
@@ -698,16 +692,14 @@ export default function Home() {
                               value={fragrance.id.toString()}
                               className="text-white hover:bg-white/10"
                             >
-                              <div className="flex items-center space-x-3 w-full">
-                                <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                                  <Image
-                                    src={fragrance.image || "/placeholder.svg"}
-                                    alt={fragrance.name}
-                                    fill
-                                    className="object-cover"
-                                    sizes="48px"
-                                  />
-                                </div>
+                              <div className="flex items-center space-x-3">
+                                <Image
+                                  src={fragrance.image || "/placeholder.svg"}
+                                  alt={fragrance.name}
+                                  width={30}
+                                  height={30}
+                                  className="object-contain"
+                                />
                                 <div>
                                   <div className="font-medium">{fragrance.name}</div>
                                   <div className="text-sm text-gray-400">{fragrance.category}</div>
@@ -722,76 +714,42 @@ export default function Home() {
 
                   {/* Generated Fragrance Display */}
                   {layeredFragrance && (
-                    <div className="bg-black/40 backdrop-blur-md border-white/10 rounded-xl overflow-hidden mb-8">
-                      {/* Combined Image Display */}
-                      <div className="relative h-[400px] w-full">
-                        <div className="absolute inset-0 grid grid-cols-2">
-                          {/* First Fragrance Image */}
-                          <div className="relative w-full h-full overflow-hidden">
-                            <Image
-                              src={selectedFragrance1?.image || "/placeholder.svg"}
-                              alt={selectedFragrance1?.name || ""}
-                              fill
-                              className="object-cover"
-                              sizes="(max-width: 768px) 50vw, 33vw"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/50" />
-                          </div>
-                          {/* Second Fragrance Image */}
-                          <div className="relative w-full h-full overflow-hidden">
-                            <Image
-                              src={selectedFragrance2?.image || "/placeholder.svg"}
-                              alt={selectedFragrance2?.name || ""}
-                              fill
-                              className="object-cover"
-                              sizes="(max-width: 768px) 50vw, 33vw"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-l from-transparent to-black/50" />
-                          </div>
-                        </div>
-
-                        {/* Overlay Content */}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-center p-6 bg-black/60 backdrop-blur-xl rounded-xl border border-white/20">
-                            <h3 className="text-3xl font-bold text-white mb-2">{layeredFragrance.name}</h3>
-                            <p className="text-gray-200 max-w-lg">{layeredFragrance.description}</p>
-                          </div>
-                        </div>
+                    <div className="bg-black/40 backdrop-blur-md border-white/10 rounded-xl p-8 mb-8 animate-fadeInUp">
+                      <div className="text-center mb-6">
+                        <h3 className="text-2xl font-bold mb-2">{layeredFragrance.name}</h3>
+                        <p className="text-gray-300">{layeredFragrance.description}</p>
                       </div>
 
-                      {/* Rest of the layered fragrance content */}
-                      <div className="p-8">
-                        {/* Fragrance Notes */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                          <div>
-                            <h4 className="font-semibold mb-3 text-center">Top Notes</h4>
-                            <div className="flex flex-wrap gap-2 justify-center">
-                              {layeredFragrance.notes.top.map((note: string, idx: number) => (
-                                <span key={idx} className="text-xs bg-white/20 px-3 py-1 rounded-full">
-                                  {note}
-                                </span>
-                              ))}
-                            </div>
+                      {/* Fragrance Notes */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                          <h4 className="font-semibold mb-3 text-center">Top Notes</h4>
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            {layeredFragrance.notes.top.map((note: string, idx: number) => (
+                              <span key={idx} className="text-xs bg-white/20 px-3 py-1 rounded-full">
+                                {note}
+                              </span>
+                            ))}
                           </div>
-                          <div>
-                            <h4 className="font-semibold mb-3 text-center">Heart Notes</h4>
-                            <div className="flex flex-wrap gap-2 justify-center">
-                              {layeredFragrance.notes.heart.map((note: string, idx: number) => (
-                                <span key={idx} className="text-xs bg-white/20 px-3 py-1 rounded-full">
-                                  {note}
-                                </span>
-                              ))}
-                            </div>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold mb-3 text-center">Heart Notes</h4>
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            {layeredFragrance.notes.heart.map((note: string, idx: number) => (
+                              <span key={idx} className="text-xs bg-white/20 px-3 py-1 rounded-full">
+                                {note}
+                              </span>
+                            ))}
                           </div>
-                          <div>
-                            <h4 className="font-semibold mb-3 text-center">Base Notes</h4>
-                            <div className="flex flex-wrap gap-2 justify-center">
-                              {layeredFragrance.notes.base.map((note: string, idx: number) => (
-                                <span key={idx} className="text-xs bg-white/20 px-3 py-1 rounded-full">
-                                  {note}
-                                </span>
-                              ))}
-                            </div>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold mb-3 text-center">Base Notes</h4>
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            {layeredFragrance.notes.base.map((note: string, idx: number) => (
+                              <span key={idx} className="text-xs bg-white/20 px-3 py-1 rounded-full">
+                                {note}
+                              </span>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -863,10 +821,10 @@ export default function Home() {
                   </div>
 
                   {/* CTA */}
-                  <div className="text-center w-full px-4">
-                    <Link href="/layering" className="inline-block w-full sm:w-auto">
-                      <Button className="w-full sm:w-auto bg-white text-black hover:bg-gray-200 px-4 py-3 text-sm sm:text-base font-semibold rounded-xl transform hover:scale-105 transition-all duration-300">
-                        Explore Layering Experience
+                  <div className="text-center">
+                    <Link href="/layering">
+                      <Button className="bg-white text-black hover:bg-gray-200 px-8 py-4 text-lg font-semibold rounded-xl transform hover:scale-105 transition-all duration-300">
+                        Explore Full Layering Experience
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
                     </Link>
