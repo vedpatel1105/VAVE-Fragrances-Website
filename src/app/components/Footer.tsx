@@ -15,7 +15,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/new-arrivals" className="text-dark/80 hover:text-gold transition-colors">
+                <Link href="/collection" className="text-dark/80 hover:text-gold transition-colors">
                   New Arrivals
                 </Link>
               </li>
@@ -30,7 +30,7 @@ export default function Footer() {
             <h3 className="text-lg font-semibold mb-4 font-serif text-dark">About</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/our-story" className="text-dark/80 hover:text-gold transition-colors">
+                <Link href="/about" className="text-dark/80 hover:text-gold transition-colors">
                   Our Story
                 </Link>
               </li>
@@ -40,7 +40,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/sustainability" className="text-dark/80 hover:text-gold transition-colors">
+                <Link href="/about" className="text-dark/80 hover:text-gold transition-colors">
                   Sustainability
                 </Link>
               </li>
