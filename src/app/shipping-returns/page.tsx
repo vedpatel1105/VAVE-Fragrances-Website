@@ -281,22 +281,8 @@ export default function ShippingReturnsPage() {
             </Accordion>
           </section>
 
-          <div className="bg-accent/10 p-6 rounded-lg">
-            <div className="flex items-center mb-4">
-              <HelpCircle className="h-6 w-6 text-accent mr-3" />
-              <h2 className="text-xl font-bold">Need More Help?</h2>
-            </div>
-            <p className="text-gray-700 dark:text-gray-300 mb-4">
-              Our customer service team is available to assist you with any questions or concerns about shipping,
-              returns, or exchanges.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Button variant="outline" className="w-full">
-                Contact Support
-              </Button>
-              <Button className="w-full">Live Chat</Button>
-            </div>
-          </div>
+         
+            
         </motion.div>
       </main>
       <Footer />
