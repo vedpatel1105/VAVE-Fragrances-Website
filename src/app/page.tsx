@@ -866,7 +866,7 @@ export default function Home() {
                   <div className="text-center w-full px-4">
                     <Link href="/layering" className="inline-block w-full sm:w-auto">
                       <Button className="w-full sm:w-auto bg-white text-black hover:bg-gray-200 px-4 py-3 text-sm sm:text-base font-semibold rounded-xl transform hover:scale-105 transition-all duration-300">
-                        Explore Full Layering Experience
+                        Explore Layering Experience
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
                     </Link>
