@@ -667,7 +667,8 @@ export default function ProductDetailPage() {
     >
       <SimpleNavbar setIsCartOpen={setIsCartOpen} cartItemsCount={cart.reduce((sum, item) => sum + item.quantity, 0)} />
 
-      <div className="container mx-auto px-4 py-12 md:py-24">
+      {/* Update container max width and padding */}
+      <div className="max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
         {/* Breadcrumb */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -686,7 +687,7 @@ export default function ProductDetailPage() {
           <span className="text-white">{product.name}</span>
         </motion.div>
 
-        {/* Main Product Section */}
+        {/* Main Product Section - Update grid columns */}
         <div className="relative">
           {/* Background Glass Effect */}
           <motion.div
@@ -696,24 +697,24 @@ export default function ProductDetailPage() {
             className="absolute inset-0 w-full h-full rounded-3xl bg-white/5 backdrop-blur-md border border-white/10"
           />
 
-          <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 p-8">
-            {/* Product Images - Left Column (6 cols instead of 5 for larger display) */}
+          <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 p-4 lg:p-8">
+            {/* Product Images - Left Column */}
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="lg:col-span-6 space-y-6"
+              className="w-full space-y-4"
             >
-              {/* Main Image */}
+              {/* Main Image - Updated to fit edge to edge */}
               <div
-                className="relative aspect-square rounded-2xl overflow-hidden bg-black/5 backdrop-blur-md border border-white/20 shadow-lg group cursor-pointer"
+                className="relative aspect-square w-full rounded-2xl overflow-hidden bg-black/5 backdrop-blur-md border border-white/20 shadow-lg group cursor-pointer"
                 onClick={() => setIsFullscreenGallery(true)}
               >
                 <Image
-                  src={product.images[selectedSize as "30ml" | "50ml"][currentImage] || "/placeholder.svg?height=600&width=600"}
+                  src={product.images[selectedSize as "30ml" | "50ml"][currentImage]}
                   alt={`${product.name} ${selectedSize} - ${imageLabels[currentImage]}`}
                   fill
-                  className="object-cover w-full h-full"
+                  className="object-cover w-full h-full" // Changed from object-contain to object-cover
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 40vw"
                   priority
                 />
@@ -829,8 +830,8 @@ export default function ProductDetailPage() {
                 </motion.button>
               </div>
 
-              {/* Thumbnail Grid */}
-              <div className="grid grid-cols-4 gap-4">
+              {/* Thumbnail Grid - Updated spacing */}
+              <div className="grid grid-cols-4 gap-4 px-1">
                 {product.images[selectedSize as "30ml" | "50ml"].map((image, index) => (
                   <motion.button
                     key={`${selectedSize}-thumb-${index}`}
@@ -859,12 +860,12 @@ export default function ProductDetailPage() {
               </div>
             </motion.div>
 
-            {/* Product Details - Right Column (7 cols) */}
+            {/* Product Details - Right Column */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="lg:col-span-7 flex flex-col"
+              className="w-full flex flex-col"
             >
               {/* Product Title and Tagline */}
               <div className="mb-6">
@@ -1105,68 +1106,63 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
-                <motion.button
-                  onClick={addToCart}
-                  className="flex-1 py-3 px-6 rounded-xl flex items-center justify-center font-medium text-black bg-white hover:bg-gray-200 relative overflow-hidden transition-colors"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  disabled={isAnimating}
-                >
-                  {isAnimating ? (
-                    <span className="flex items-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-3 h-5 w-5 text-black"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      ADDING TO CART...
-                    </span>
-                  ) : (
-                    <>
-                      <ShoppingBag className="h-5 w-5 mr-2" />
-                      ADD TO CART
-                    </>
-                  )}
+                {/* Updated Cart and Buy Now Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-8 px-4">
+                  <motion.button
+                    onClick={addToCart}
+                    className="flex-1 py-4 px-6 rounded-xl flex items-center justify-center font-medium text-black bg-white hover:bg-gray-200 relative overflow-hidden transition-colors"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    disabled={isAnimating}
+                  >
+                    {isAnimating ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        ADDING TO CART...
+                      </span>
+                    ) : (
+                      <>
+                        <ShoppingBag className="h-5 w-5 mr-2" />
+                        ADD TO CART
+                      </>
+                    )}
 
-                  {isAnimating && (
-                    <motion.span
-                      className="absolute inset-0 bg-white/20"
-                      animate={{
-                        scale: [1, 1.5, 1.8],
-                        opacity: [0.7, 0.5, 0],
-                      }}
-                      transition={{ duration: 0.8, repeat: Number.POSITIVE_INFINITY }}
-                    />
-                  )}
-                </motion.button>
+                    {isAnimating && (
+                      <motion.span
+                        className="absolute inset-0 bg-white/20"
+                        animate={{
+                          scale: [1, 1.5, 1.8],
+                          opacity: [0.7, 0.5, 0],
+                        }}
+                        transition={{ duration: 0.8, repeat: Number.POSITIVE_INFINITY }}
+                      />
+                    )}
+                  </motion.button>
+
+                  <motion.button
+                    onClick={handleBuyNow}
+                    className="flex-1 py-4 px-6 rounded-xl flex items-center justify-center font-medium text-white bg-gray-800 hover:bg-gray-700 transition-colors"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    BUY NOW
+                  </motion.button>
+                </div>
               </motion.div>
-
-              <motion.button
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.5 }}
-                onClick={handleBuyNow}
-                className="w-full py-4 rounded-xl flex items-center justify-center font-medium text-white bg-gray-800 hover:bg-gray-700 mb-8 transition-colors"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                BUY NOW
-              </motion.button>
 
               {/* Layering Suggestions */}
               <motion.div
@@ -1514,16 +1510,16 @@ export default function ProductDetailPage() {
           </div>
         </div>
 
-        {/* You May Also Like */}
+        {/* You May Also Like Section - Update layout */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           viewport={{ once: true, margin: "-100px" }}
-          className="mt-24"
+          className="mt-16 lg:mt-24"
         >
-          <h2 className="text-2xl font-bold mb-8 text-white">You May Also Like</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <h2 className="text-2xl font-bold mb-8 text-white px-4">You May Also Like</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
             {recommendations.map((perfume, index) => (
               <motion.div
                 key={perfume.id}
@@ -1535,22 +1531,23 @@ export default function ProductDetailPage() {
                 className="group cursor-pointer"
                 onClick={() => router.push(`/product/${perfume.id}`)}
               >
-                {/* Image Container */}
-                <div className="relative aspect-square rounded-xl overflow-hidden bg-white/10 backdrop-blur-md border border-white/20 mb-4">
+                {/* Image Container - Update sizing */}
+                <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-white/10 backdrop-blur-md border border-white/20">
                   <Image
-                    src={perfume.images["30ml"][0] || "/placeholder.svg?height=600&width=600"}
+                    src={perfume.images["30ml"][0]}
                     alt={perfume.name}
                     fill
-                    className="object-contain p-4 group-hover:scale-110 transition-transform duration-300"
+                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                   />
                 </div>
                 
-                {/* Product Info - Below Image */}
-                <div className="space-y-2">
-                  <h3 className="font-bold text-base sm:text-lg text-white">{perfume.name}</h3>
-                  <p className="text-xs text-white/80">{perfume.tagline}</p>
+                {/* Product Info - Update spacing */}
+                <div className="mt-4 space-y-2 px-2">
+                  <h3 className="font-bold text-sm sm:text-base lg:text-lg text-white">{perfume.name}</h3>
+                  <p className="text-xs sm:text-sm text-white/80">{perfume.tagline}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm sm:text-lg font-bold text-white">₹{perfume.price}</span>
+                    <span className="text-sm sm:text-base lg:text-lg font-bold text-white">₹{perfume.price}</span>
                     <div className="flex">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <svg
