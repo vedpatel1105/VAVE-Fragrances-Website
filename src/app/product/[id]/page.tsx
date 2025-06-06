@@ -40,10 +40,10 @@ const baseUrl = "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/publ
 const perfumes = [
   {
     id: 8,
-    name: "Havoc",
+    name: "Havoc", 
     tagline: "Woody • Aromatic • Masculine",
-    price: 350,
-    priceXL: 450,
+    price: 350, // Fixed price
+    priceXL: 450, // Fixed price
     images: {
       "30ml": [`${baseUrl}/img/havoc.jpg`, `${baseUrl}/img/havoc30.jpg`, `${baseUrl}/img/havoc30.jpg`, `${baseUrl}/img/havoc30.jpg`],
       "50ml": [`${baseUrl}/img/havoc.jpg`, `${baseUrl}/img/havoc50.jpg`, `${baseUrl}/img/havoc50.jpg`, `${baseUrl}/img/havoc50.jpg`],
@@ -73,8 +73,8 @@ const perfumes = [
      
     ],
     sizeOptions: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
+      { size: "30ml", price: 350 }, // Fixed price
+      { size: "50ml", price: 450 }, // Fixed price
     ],
     specifications: {
       fragrance_family: "Woody Aromatic",
@@ -567,6 +567,7 @@ export default function ProductDetailPage() {
       setTimeout(() => {
         // Check if item already exists in cart
         const existingItemIndex = cart.findIndex((item) => item.id === product.id && item.size === selectedSize)
+        const currentPrice = selectedSize === "30ml" ? 350 : 450 // Fixed price values
 
         let updatedCart
         if (existingItemIndex >= 0) {
@@ -580,7 +581,7 @@ export default function ProductDetailPage() {
             {
               id: product.id,
               name: product.name,
-              price: selectedSize === "30ml" ? product.price : product.priceXL,
+              price: currentPrice,
               image: product.images[selectedSize as "30ml" | "50ml"][0],
               quantity: quantity,
               size: selectedSize,
@@ -920,11 +921,8 @@ export default function ProductDetailPage() {
                     {product.rating} ({product.reviews} reviews)
                   </span>
                 </div>
-                <div className="text-3xl font-bold text-white">
-                  ₹{selectedSize === "30ml" ? product.price : product.priceXL}
-                  {product.discount && (
-                    <span className="ml-2 text-sm font-normal text-gray-400">{product.discount}% off</span>
-                  )}
+                <div className="text-3xl font-bold mb-2 text-white">
+                  ₹{selectedSize === "30ml" ? "350" : "450"}
                 </div>
               </motion.div>
 
