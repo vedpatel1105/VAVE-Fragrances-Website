@@ -34,6 +34,9 @@ import SimpleNavbar from "@/src/app/components/SimpleNavbar"
 import { useToast } from "@/components/ui/use-toast"
 import Footer from "@/src/app/components/Footer"
 import { motion, AnimatePresence } from "framer-motion"
+import { CartItem, Product } from "@/src/types/cart"
+import { addToCart, updateCartItemQuantity, removeFromCart, calculateTotal, loadCart } from "@/src/utils/cartUtils"
+import Cart from "@/src/app/components/Cart" // Make sure this import is present
 
 // All perfumes data with updated fragrance notes
 const baseUrl = "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public"
@@ -499,7 +502,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [currentImage, setCurrentImage] = useState(0)
-  const [cart, setCart] = useState<any[]>([])
+  const [cart, setCart] = useState<CartItem[]>([])
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const [showFullDescription, setShowFullDescription] = useState(false)
@@ -585,6 +588,7 @@ export default function ProductDetailPage() {
               image: product.images[selectedSize as "30ml" | "50ml"][0],
               quantity: quantity,
               size: selectedSize,
+              type: "single", // Add required type property
             },
           ]
         }
@@ -658,6 +662,35 @@ export default function ProductDetailPage() {
 
   // Image labels for better context
   const imageLabels = ["Front View", "Side View", "Back View", "Lifestyle"]
+
+  const calculateTotal = () => {
+    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  }
+
+  const updateQuantity = (id: number, size: string, newQuantity: number) => {
+    const updatedCart = cart.map((item) =>
+      item.id === id && item.size === size ? { ...item, quantity: newQuantity } : item
+    )
+    setCart(updatedCart)
+    localStorage.setItem("cart", JSON.stringify(updatedCart))
+  }
+
+  const removeFromCart = (id: number, size: string) => {
+    const updatedCart = cart.filter((item) => !(item.id === id && item.size === size))
+    setCart(updatedCart)
+    localStorage.setItem("cart", JSON.stringify(updatedCart))
+  }
+
+  const checkout = () => {
+    if (cart.length === 0) return
+    let message = "Hi, I would like to order the following items:\n\n"
+    cart.forEach((item) => {
+      message += `${item.quantity}x ${item.name} (${item.size}) - Rs. ${item.price * item.quantity}\n`
+    })
+    message += `\nTotal: Rs. ${calculateTotal()}`
+    const encodedMessage = encodeURIComponent(message)
+    window.location.href = `https://wa.me/919328701508?text=${encodedMessage}`
+  }
 
   return (
     <motion.div
@@ -1644,6 +1677,16 @@ export default function ProductDetailPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <Cart
+        isOpen={isCartOpen}
+        setIsOpen={setIsCartOpen}
+        cart={cart}
+        total={calculateTotal()}
+        updateQuantity={updateQuantity}
+        removeFromCart={removeFromCart}
+        checkout={checkout}
+      />
 
       <Footer />
     </motion.div>
