@@ -7,11 +7,7 @@ import Image from "next/image"
 export default function About() {
   return (
     <>
-      <SimpleNavbar
-        setIsCartOpen={(isOpen: boolean) => {
-          /* handle cart open state */
-        }}
-      />
+      <SimpleNavbar />
       <div className="min-h-screen bg-background pt-20">
         <div className="container mx-auto px-4 py-12">
           <h1 className="text-4xl font-bold mb-8 font-serif text-center">About Us</h1>

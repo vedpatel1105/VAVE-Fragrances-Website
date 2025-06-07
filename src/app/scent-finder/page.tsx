@@ -475,7 +475,7 @@ export default function ScentFinderPage() {
         ))}
       </div>
 
-      <SimpleNavbar setIsCartOpen={setIsCartOpen} cartItemsCount={cart.length} />
+      <SimpleNavbar cartItemsCount={cart.length} />
 
       <main className="container mx-auto px-4 py-24 relative z-10">
         <div className="max-w-4xl mx-auto">

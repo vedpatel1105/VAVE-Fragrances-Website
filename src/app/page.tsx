@@ -6,7 +6,7 @@ import { Star, X, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { ShoppingBag } from "lucide-react"
-import Cart from "@/src/app/components/Cart"
+import dynamic from "next/dynamic"
 import Footer from "@/src/app/components/Footer"
 import LoyaltyProgram from "@/src/app/components/LoyaltyProgram"
 import SpecialOffers from "./components/SpecialOffers"
@@ -14,12 +14,15 @@ import EnhancedProductCard from "./components/EnhancedProductCard"
 import { useToast } from "@/components/ui/use-toast"
 import StoreLocator from "./components/StoreLocator"
 import type { Product } from "../data/products"
-import SimpleNavbar from "./components/SimpleNavbar"
 import Hero from "./components/Hero"
 import Newsletter from "./components/Newsletter"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useCartStore } from "@/src/app/components/Cart"
+
+const SimpleNavbar = dynamic(() => import("@/src/app/components/SimpleNavbar"), { ssr: false })
+const Cart = dynamic(() => import("@/src/app/components/Cart"), { ssr: false })
 
 // Sample products data
 const allProducts = [
@@ -33,8 +36,8 @@ const allProducts = [
     reviews: 112,
     isNew: true,
     sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
+      { size: "30ml", price: 350 }, // Fixed price
+      { size: "50ml", price: 450 }, // Fixed price
     ],
     fragranceNotes: ["Sea Salt", "Citrus"],
   },
@@ -49,8 +52,8 @@ const allProducts = [
     isNew: true,
     discount: 10,
     sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
+      { size: "30ml", price: 350 }, // Fixed price
+      { size: "50ml", price: 450 }, // Fixed price
     ],
     fragranceNotes: ["Rose", "Jasmine"],
   },
@@ -64,8 +67,8 @@ const allProducts = [
     reviews: 156,
     isBestseller: true,
     sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
+      { size: "30ml", price: 350 }, // Fixed price
+      { size: "50ml", price: 450 }, // Fixed price
     ],
     fragranceNotes: ["Vetiver", "Sandalwood"],
   },
@@ -80,23 +83,23 @@ const allProducts = [
     isLimited: true,
     discount: 15,
     sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
+      { size: "30ml", price: 350 }, // Fixed price
+      { size: "50ml", price: 450 }, // Fixed price
     ],
     fragranceNotes: ["Lavender", "Vanilla"],
   },
   {
     id: 5,
     name: "Mehfil",
-    price: 350,
+    price: 350, // Fixed price
     image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/mehfil30.jpg",
     description: "A mysterious and alluring scent perfect for evening wear.",
     rating: 4.9,
     reviews: 156,
     isBestseller: true,
     sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
+      { size: "30ml", price: 350 }, // Fixed price
+      { size: "50ml", price: 450 }, // Fixed price
     ],
     fragranceNotes: ["Vetiver", "Sandalwood"],
   },
@@ -104,22 +107,22 @@ const allProducts = [
   {
     id: 6,
     name: "Obsession",
-    price: 350,
+    price: 350, // Fixed price
     image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/obsession30.jpg",
     description: "A mysterious and alluring scent perfect for evening wear.",
     rating: 4.9,
     reviews: 156,
     isBestseller: true,
     sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
+      { size: "30ml", price: 350 }, // Fixed price
+      { size: "50ml", price: 450 }, // Fixed price
     ],
     fragranceNotes: ["Vetiver", "Sandalwood"],
   },
   {
     id: 7,
     name: "Velora",
-    price: 350,
+    price: 350, // Fixed price
     image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/velora30.jpg",
     description: "A mysterious and alluring scent perfect for evening wear.",
     rating: 4.9,
@@ -135,7 +138,7 @@ const allProducts = [
   {
     id: 8,
     name: "Havoc",
-    price: 350,
+    price: 350, // Fixed price
     image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/havoc30.jpg",
     description: "A fresh and invigorating scent with notes of citrus and ocean breeze.",
     rating: 4.8,
@@ -143,8 +146,8 @@ const allProducts = [
     isNew: false,
     isBestseller: true,
     sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
+      { size: "30ml", price: 350 }, // Fixed price
+      { size: "50ml", price: 450 }, // Fixed price
     ],
     fragranceNotes: ["Cedar", "Amber"],
   },
@@ -308,13 +311,13 @@ export interface EnhancedProductCardProps {
 
 export default function Home() {
   const [isCartOpen, setIsCartOpen] = useState(false)
-  const [cart, setCart] = useState<any[]>([])
   const [wishlist, setWishlist] = useState<number[]>([])
   const { toast } = useToast()
   const router = useRouter()
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
   const [selectedSizes, setSelectedSizes] = useState<{ [key: number]: string }>({})
+  const { addItem, setIsOpen, getTotalItems } = useCartStore()
 
   // Layering states
   const [selectedFragrance1, setSelectedFragrance1] = useState<any>(null)
@@ -352,27 +355,13 @@ export default function Home() {
       fragrances: [selectedFragrance1.name, selectedFragrance2.name],
     }
 
-    const existingItemIndex = cart.findIndex(
-      (item) => item.id === layeredProduct.id && item.size === layeredProduct.size,
-    )
-
-    let updatedCart
-    if (existingItemIndex >= 0) {
-      updatedCart = [...cart]
-      updatedCart[existingItemIndex].quantity += 1
-    } else {
-      updatedCart = [...cart, layeredProduct]
-    }
-
-    setCart(updatedCart)
-    localStorage.setItem("cart", JSON.stringify(updatedCart))
+    addItem(layeredProduct)
+    setIsOpen(true)
 
     toast({
       title: "Added to Cart",
       description: `${layeredFragrance ? layeredFragrance.name : "Layered fragrance"} combo has been added to your cart.`,
     })
-
-    setIsCartOpen(true)
   }
 
   const handleSizeSelect = (productId: number, size: string) => {
@@ -382,20 +371,15 @@ export default function Home() {
     }))
   }
 
-  // Load cart and wishlist from localStorage on component mount
+  // Load wishlist from localStorage on component mount
   useEffect(() => {
     try {
-      const storedCart = localStorage.getItem("cart")
-      if (storedCart) {
-        setCart(JSON.parse(storedCart))
-      }
-
       const storedWishlist = localStorage.getItem("wishlist")
       if (storedWishlist) {
         setWishlist(JSON.parse(storedWishlist))
       }
     } catch (error) {
-      console.error("Error loading cart/wishlist:", error)
+      console.error("Error loading wishlist:", error)
     }
   }, [])
 
@@ -404,79 +388,28 @@ export default function Home() {
       const sizeOption = product.sizes.find((s: any) => s.size === size)
       const price = sizeOption ? sizeOption.price : product.price
 
-      const existingItemIndex = cart.findIndex((item) => item.id === product.id && item.size === size && !item.type)
-
-      let updatedCart
-      if (existingItemIndex >= 0) {
-        updatedCart = [...cart]
-        updatedCart[existingItemIndex].quantity += quantity
-      } else {
-        updatedCart = [
-          ...cart,
-          {
-            id: product.id,
-            name: product.name,
-            price: price,
-            image: product.image,
-            quantity: quantity,
-            size: size,
-            type: "single",
-          },
-        ]
+      const cartItem = {
+        id: product.id,
+        name: product.name,
+        price: price,
+        image: product.image,
+        quantity: quantity,
+        size: size,
+        type: "single",
       }
 
-      setCart(updatedCart)
-      localStorage.setItem("cart", JSON.stringify(updatedCart))
+      addItem(cartItem)
+      setIsOpen(true)
 
       toast({
         title: "Added to Cart",
         description: `${quantity} × ${product.name} (${size}) has been added to your cart.`,
       })
-
-      // Explicitly open the cart
-      setIsCartOpen(true)
     } catch (error) {
       console.error("Error adding to cart:", error)
       toast({
         title: "Error",
         description: "Failed to add to cart. Please try again.",
-        variant: "destructive",
-      })
-    }
-  }
-
-  const updateQuantity = (id: number, size: string, newQuantity: number) => {
-    try {
-      const updatedCart = cart.map((item) =>
-        item.id === id && item.size === size ? { ...item, quantity: newQuantity } : item,
-      )
-      setCart(updatedCart)
-      localStorage.setItem("cart", JSON.stringify(updatedCart))
-    } catch (error) {
-      console.error("Error updating quantity:", error)
-      toast({
-        title: "Error",
-        description: "Failed to update quantity. Please try again.",
-        variant: "destructive",
-      })
-    }
-  }
-
-  const removeFromCart = (id: number, size: string) => {
-    try {
-      const updatedCart = cart.filter((item) => !(item.id === id && item.size === size))
-      setCart(updatedCart)
-      localStorage.setItem("cart", JSON.stringify(updatedCart))
-
-      toast({
-        title: "Removed from Cart",
-        description: "Item has been removed from your cart.",
-      })
-    } catch (error) {
-      console.error("Error removing from cart:", error)
-      toast({
-        title: "Error",
-        description: "Failed to remove from cart. Please try again.",
         variant: "destructive",
       })
     }
@@ -525,35 +458,12 @@ export default function Home() {
     router.push(`/product/${productId}`)
   }
 
-  const checkout = () => {
-    if (cart.length === 0) return
-
-    // Create WhatsApp message with cart details
-    let message = "Hi, I would like to order the following items:\n\n"
-
-    cart.forEach((item) => {
-      message += `${item.quantity}x ${item.name} (${item.size}) - Rs. ${item.price * item.quantity}\n`
-    })
-
-    message += `\nTotal: Rs. ${calculateTotal()}`
-
-    // Redirect to WhatsApp
-    const encodedMessage = encodeURIComponent(message)
-    window.location.href = `https://wa.me/919328701508?text=${encodedMessage}`
-  }
-
-  const calculateTotal = () => {
-    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  }
-
   // Get layered fragrance
   const layeredFragrance = generateLayeredFragrance(selectedFragrance1, selectedFragrance2)
 
   return (
     <main className="flex flex-col min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white">
       <SimpleNavbar
-        setIsCartOpen={setIsCartOpen} // Pass the actual function instead of empty handler
-        cartItemsCount={cart.reduce((sum, item) => sum + item.quantity, 0)}
       />
       <Hero />
       <div className="px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
@@ -768,16 +678,16 @@ export default function Home() {
                             </SelectTrigger>
                             <SelectContent className="bg-black/80 backdrop-blur-md border-white/20">
                               <SelectItem value="combo-30ml" className="text-white hover:bg-white/10">
-                                Combo 30ml + 30ml - ₹700
+                                Combo 30ml + 30ml - ₹700 {/* Fixed price */}
                               </SelectItem>
                               <SelectItem value="combo-50ml" className="text-white hover:bg-white/10">
-                                Combo 50ml + 50ml - ₹900
+                                Combo 50ml + 50ml - ₹900 {/* Fixed price */}
                               </SelectItem>
                               <SelectItem value="combo-30-50ml" className="text-white hover:bg-white/10">
-                                Combo 30ml + 50ml - ₹800
+                                Combo 30ml + 50ml - ₹800 {/* Fixed price */}
                               </SelectItem>
                               <SelectItem value="combo-50-30ml" className="text-white hover:bg-white/10">
-                                Combo 50ml + 30ml - ₹800
+                                Combo 50ml + 30ml - ₹800 {/* Fixed price */}
                               </SelectItem>
                             </SelectContent>
                           </Select>
@@ -939,16 +849,7 @@ export default function Home() {
           </div>
         </div>
       )}
-      <Cart
-        isOpen={isCartOpen}
-        setIsOpen={setIsCartOpen}
-        cart={cart}
-        total={calculateTotal()}
-        updateQuantity={updateQuantity}
-        removeFromCart={removeFromCart}
-        checkout={checkout}
-      />
-
+      <Cart />
       <style jsx>{`
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(20px); }

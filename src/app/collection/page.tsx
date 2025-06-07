@@ -1,5 +1,6 @@
 "use client"
 
+import { motion } from "framer-motion"
 import { useState, useEffect } from "react"
 import SimpleNavbar from "@/src/app/components/SimpleNavbar"
 import { useToast } from "@/components/ui/use-toast"
@@ -11,6 +12,8 @@ import { X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
+import { CartItem, Product } from "@/src/types/cart"
+import { addToCart, updateCartItemQuantity, removeFromCart, calculateTotal, loadCart } from "@/src/utils/cartUtils"
 
 // Add product data (use the same data from layering page)
 const allProducts = [
@@ -179,84 +182,32 @@ const allProducts = [
 export default function CollectionPage() {
   const { toast } = useToast()
   const [isCartOpen, setIsCartOpen] = useState(false)
-  const [cart, setCart] = useState<any[]>([])
+  const [cart, setCart] = useState<CartItem[]>([])
   const [wishlist, setWishlist] = useState<number[]>([])
   const [selectedSizes, setSelectedSizes] = useState<{ [key: number]: string }>({})
 
-  // Load cart and wishlist from localStorage
   useEffect(() => {
-    const storedCart = localStorage.getItem("cart")
-    if (storedCart) {
-      setCart(JSON.parse(storedCart))
-    }
-
+    setCart(loadCart())
     const storedWishlist = localStorage.getItem("wishlist")
     if (storedWishlist) {
       setWishlist(JSON.parse(storedWishlist))
     }
   }, [])
 
-  const addToCart = (product: any, quantity: number, size: string) => {
-    try {
-      const sizeOption = product.sizes.find((s: any) => s.size === size)
-      const price = sizeOption ? sizeOption.price : product.price
-
-      const existingItemIndex = cart.findIndex(
-        (item) => item.id === product.id && item.size === size && !item.type
-      )
-
-      let updatedCart
-      if (existingItemIndex >= 0) {
-        updatedCart = [...cart]
-        updatedCart[existingItemIndex].quantity += quantity
-      } else {
-        updatedCart = [
-          ...cart,
-          {
-            id: product.id,
-            name: product.name,
-            price: price,
-            image: product.image,
-            quantity: quantity,
-            size: size,
-            type: 'single'
-          },
-        ]
-      }
-
-      setCart(updatedCart)
-      localStorage.setItem("cart", JSON.stringify(updatedCart))
-
-      toast({
-        title: "Added to Cart",
-        description: `${quantity} × ${product.name} (${size}) has been added to your cart.`,
-      })
-
-      setIsCartOpen(true)
-    } catch (error) {
-      console.error("Error adding to cart:", error)
-      toast({
-        title: "Error",
-        description: "Failed to add to cart. Please try again.",
-        variant: "destructive",
-      })
-    }
+  const handleAddToCart = (product: Product, quantity: number, size: string) => {
+    const updatedCart = addToCart(product, quantity, size, cart)
+    setCart(updatedCart)
+    setIsCartOpen(true)
   }
 
-  const calculateTotal = () => cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-
-  const updateQuantity = (id: number, size: string, newQuantity: number) => {
-    const updatedCart = cart.map((item) =>
-      item.id === id && item.size === size ? { ...item, quantity: newQuantity } : item
-    )
+  const handleUpdateQuantity = (id: number, size: string, quantity: number) => {
+    const updatedCart = updateCartItemQuantity(id, size, quantity, cart)
     setCart(updatedCart)
-    localStorage.setItem("cart", JSON.stringify(updatedCart))
   }
 
-  const removeFromCart = (id: number, size: string) => {
-    const updatedCart = cart.filter((item) => !(item.id === id && item.size === size))
+  const handleRemoveFromCart = (id: number, size: string) => {
+    const updatedCart = removeFromCart(id, size, cart)
     setCart(updatedCart)
-    localStorage.setItem("cart", JSON.stringify(updatedCart))
   }
 
   const handleSizeSelect = (productId: number, size: string) => {
@@ -272,14 +223,14 @@ export default function CollectionPage() {
     cart.forEach((item) => {
       message += `${item.quantity}x ${item.name} (${item.size}) - Rs. ${item.price * item.quantity}\n`
     })
-    message += `\nTotal: Rs. ${calculateTotal()}`
+    message += `\nTotal: Rs. ${calculateTotal(cart)}`
     const encodedMessage = encodeURIComponent(message)
     window.location.href = `https://wa.me/919328701508?text=${encodedMessage}`
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <SimpleNavbar setIsCartOpen={setIsCartOpen} cartItemsCount={cart.length} />
+      <SimpleNavbar cartItemsCount={cart.length} />
       
       <main className="container mx-auto px-4 py-24">
         <div className="flex items-center text-sm text-gray-500 mb-8">
@@ -293,22 +244,37 @@ export default function CollectionPage() {
           Discover our range of unique fragrances, each crafted to evoke distinct emotions and memories.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent blur-3xl -z-10" />
           {allProducts.map((product) => (
-            <EnhancedProductCard
+            <motion.div
               key={product.id}
-              product={{
-                ...product,
-                image: product.images?.[(selectedSizes[product.id] || "30ml") as "30ml" | "50ml"] || product.image,
-                fragranceNotes: Array.isArray(product.fragranceNotes)
-                  ? product.fragranceNotes
-                  : Object.values(product.fragranceNotes).flat(),
-              }}
-              onAddToCart={(product, quantity) => addToCart(product, quantity, selectedSizes[product.id] || product.sizes[0].size)}
-              onAddToWishlist={() => { } }
-              onQuickView={() => { } }
-              inWishlist={wishlist.includes(product.id)}
-              selectedSize={selectedSizes[product.id] || product.sizes[0].size}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              className="h-full"
+            >
+              <EnhancedProductCard
+                product={{
+                  ...product,
+                  image: product.images?.[(selectedSizes[product.id] || "30ml") as "30ml" | "50ml"] || product.images["30ml"],
+                  fragranceNotes: Array.isArray(product.fragranceNotes)
+                    ? product.fragranceNotes
+                    : product.fragranceNotes
+                      ? [
+                          ...(product.fragranceNotes.top || []),
+                          ...(product.fragranceNotes.heart || []),
+                          ...(product.fragranceNotes.base || [])
+                        ]
+                      : []
+                }}
+                onAddToCart={(product, quantity) =>
+                  handleAddToCart(product, quantity, selectedSizes[product.id] || product.sizes[0].size)
+                }
+                onAddToWishlist={() => {}}
+                onQuickView={() => {}}
+                inWishlist={wishlist.includes(product.id)}
+                selectedSize={selectedSizes[product.id] || product.sizes[0].size}
                 onSizeSelect={(size) => {
                   handleSizeSelect(product.id, size)
                   // Update the product image when size changes
@@ -317,6 +283,7 @@ export default function CollectionPage() {
                   }
                 }}
               />
+            </motion.div>
           ))}
         </div>
       </main>
@@ -325,9 +292,9 @@ export default function CollectionPage() {
         isOpen={isCartOpen}
         setIsOpen={setIsCartOpen}
         cart={cart}
-        total={calculateTotal()}
-        updateQuantity={updateQuantity}
-        removeFromCart={removeFromCart}
+        total={calculateTotal(cart)}
+        updateQuantity={handleUpdateQuantity}
+        removeFromCart={handleRemoveFromCart}
         checkout={checkout}
       />
       

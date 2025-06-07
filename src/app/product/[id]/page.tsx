@@ -588,7 +588,7 @@ export default function ProductDetailPage() {
               image: product.images[selectedSize as "30ml" | "50ml"][0],
               quantity: quantity,
               size: selectedSize,
-              type: "single", // Add required type property
+              type: "single" as const, // Ensure literal type
             },
           ]
         }
@@ -699,7 +699,7 @@ export default function ProductDetailPage() {
       transition={{ duration: 0.5 }}
       className="min-h-screen bg-black"
     >
-      <SimpleNavbar setIsCartOpen={setIsCartOpen} cartItemsCount={cart.reduce((sum, item) => sum + item.quantity, 0)} />
+      <SimpleNavbar />
 
       {/* Update container max width and padding */}
       <div className="max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
@@ -959,38 +959,29 @@ export default function ProductDetailPage() {
                 </div>
               </motion.div>
 
-              {/* Size Selection for Desktop */}
-              <div className="hidden lg:block mb-8">
-                <motion.h3
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
-                  className="text-sm font-medium mb-3 text-gray-200 uppercase tracking-wider"
-                >
+              {/* Size Selection - Always Buttons, Responsive */}
+              <div className="mb-8">
+                <h3 className="text-sm font-medium mb-3 text-gray-200 uppercase tracking-wider">
                   Select Size
-                </motion.h3>
-                <div className="flex gap-4">
+                </h3>
+                <div className="flex gap-4 flex-col xs:flex-row sm:flex-row">
                   {product.sizeOptions.map((option, index) => (
-                    <motion.button
+                    <button
                       key={option.size}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.9 + index * 0.1 }}
                       onClick={() => {
                         setSelectedSize(option.size)
-                        setCurrentImage(0) // Reset to first image when changing size
+                        setCurrentImage(0)
                       }}
-                      className={`flex-1 py-4 rounded-xl border transition-all duration-300 ${
+                      className={`flex-1 py-3 rounded-xl border transition-all duration-300 text-base font-bold ${
                         selectedSize === option.size
-                          ? "border-white bg-white/10 text-white font-bold"
+                          ? "border-white bg-white/10 text-white"
                           : "border-gray-600 text-gray-300 hover:border-gray-400"
                       }`}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
+                      style={{ minWidth: 100 }}
                     >
-                      <div className="font-bold text-xl">{option.size}</div>
-                      <div className="text-sm">₹{option.price}</div>
-                    </motion.button>
+                      <div>{option.size}</div>
+                      <div className="text-sm font-normal">₹{option.price}</div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -1678,15 +1669,7 @@ export default function ProductDetailPage() {
         )}
       </AnimatePresence>
 
-      <Cart
-        isOpen={isCartOpen}
-        setIsOpen={setIsCartOpen}
-        cart={cart}
-        total={calculateTotal()}
-        updateQuantity={updateQuantity}
-        removeFromCart={removeFromCart}
-        checkout={checkout}
-      />
+      <Cart />
 
       <Footer />
     </motion.div>

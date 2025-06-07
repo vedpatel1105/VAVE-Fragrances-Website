@@ -56,72 +56,68 @@ export default function RegisterPage() {
 
     setIsLoading(true);
 
-    // 1) Sign up with Supabase Auth (no manual insert)
-    const { data: { user }, error: signUpError } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-      options: {
-        data: {
-          full_name: formData.name,
-          phone: formData.phone,
+    try {
+      // 1. First create auth user
+      const { data: { user }, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.name,
+            phone: formData.phone,
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
-      },
-    });
+      });
 
-    if (signUpError) {
+      if (signUpError) {
+        console.error('Auth signup error:', signUpError);
+        throw signUpError;
+      }
+
+      // const {data: { user }} = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error('No user returned from signup');
+      }
+
+      toast({
+        title: "Registration Successful",
+        description: "We've sent a confirmation link to your email. Please check your inbox.",
+      });
+
+      router.push("/auth/check-your-email");
+    } catch (error: any) {
+      console.error('Registration error:', error);
       toast({
         title: "Registration Failed",
-        description: signUpError.message,
+        description: error.message || "Failed to create account. Please try again.",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
-      return;
     }
-
-    // 2) Supabase sends a confirmation email automatically (because "confirm email" is on).
-    //    Our Postgres trigger (handle_new_user) will fire and insert into public.users.
-
-    toast({
-      title: "Registration Successful",
-      description:
-        "We’ve sent a confirmation link to your email. Please check your inbox.",
-    });
-
-    // 3) Redirect to a "Check your email" page:
-    router.push("/auth/check-your-email");
-    setIsLoading(false);
   };
 
-  // ── Google Sign-Up ──
+  // Handle Google Sign-Up
   const handleGoogleRegister = async () => {
     setIsLoading(true);
 
     try {
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider: "google",
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
         options: {
-          // redirectTo should match what you configured in Supabase dashboard
-          redirectTo: `https://zdvvvqrrcowzjjpklmcz.supabase.co/auth/v1/callback`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
-      if (oauthError) {
-        toast({
-          title: "Google Sign-Up Failed",
-          description: oauthError.message,
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
+      if (error) throw error;
 
-      // At this point, the browser will redirect to Google → back to /auth/oauth-callback.
-      // We do not show a “success” toast here because it happens async via redirect.
+      // The redirect will happen automatically
     } catch (error: any) {
-      console.error("Unexpected error during Google OAuth:", error);
       toast({
         title: "Registration Failed",
-        description: "Failed to register with Google. Please try again.",
+        description: error.message || "Failed to register with Google. Please try again.",
         variant: "destructive",
       });
       setIsLoading(false);

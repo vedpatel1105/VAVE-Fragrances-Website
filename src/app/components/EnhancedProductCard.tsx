@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { Heart, ShoppingBag, Zap, Star } from "lucide-react"
@@ -14,7 +14,7 @@ interface EnhancedProductCardProps {
     id: number
     name: string
     price: number
-    image: string
+    image: string | { [size: string]: string }
     description: string
     rating?: number
     reviews?: number
@@ -44,6 +44,7 @@ export default function EnhancedProductCard({
 }: EnhancedProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isWishlisted, setIsWishlisted] = useState(inWishlist)
+  const [currentImage, setCurrentImage] = useState(0)
   const router = useRouter()
 
   const getCurrentPrice = () => {
@@ -79,6 +80,17 @@ export default function EnhancedProductCard({
     e.stopPropagation()
     router.push(`/product/${product.id}`)
   }
+
+  // Add this useEffect to update image when size changes
+  useEffect(() => {
+    if (
+      product.image &&
+      typeof product.image === "object" &&
+      product.image[selectedSize]
+    ) {
+      setCurrentImage(0) // Reset to first image when size changes
+    }
+  }, [selectedSize, product.image])
 
   return (
     <motion.div
@@ -137,14 +149,21 @@ export default function EnhancedProductCard({
       </motion.button>
 
       {/* Image section with edge-to-edge fit */}
-      <div className="relative aspect-[4/5] w-full cursor-pointer group" onClick={handleViewProduct}>
+      <div 
+        className="relative aspect-[4/5] w-full overflow-hidden cursor-pointer" 
+        onClick={handleViewProduct}
+      >
         <motion.div 
-          className="absolute inset-0"
-          whileHover={{ scale: 1.05 }}
+          className="absolute inset-0 w-full h-full"
+          whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.4 }}
         >
           <Image
-            src={product.image || "/placeholder.svg"}
+            src={
+              typeof product.image === "object"
+                ? product.image[selectedSize] || "/placeholder.svg"
+                : product.image || "/placeholder.svg"
+            }
             alt={product.name}
             fill
             className="object-cover w-full h-full"
@@ -153,10 +172,9 @@ export default function EnhancedProductCard({
           />
         </motion.div>
         
-        {/* Overlay on hover */}
+        {/* Hover overlay */}
         <motion.div
-          className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-          whileHover={{ opacity: 1 }}
+          className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         />
       </div>
 

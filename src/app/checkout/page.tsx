@@ -78,7 +78,7 @@ export default function Checkout() {
     }
   }, [router, user])
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: { target: { name: any; value: any } }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
@@ -95,7 +95,7 @@ export default function Checkout() {
     return calculateTotal() + calculateShipping()
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault()
 
     if (step < 3) {
@@ -111,11 +111,11 @@ export default function Checkout() {
       let paymentSuccess = false
 
       if (formData.paymentMethod === "card") {
-        paymentSuccess = await processCardPayment()
+        paymentSuccess = await processCardPayment() as boolean
       } else if (formData.paymentMethod === "cod") {
-        paymentSuccess = await processCashOnDelivery()
+        paymentSuccess = await processCashOnDelivery() as boolean
       } else if (formData.paymentMethod === "upi") {
-        paymentSuccess = await processUpiPayment()
+        paymentSuccess = await processUpiPayment() as boolean
       }
 
       if (paymentSuccess) {

@@ -9,7 +9,7 @@ import Footer from "@/src/app/components/Footer"
 export default function CraftsmanshipPage() {
   return (
     <>
-      <SimpleNavbar setIsCartOpen={() => {}} />
+      <SimpleNavbar  />
       <main className="container mx-auto py-16 px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
