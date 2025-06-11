@@ -160,7 +160,7 @@ export default function SimpleNavbar() {
                 )}
               </div>
             ) : (
-              <Link href="/login">
+              <Link href="/auth/login">
                 <Button variant="ghost" className="text-gray-300 hover:text-white">
                   Login
                 </Button>

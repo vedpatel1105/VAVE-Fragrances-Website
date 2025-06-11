@@ -1,10 +1,3 @@
-/*
-SQL Schema for addresses and orders tables in Supabase
-Execute in Supabase SQL Editor:
-
-
-*/
-
 import { supabase } from "@/src/lib/supabaseClient";
 
 export interface UserProfile {

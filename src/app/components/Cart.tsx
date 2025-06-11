@@ -1,7 +1,7 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Trash2, Plus, Minus, CreditCard, Wallet, ShoppingBag } from "lucide-react"
+import { X, Trash2, Plus, Minus, CreditCard, Wallet, ShoppingBag, Loader2, CheckCircle2, Package, Truck } from "lucide-react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -9,8 +9,14 @@ import { Separator } from "@/components/ui/separator"
 import { formatCurrency } from "@/lib/utils"
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { orderService } from '@/src/lib/orderService'
+import { useToast } from '@/components/ui/use-toast'
+import { supabase } from '@/src/lib/supabaseClient'
+import { useAuthStore } from '@/src/lib/auth'
+import { useState, useEffect } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 
-interface CartItem {
+export interface CartItem {
   id: string | number
   name: string
   price: number
@@ -36,9 +42,9 @@ interface CartState {
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
-      items: [],
+      items: [] as CartItem[],
       isOpen: false,
-      addItem: (item) => {
+      addItem: (item: CartItem) => {
         const currentItems = get().items
         const existingItemIndex = currentItems.findIndex(
           (i) => i.id === item.id && i.size === item.size
@@ -52,12 +58,12 @@ export const useCartStore = create<CartState>()(
           set({ items: [...currentItems, item] })
         }
       },
-      removeItem: (id, size) => {
+      removeItem: (id: string | number, size: string) => {
         set({
           items: get().items.filter((item) => !(item.id === id && item.size === size))
         })
       },
-      updateQuantity: (id, size, quantity) => {
+      updateQuantity: (id: string | number, size: string, quantity: number) => {
         set({
           items: get().items.map((item) =>
             item.id === id && item.size === size ? { ...item, quantity } : item
@@ -67,17 +73,17 @@ export const useCartStore = create<CartState>()(
       clearCart: () => {
         set({ items: [] })
       },
-      setIsOpen: (isOpen) => {
+      setIsOpen: (isOpen: boolean) => {
         set({ isOpen })
       },
       getTotalItems: () => {
-        return get().items.reduce((total, item) => total + item.quantity, 0)
+        return get().items.reduce((total: any, item: { quantity: any }) => total + item.quantity, 0)
       },
       getTotalPrice: () => {
         return get().items.reduce(
-          (total, item) => total + item.price * item.quantity,
+          (total: number, item: { price: number; quantity: number }) => total + item.price * item.quantity,
           0
-        )
+        ) + (get().getTotalItems() >= 1000 ? 0 : 99) // Add shipping cost if applicable
       }
     }),
     {
@@ -88,19 +94,105 @@ export const useCartStore = create<CartState>()(
 
 export default function Cart() {
   const router = useRouter()
+  const { toast } = useToast()
+  const { user, isAuthenticated, checkAuth } = useAuthStore()
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showIncompleteOrderModal, setShowIncompleteOrderModal] = useState(false)
+  const [showAddressModal, setShowAddressModal] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [orderDetails, setOrderDetails] = useState<any>(null)
   const { 
     items, 
     isOpen, 
     setIsOpen, 
     removeItem, 
     updateQuantity, 
-    getTotalPrice 
+    getTotalPrice,
+    clearCart 
   } = useCartStore()
 
-  const handleCheckout = () => {
+  // Check auth state when component mounts and subscribe to auth changes
+  useEffect(() => {
+    checkAuth()
+    
+    // Subscribe to auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN') {
+        await checkAuth()
+      } else if (event === 'SIGNED_OUT') {
+        await checkAuth()
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [checkAuth])
+
+  const handleCheckout = async () => {
     if (items.length === 0) return
-    setIsOpen(false)
-    router.push("/checkout")
+
+    // Recheck auth state before proceeding
+    await checkAuth()
+
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      setShowAuthModal(true)
+      return
+    }
+
+    setIsPlacingOrder(true)
+    try {
+      // Check for incomplete orders
+      const hasIncompleteOrders = await orderService.checkIncompleteOrders()
+      if (hasIncompleteOrders) {
+        setShowIncompleteOrderModal(true)
+        return
+      }
+
+      // Get user's default address
+      const { data: addresses, error: addressError } = await supabase
+        .from('user_addresses')
+        .select('*')
+        .eq('user_id', user?.id)
+        .eq('is_default', true)
+        .single()
+
+      if (addressError || !addresses) {
+        setShowAddressModal(true)
+        return
+      }
+
+      // Format address for order
+      const formattedAddress = `${addresses.address}, ${addresses.city}, ${addresses.state} - ${addresses.pincode}`
+
+      // Place COD order
+      const order = await orderService.placeOrder({
+        items,
+        total: getTotalPrice(),
+        shipping_address: formattedAddress,
+        payment_method: 'COD',
+        status: "pending"
+      })
+
+      // Set order details for success modal
+      setOrderDetails(order)
+
+      // Clear cart and show success modal
+      clearCart()
+      setIsOpen(false)
+      setShowSuccessModal(true)
+    } catch (error) {
+      console.error('Error placing order:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to place order",
+        variant: "destructive"
+      })
+    } finally {
+      setIsPlacingOrder(false)
+    }
   }
 
   const handleWhatsAppCheckout = () => {
@@ -109,7 +201,7 @@ export default function Cart() {
     // Create WhatsApp message with cart details
     let message = "Hi, I would like to order the following items:\n\n"
 
-    items.forEach((item) => {
+    items.forEach((item: { quantity: number; name: any; size: any; price: number }) => {
       message += `${item.quantity}x ${item.name} (${item.size}) - Rs. ${item.price * item.quantity}\n`
     })
 
@@ -174,7 +266,7 @@ export default function Cart() {
                   </Button>
                 </div>
               ) : (
-                items.map((item) => (
+                items.map((item: CartItem) => (
                   <motion.div
                     key={`${item.id}-${item.size}`}
                     layout
@@ -188,7 +280,7 @@ export default function Cart() {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-medium text-gray-900 dark:text-white">{item.name}</h3>
-                      {item.type === 'layered' && item.fragrances && (
+                      {item.type && item.type === 'layered' && item.fragrances && (
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           {item.fragrances.join(' × ')}
                         </p>
@@ -247,9 +339,22 @@ export default function Cart() {
                 </div>
 
                 <div className="space-y-3">
-                  <Button onClick={handleCheckout} disabled={items.length === 0} className="w-full py-6 h-auto">
-                    <CreditCard className="mr-2 h-5 w-5" />
-                    Checkout with Payment
+                  <Button 
+                    onClick={handleCheckout} 
+                    disabled={items.length === 0 || isPlacingOrder} 
+                    className="w-full py-6 h-auto"
+                  >
+                    {isPlacingOrder ? (
+                      <>
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="mr-2 h-5 w-5" />
+                        Place COD Order
+                      </>
+                    )}
                   </Button>
 
                   <Button
@@ -271,6 +376,151 @@ export default function Cart() {
               </div>
             )}
           </motion.div>
+
+          {/* Authentication Modal */}
+          <Dialog open={showAuthModal} onOpenChange={setShowAuthModal}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Authentication Required</DialogTitle>
+                <DialogDescription>
+                  Please login to place an order
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowAuthModal(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => {
+                  setShowAuthModal(false)
+                  router.push('/auth/login')
+                }}>
+                  Login
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Incomplete Order Modal */}
+          <Dialog open={showIncompleteOrderModal} onOpenChange={setShowIncompleteOrderModal}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Cannot Place Order</DialogTitle>
+                <DialogDescription>
+                  You have an incomplete order. Please wait for it to be processed before placing a new order.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button onClick={() => setShowIncompleteOrderModal(false)}>
+                  Close
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Address Modal */}
+          <Dialog open={showAddressModal} onOpenChange={setShowAddressModal}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>No Address Found</DialogTitle>
+                <DialogDescription>
+                  Please add a shipping address before placing an order.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowAddressModal(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => {
+                  setShowAddressModal(false)
+                  router.push('/profile')
+                }}>
+                  Add Address
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Success Modal */}
+          <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-green-600">
+                  <CheckCircle2 className="h-6 w-6" />
+                  Order Placed Successfully!
+                </DialogTitle>
+                <DialogDescription>
+                  Thank you for your order. We'll process it as soon as possible.
+                </DialogDescription>
+              </DialogHeader>
+
+              {orderDetails && (
+                <div className="space-y-4 py-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-500">Order ID:</span>
+                    <span className="font-medium">{orderDetails.id}</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="font-medium flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      Order Items
+                    </h4>
+                    <div className="space-y-2">
+                      {orderDetails.items.map((item: CartItem) => (
+                        <div key={`${item.id}-${item.size}`} className="flex justify-between text-sm">
+                          <span>{item.quantity}x {item.name} ({item.size})</span>
+                          <span>{formatCurrency(item.price * item.quantity)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="font-medium flex items-center gap-2">
+                      <Truck className="h-4 w-4" />
+                      Shipping Details
+                    </h4>
+                    <p className="text-sm text-gray-600">{orderDetails.shipping_address}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <h4 className="font-medium flex items-center gap-2">
+                      <CreditCard className="h-4 w-4" />
+                      Payment Details
+                    </h4>
+                    <div className="flex justify-between text-sm">
+                      <span>Payment Method:</span>
+                      <span className="font-medium">{orderDetails.payment_method}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span>Total Amount:</span>
+                      <span className="font-medium">{formatCurrency(orderDetails.total)}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <DialogFooter className="flex-col sm:flex-row gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowSuccessModal(false)
+                    router.push('/collection')
+                  }}
+                >
+                  Continue Shopping
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowSuccessModal(false)
+                    router.push('/profile')
+                  }}
+                >
+                  View Order Status
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </>
       )}
     </AnimatePresence>

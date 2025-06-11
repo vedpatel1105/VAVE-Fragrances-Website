@@ -65,6 +65,7 @@ export const useAuthStore = create<AuthState>()(
                     throw error
                 } finally {
                     set({ isLoading: false })
+                    window.location.reload()
                 }
             },
             checkAuth: async () => {

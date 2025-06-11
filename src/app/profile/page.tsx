@@ -91,9 +91,10 @@ export default function Profile() {
       } catch (error) {
         console.error("Error loading profile data:", error)
         toast({
-          title: "Error",
-          description: "Failed to load profile data",
-          variant: "destructive"
+          title: "Error Loading Profile",
+          description: "Unable to load your profile information. Please try again later.",
+          variant: "destructive",
+          duration: 5000
         })
       } finally {
         setIsLoading(false)
