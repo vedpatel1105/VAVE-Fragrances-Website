@@ -34,496 +34,48 @@ import SimpleNavbar from "@/src/app/components/SimpleNavbar"
 import { useToast } from "@/components/ui/use-toast"
 import Footer from "@/src/app/components/Footer"
 import { motion, AnimatePresence } from "framer-motion"
-import { CartItem, Product } from "@/src/types/cart"
-import { addToCart, updateCartItemQuantity, removeFromCart, calculateTotal, loadCart } from "@/src/utils/cartUtils"
-import Cart from "@/src/app/components/Cart" // Make sure this import is present
-
-// All perfumes data with updated fragrance notes
-const baseUrl = "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public"
-const perfumes = [
-  {
-    id: 8,
-    name: "Havoc", 
-    tagline: "Woody • Aromatic • Masculine",
-    price: 350, // Fixed price
-    priceXL: 450, // Fixed price
-    images: {
-      "30ml": [`${baseUrl}/img/havoc.jpg`, `${baseUrl}/img/havoc30.jpg`, `${baseUrl}/img/havoc30.jpg`, `${baseUrl}/img/havoc30.jpg`],
-      "50ml": [`${baseUrl}/img/havoc.jpg`, `${baseUrl}/img/havoc50.jpg`, `${baseUrl}/img/havoc50.jpg`, `${baseUrl}/img/havoc50.jpg`],
-    },
-    description: "A bold and sophisticated woody aromatic fragrance for the modern man.",
-    longDescription: `
-      <p>Havoc is a bold statement of confidence and charisma. This fragrance opens with invigorating top notes of bitter orange, green apple, and cardamom, creating an immediate fresh impression.</p>
-      
-      <p>The heart reveals a sophisticated blend of tea leaf, nutmeg, and geranium, balanced with aromatic accords that evoke a sense of refined masculinity.</p>
-      
-      <p>As it settles, the base notes of cedarwood, vetiver, and musk provide a warm, enduring foundation that ensures this scent makes a lasting impression.</p>
-      
-      <p>Crafted for the modern man who appreciates subtle complexity, Havoc is perfect for both everyday wear and special occasions.</p>
-    `,
-    rating: 4.8,
-    reviews: 124,
-    isNew: false,
-    isBestseller: true,
-    isLimited: false,
-    discount: null,
-    ingredients: [
-      "Ethanol",
-      "Parfum (Fragrance)",
-      "Aqua (Water)",
-      "Premix",
-      "Glycerin",
-     
-    ],
-    sizeOptions: [
-      { size: "30ml", price: 350 }, // Fixed price
-      { size: "50ml", price: 450 }, // Fixed price
-    ],
-    specifications: {
-      fragrance_family: "Woody Aromatic",
-      concentration: "25% Perfume Oil",
-      longevity: "8+ hours",
-      sillage: "Moderate to Strong",
-      launch_year: "2025",
-    },
-    fragranceNotes: {
-      top: ["Bitter Orange", "Green Apple", "Cardamom"],
-      heart: ["Tea Leaf", "Nutmeg", "Geranium"],
-      base: ["Cedarwood", "Vetiver", "Musk"],
-    },
-    layeringOptions: [
-      { id: 1, name: "Oceane", description: "Creates a refreshing aquatic blend" },
-      { id: 2, name: "Euphoria", description: "Adds a floral dimension to the freshness" },
-      { id: 5, name: "Mehfil", description: "Creates a sophisticated spicy-fresh blend" },
-    ],
-  },
-  {
-    id: 4,
-    name: "Lavior",
-    tagline: "Herbal • Smoky • Unique",
-    price: 350,
-    priceXL: 450,
-    images: {
-      "30ml": [`${baseUrl}/img/lavior.jpg`, `${baseUrl}/img/lavior30.jpg`, `${baseUrl}/img/lavior30.jpg`, `${baseUrl}/img/lavior30.jpg`],
-      "50ml": [`${baseUrl}/img/lavior.jpg`, `${baseUrl}/img/lavior50.jpg`, `${baseUrl}/img/lavior50.jpg`, `${baseUrl}/img/lavior50.jpg`],
-    },
-    description: "A distinctive herbal and smoky fragrance with unique character.",
-    longDescription: `
-      <p>Lavior is a distinctive fragrance that combines herbal freshness with smoky depth. This unique scent creates an aura of sophistication and mystery.</p>
-      
-      <p>The opening notes of lavender and bergamot create a fresh, aromatic introduction that gradually transitions to a heart of clary sage and oud accord.</p>
-      
-      <p>The base notes of agarwood (oud), patchouli, and musk provide depth and longevity, ensuring this fragrance leaves a memorable impression throughout the day and into the evening.</p>
-      
-      <p>Perfect for those who appreciate refined elegance with a touch of mystery, lavior is ideal for special occasions and evening wear.</p>
-    `,
-    rating: 4.7,
-    reviews: 98,
-    isNew: false,
-    isBestseller: false,
-    isLimited: false,
-    discount: 0,
-    ingredients: [
-      "Ethanol",
-      "Parfum (Fragrance)",
-      "Aqua (Water)",
-      "Glycerin",
-      "Coumarin",
-      "Premix",
-      "Benzyl Benzoate",
-      "Geraniol",
-      "Citronellol",
-      "Eugenol",
-    ],
-    sizeOptions: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    specifications: {
-      fragrance_family: "Woody Aromatic",
-      concentration: "25% Perfume Oil",
-      longevity: "8+ hours",
-      sillage: "Strong",
-      launch_year: "2025",
-    },
-    fragranceNotes: {
-      top: ["Lavender", "Bergamot"],
-      heart: ["Clary Sage", "Oud Accord"],
-      base: ["Agarwood (Oud)", "Patchouli", "Musk"],
-    },
-    layeringOptions: [
-      { id: 7, name: "Velora", description: "Creates a rich, luxurious oriental blend" },
-      { id: 6, name: "Obsession", description: "Intensifies the oriental character" },
-      { id: 3, name: "Duskfall", description: "Adds mystery and depth" },
-    ],
-  },
-  {
-    id: 3,
-    name: "Duskfall",
-    tagline: "Citrus • Amber • Sophisticated",
-    price: 350,
-    priceXL: 450,
-    images: {
-      "30ml": [`${baseUrl}/img/duskfall.jpg`, `${baseUrl}/img/duskfall30.jpg`, `${baseUrl}/img/duskfall30.jpg`, `${baseUrl}/img/duskfall30.jpg`],
-      "50ml": [`${baseUrl}/img/duskfall.jpg`, `${baseUrl}/img/duskfall50.jpg`, `${baseUrl}/img/duskfall50.jpg`, `${baseUrl}/img/duskfall50.jpg`],
-    },
-    description: "A sophisticated citrus amber fragrance for the discerning individual.",
-    longDescription: `
-      <p>Duskfall captures the sophisticated transition from day to night. This enigmatic fragrance opens with bright citrus notes of Sicilian orange, ginger, and citron.</p>
-      
-      <p>The heart reveals a complex blend of neroli, black tea, and ambrox, adding depth and character to this sophisticated scent.</p>
-      
-      <p>As the fragrance settles, the base notes of olibanum, guaiac wood, and ambergris emerge, providing a rich, enduring foundation.</p>
-      
-      <p>Perfect for the sophisticated individual who appreciates complexity and refinement, Duskfall is ideal for evening events and special occasions.</p>
-    `,
-    rating: 4.6,
-    reviews: 87,
-    isNew: true,
-    isBestseller: false,
-    isLimited: false,
-    discount: 0,
-    ingredients: [
-      "Ethanol",
-      "Parfum (Fragrance)",
-      "Aqua (Water)",
-      "Premix",
-      "Glycerin",
-      
-    ],
-    sizeOptions: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    specifications: {
-      fragrance_family: "Citrus Amber",
-      concentration: "25% Perfume Oil",
-      longevity: "8+ hours",
-      sillage: "Moderate to Strong",
-      launch_year: "2025",
-    },
-    fragranceNotes: {
-      top: ["Sicilian Orange", "Ginger", "Citron"],
-      heart: ["Neroli", "Black Tea", "Ambrox"],
-      base: ["Olibanum", "Guaiac Wood", "Ambergris"],
-    },
-    layeringOptions: [
-      { id: 6, name: "Obsession", description: "Creates an intense, bold evening scent" },
-      { id: 2, name: "Euphoria", description: "Adds a floral brightness to the mystery" },
-      { id: 4, name: "lavior", description: "Enhances the oriental character" },
-    ],
-  },
-  {
-    id: 2,
-    name: "Euphoria",
-    tagline: "Floral • Romantic • Feminine",
-    price: 350,
-    priceXL: 450,
-    images: {
-      "30ml": [`${baseUrl}/img/euphoria.jpg`, `${baseUrl}/img/euphoria30.jpg`, `${baseUrl}/img/euphoria30.jpg`, `${baseUrl}/img/euphoria30.jpg`],
-      "50ml": [`${baseUrl}/img/euphoria.jpg`, `${baseUrl}/img/euphoria50.jpg`, `${baseUrl}/img/euphoria50.jpg`, `${baseUrl}/img/euphoria50.jpg`],
-    },
-    description: "A romantic floral fragrance that celebrates feminine beauty.",
-    longDescription: `
-      <p>Euphoria is a joyful celebration of femininity in a bottle. This uplifting fragrance combines delicate floral notes with subtle fruity accords, creating a scent that evokes happiness and romance.</p>
-      
-      <p>The opening notes of pear, mandarin orange, and peony create a bright, cheerful introduction that transitions into a heart of osmanthus, rose, and magnolia, adding a sophisticated floral dimension.</p>
-      
-      <p>The base notes of sandalwood, patchouli, and vanilla provide a warm foundation that ensures the fragrance has lasting power while maintaining its uplifting character.</p>
-      
-      <p>Ideal for day wear and special moments when you want to feel your best, Euphoria is perfect for those who appreciate the beauty of floral fragrances with a modern twist.</p>
-    `,
-    rating: 4.9,
-    reviews: 156,
-    isNew: false,
-    isBestseller: true,
-    isLimited: false,
-    discount: 0,
-    ingredients: [
-      "Ethanol",
-      "Parfum (Fragrance)",
-      "Aqua (Water)",
-      "Premix",
-      "Glycerin",
-     
-    ],
-    sizeOptions: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    specifications: {
-      fragrance_family: "Floral Fruity",
-      concentration: "25% Perfume Oil",
-      longevity: "8+ hours",
-      sillage: "Moderate",
-      launch_year: "2025",
-    },
-    fragranceNotes: {
-      top: ["Pear", "Mandarin Orange", "Peony"],
-      heart: ["Osmanthus", "Rose", "Magnolia"],
-      base: ["Sandalwood", "Patchouli", "Vanilla"],
-    },
-    layeringOptions: [
-      { id: 1, name: "Oceane", description: "Creates a fresh, uplifting blend" },
-      { id: 3, name: "Duskfall", description: "Adds mystery to the floral character" },
-      { id: 7, name: "Velora", description: "Enhances the richness of the florals" },
-    ],
-  },
-  {
-    id: 1,
-    name: "Oceane",
-    tagline: "Fresh • Aquatic • Sporty",
-    price: 350,
-    priceXL: 450,
-    images: {
-      "30ml": [`${baseUrl}/img/oceane.jpg`, `${baseUrl}/img/oceane30.jpg`, `${baseUrl}/img/oceane30.jpg`, `${baseUrl}/img/oceane30.jpg`],
-      "50ml": [`${baseUrl}/img/oceane.jpg`, `${baseUrl}/img/oceane50.jpg`, `${baseUrl}/img/oceane50.jpg`, `${baseUrl}/img/oceane50.jpg`],
-    },
-    description: "A fresh aquatic fragrance that captures the essence of the ocean.",
-    longDescription: `
-      <p>Oceane captures the essence of the sea with its fresh, aquatic character. This refreshing fragrance transports you to the serene shores of a pristine beach.</p>
-      
-      <p>Opening with crisp green apple, bergamot, and lemon zest, it creates an immediate sense of freshness and clarity that's invigorating and uplifting.</p>
-      
-      <p>The heart of lavender, marine accord, and clary sage adds depth and complexity, while the base of vetiver, tonka bean, and musk provides a clean, lasting finish.</p>
-      
-      <p>Perfect for those who appreciate the energizing power of the ocean, Oceane is ideal for daytime wear, especially during warmer months or whenever you need a refreshing boost.</p>
-    `,
-    rating: 4.5,
-    reviews: 112,
-    isNew: false,
-    isBestseller: false,
-    isLimited: true,
-    discount: 10,
-    ingredients: [
-      "Ethanol",
-      "Parfum (Fragrance)",
-      "Aqua (Water)",
-      "Premix",
-      "Glycerin",
-      
-    ],
-    sizeOptions: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    specifications: {
-      fragrance_family: "Fresh Aquatic",
-      concentration: "25% Perfume Oil",
-      longevity: "8+ hours",
-      sillage: "Moderate",
-      launch_year: "2025",
-    },
-    fragranceNotes: {
-      top: ["Green Apple", "Bergamot", "Lemon Zest"],
-      heart: ["Lavender", "Marine Accord", "Clary Sage"],
-      base: ["Vetiver", "Tonka Bean", "Musk"],
-    },
-    layeringOptions: [
-      { id: 8, name: "Havoc", description: "Creates a fresh, masculine blend" },
-      { id: 2, name: "Euphoria", description: "Adds floral brightness to the aquatic base" },
-      { id: 7, name: "Velora", description: "Creates an interesting contrast of fresh and warm" },
-    ],
-  },
-  {
-    id: 7,
-    name: "Velora",
-    tagline: "Gourmand • Warm • Seductive",
-    price: 450,
-    priceXL: 550,
-    images: {
-      "30ml": [`${baseUrl}/img/velora.jpg`, `${baseUrl}/img/velora30.jpg`, `${baseUrl}/img/velora30.jpg`, `${baseUrl}/img/velora30.jpg`],
-      "50ml": [`${baseUrl}/img/velora.jpg`, `${baseUrl}/img/velora50.jpg`, `${baseUrl}/img/velora50.jpg`, `${baseUrl}/img/velora50.jpg`],
-    },
-    description: "A seductive gourmand fragrance with warm, inviting notes.",
-    longDescription: `
-      <p>Velora is a luxurious fragrance that envelops you in a warm embrace of gourmand notes. This sophisticated scent exudes elegance and seduction.</p>
-      
-      <p>The opening notes of pink pepper, orange blossom, and pear create a spicy-sweet, intriguing introduction that transitions into a heart of coffee, jasmine, and almond, adding depth and character.</p>
-      
-      <p>The base notes of vanilla, patchouli, and cedarwood provide a warm, sensual foundation that ensures the fragrance has remarkable longevity and presence.</p>
-      
-      <p>Perfect for those who appreciate depth and sophistication in their fragrances, Velora is ideal for evening events, special occasions, and moments when you want to make a lasting impression.</p>
-    `,
-    rating: 4.8,
-    reviews: 92,
-    isNew: true,
-    isBestseller: false,
-    isLimited: true,
-    discount: 0,
-    ingredients: [
-      "Ethanol",
-      "Parfum (Fragrance)",
-      "Aqua (Water)",
-      "Premix",
-      "Glycerin",
-     
-    ],
-    sizeOptions: [
-      { size: "30ml", price: 450 },
-      { size: "50ml", price: 550 },
-    ],
-    specifications: {
-      fragrance_family: "Gourmand",
-      concentration: "25% Perfume Oil",
-      longevity: "8+ hours",
-      sillage: "Strong",
-      launch_year: "2025",
-    },
-    fragranceNotes: {
-      top: ["Pink Pepper", "Orange Blossom", "Pear"],
-      heart: ["Coffee", "Jasmine", "Almond"],
-      base: ["Vanilla", "Patchouli", "Cedarwood"],
-    },
-    layeringOptions: [
-      { id: 4, name: "lavior", description: "Creates a rich, complex oriental blend" },
-      { id: 6, name: "Obsession", description: "Intensifies the warm, spicy character" },
-      { id: 2, name: "Euphoria", description: "Adds a floral brightness to the warmth" },
-    ],
-  },
-  {
-    id: 6,
-    name: "Obsession",
-    tagline: "Spicy • Intense • Addictive",
-    price: 450,
-    priceXL: 550,
-    images: {
-      "30ml": [`${baseUrl}/img/obsession.jpg`, `${baseUrl}/img/obsession30.jpg`, `${baseUrl}/img/obsession30.jpg`, `${baseUrl}/img/obsession30.jpg`],
-      "50ml": [`${baseUrl}/img/obsession.jpg`, `${baseUrl}/img/obsession50.jpg`, `${baseUrl}/img/obsession50.jpg`, `${baseUrl}/img/obsession50.jpg`],
-    },
-    description: "An intense and addictive spicy fragrance that commands attention.",
-    longDescription: `
-      <p>Obsession is an intense and captivating fragrance that leaves a lasting impression. This rich spicy scent is designed for those who aren't afraid to stand out.</p>
-      
-      <p>The opening notes of cardamom and red berries create a spicy, warm introduction that immediately commands attention and transitions into a heart of toffee and cinnamon bark, adding a sweet and spicy dimension.</p>
-      
-      <p>The base notes of amberwood, tonka bean, and leather provide a sensual, long-lasting foundation that ensures this fragrance remains memorable throughout the day and night.</p>
-      
-      <p>Perfect for those who appreciate bold, statement fragrances, Obsession is ideal for evening events and special occasions when you want to make an unforgettable impression.</p>
-    `,
-    rating: 4.7,
-    reviews: 85,
-    isNew: false,
-    isBestseller: true,
-    isLimited: false,
-    discount: 0,
-    ingredients: [
-      "Ethanol",
-      "Parfum (Fragrance)",
-      "Aqua (Water)",
-      "Premix",
-      "Glycerin",
-    
-    ],
-    sizeOptions: [
-      { size: "30ml", price: 450 },
-      { size: "50ml", price: 550 },
-    ],
-    specifications: {
-      fragrance_family: "Spicy Oriental",
-      concentration: "25% Perfume Oil",
-      longevity: "10+ hours",
-      sillage: "Very Strong",
-      launch_year: "2025",
-    },
-    fragranceNotes: {
-      top: ["Cardamom", "Red Berries"],
-      heart: ["Toffee", "Cinnamon Bark"],
-      base: ["Amberwood", "Tonka Bean", "Leather"],
-    },
-    layeringOptions: [
-      { id: 3, name: "Duskfall", description: "Creates a mysterious, intense evening scent" },
-      { id: 7, name: "Velora", description: "Enhances the rich, warm character" },
-      { id: 5, name: "Mehfil", description: "Creates a complex, spicy oriental masterpiece" },
-    ],
-  },
-  {
-    id: 5,
-    name: "Mehfil",
-    tagline: "Amber • Sweet • Opulent",
-    price: 450,
-    priceXL: 550,
-    images: {
-      "30ml": [`${baseUrl}/img/mehfil.jpg`, `${baseUrl}/img/mehfil30.jpg`, `${baseUrl}/img/mehfil30.jpg`, `${baseUrl}/img/mehfil30.jpg`],
-      "50ml": [`${baseUrl}/img/mehfil.jpg`, `${baseUrl}/img/mehfil50.jpg`, `${baseUrl}/img/mehfil50.jpg`, `${baseUrl}/img/mehfil50.jpg`],
-    },
-    description: "An opulent amber fragrance with sweet, rich character.",
-    longDescription: `
-      <p>Mehfil captures the essence of opulence with its rich, amber character. This luxurious fragrance is a tribute to indulgence and celebration.</p>
-      
-      <p>The opening notes of saffron and jasmine create a warm, floral introduction that evokes the atmosphere of a lavish gathering, transitioning into a heart of amberwood and ambergris, adding depth and richness.</p>
-      
-      <p>The base notes of fir resin, cedarwood, and musk provide a rich, long-lasting foundation that ensures this fragrance remains memorable throughout special occasions.</p>
-      
-      <p>Perfect for those who appreciate richness and depth in their fragrances, Mehfil is ideal for special celebrations and moments when you want to make a sophisticated statement.</p>
-    `,
-    rating: 4.9,
-    reviews: 110,
-    isNew: true,
-    isBestseller: true,
-    isLimited: false,
-    discount: 0,
-    ingredients: [
-      "Ethanol",
-      "Parfum (Fragrance)",
-      "Aqua (Water)",
-      "Premix",
-      "Glycerin",
-    ],
-    sizeOptions: [
-      { size: "30ml", price: 450 },
-      { size: "50ml", price: 550 },
-    ],
-    specifications: {
-      fragrance_family: "Amber",
-      concentration: "25% Perfume Oil",
-      longevity: "10+ hours",
-      sillage: "Very Strong",
-      launch_year: "2025",
-    },
-    fragranceNotes: {
-      top: ["Saffron", "Jasmine"],
-      heart: ["Amberwood", "Ambergris"],
-      base: ["Fir Resin", "Cedarwood", "Musk"],
-    },
-    layeringOptions: [
-      { id: 6, name: "Obsession", description: "Creates an intense, rich oriental masterpiece" },
-      { id: 8, name: "Havoc", description: "Adds freshness to the rich spicy character" },
-      { id: 4, name: "lavior", description: "Enhances the oriental character with herbal notes" },
-    ],
-  },
-]
+import Cart from "@/src/app/components/Cart"
+import { useCartStore } from "@/src/app/components/Cart"
+import { ProductInfo } from "@/src/data/product-info"
 
 export default function ProductDetailPage() {
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
-  const [selectedSize, setSelectedSize] = useState("30ml")
+  const [selectedSize, setSelectedSize] = useState("30")
   const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
   const [currentImage, setCurrentImage] = useState(0)
-  const [cart, setCart] = useState<CartItem[]>([])
-  const [isCartOpen, setIsCartOpen] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const [showFullDescription, setShowFullDescription] = useState(false)
   const [activeTab, setActiveTab] = useState("description")
   const [isFullscreenGallery, setIsFullscreenGallery] = useState(false)
+  const { addItem, setIsOpen } = useCartStore()
 
   // Find the current product based on the ID in the URL
   const productId = Number(params.id)
-  const product = perfumes.find((p) => p.id === productId) || perfumes[0]
+  const product = ProductInfo.allProductItems.find((p) => p.id === productId)
 
-  // Load cart from localStorage on component mount
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <p className="text-white text-xl">Product not found</p>
+      </div>
+    )
+  }
+
+  // Load wishlist from localStorage on component mount
   useEffect(() => {
     try {
-      const storedCart = localStorage.getItem("cart")
-      if (storedCart) {
-        setCart(JSON.parse(storedCart))
+      const storedWishlist = localStorage.getItem("wishlist")
+      if (storedWishlist) {
+        const wishlist = JSON.parse(storedWishlist)
+        setIsWishlisted(wishlist.includes(product.id))
       }
     } catch (error) {
-      console.error("Error loading cart:", error)
+      console.error("Error loading wishlist:", error)
     }
-  }, [])
+  }, [product.id])
 
   // Handle keyboard navigation in fullscreen gallery
   useEffect(() => {
@@ -556,51 +108,40 @@ export default function ProductDetailPage() {
   }, [isFullscreenGallery])
 
   const handleNextImage = () => {
-    setCurrentImage((prev) => (prev + 1) % product.images[selectedSize as "30ml" | "50ml"].length)
+    const images = product.images[selectedSize as "30" | "50"]
+    setCurrentImage((prev) => (prev + 1) % images.length)
   }
 
   const handlePrevImage = () => {
-    setCurrentImage((prev) => (prev - 1 + product.images[selectedSize as "30ml" | "50ml"].length) % product.images[selectedSize as "30ml" | "50ml"].length)
+    const images = product.images[selectedSize as "30" | "50"]
+    setCurrentImage((prev) => (prev - 1 + images.length) % images.length)
   }
 
-  const addToCart = () => {
+  const handleAddToCart = () => {
     try {
       setIsAnimating(true)
 
       setTimeout(() => {
-        // Check if item already exists in cart
-        const existingItemIndex = cart.findIndex((item) => item.id === product.id && item.size === selectedSize)
-        const currentPrice = selectedSize === "30ml" ? 350 : 450 // Fixed price values
+        const sizeOption = product.sizeOptions.find((s) => s.size === selectedSize)
+        const price = sizeOption ? sizeOption.price : product.price
 
-        let updatedCart
-        if (existingItemIndex >= 0) {
-          // Update quantity if item exists
-          updatedCart = [...cart]
-          updatedCart[existingItemIndex].quantity += quantity
-        } else {
-          // Add new item to cart
-          updatedCart = [
-            ...cart,
-            {
-              id: product.id,
-              name: product.name,
-              price: currentPrice,
-              image: product.images[selectedSize as "30ml" | "50ml"][0],
-              quantity: quantity,
-              size: selectedSize,
-              type: "single", // Add required type property
-            },
-          ]
-        }
-
-        setCart(updatedCart)
-        localStorage.setItem("cart", JSON.stringify(updatedCart))
+        addItem({
+          id: product.id,
+          name: product.name,
+          price: price,
+          image: product.images[selectedSize as "30" | "50"][0],
+          quantity: quantity,
+          size: selectedSize,
+          type: "single",
+          images: product.images
+        })
 
         toast({
           title: "Added to Cart",
-          description: `${quantity} × ${product.name} (${selectedSize}) has been added to your cart.`,
+          description: `${quantity} × ${product.name} (${selectedSize}ml) has been added to your cart.`,
         })
 
+        setIsOpen(true)
         setIsAnimating(false)
       }, 800)
     } catch (error) {
@@ -615,16 +156,36 @@ export default function ProductDetailPage() {
   }
 
   const handleBuyNow = () => {
-    addToCart()
+    handleAddToCart()
     router.push("/checkout")
   }
 
   const handleAddToWishlist = () => {
-    setIsWishlisted(!isWishlisted)
-    toast({
-      title: isWishlisted ? "Removed from Wishlist" : "Added to Wishlist",
-      description: `${product.name} has been ${isWishlisted ? "removed from" : "added to"} your wishlist.`,
-    })
+    try {
+      const storedWishlist = localStorage.getItem("wishlist")
+      let wishlist = storedWishlist ? JSON.parse(storedWishlist) : []
+
+      if (isWishlisted) {
+        wishlist = wishlist.filter((id: number) => id !== product.id)
+      } else {
+        wishlist.push(product.id)
+      }
+
+      localStorage.setItem("wishlist", JSON.stringify(wishlist))
+      setIsWishlisted(!isWishlisted)
+
+      toast({
+        title: isWishlisted ? "Removed from Wishlist" : "Added to Wishlist",
+        description: `${product.name} has been ${isWishlisted ? "removed from" : "added to"} your wishlist.`,
+      })
+    } catch (error) {
+      console.error("Error updating wishlist:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update wishlist. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   // Update the share function to include the current URL and handle more share methods
@@ -658,39 +219,16 @@ export default function ProductDetailPage() {
   }
 
   // Filter out the current product from recommendations
-  const recommendations = perfumes.filter((p) => p.id !== product.id).slice(0, 4)
+  const recommendations = ProductInfo.allProductItems.filter((p) => p.id !== product.id).slice(0, 4)
 
   // Image labels for better context
-  const imageLabels = ["Front View", "Side View", "Back View", "Lifestyle"]
+  const imageLabels = ["Front View", "Side View", "Back View", "Label"]
 
-  const calculateTotal = () => {
-    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  }
-
-  const updateQuantity = (id: number, size: string, newQuantity: number) => {
-    const updatedCart = cart.map((item) =>
-      item.id === id && item.size === size ? { ...item, quantity: newQuantity } : item
-    )
-    setCart(updatedCart)
-    localStorage.setItem("cart", JSON.stringify(updatedCart))
-  }
-
-  const removeFromCart = (id: number, size: string) => {
-    const updatedCart = cart.filter((item) => !(item.id === id && item.size === size))
-    setCart(updatedCart)
-    localStorage.setItem("cart", JSON.stringify(updatedCart))
-  }
-
-  const checkout = () => {
-    if (cart.length === 0) return
-    let message = "Hi, I would like to order the following items:\n\n"
-    cart.forEach((item) => {
-      message += `${item.quantity}x ${item.name} (${item.size}) - Rs. ${item.price * item.quantity}\n`
-    })
-    message += `\nTotal: Rs. ${calculateTotal()}`
-    const encodedMessage = encodeURIComponent(message)
-    window.location.href = `https://wa.me/919328701508?text=${encodedMessage}`
-  }
+  // Compute images for the selected size (3 bottle images + 1 label image)
+  const imagesForSelectedSize = [
+    ...product.images[selectedSize as "30" | "50"],
+    product.images.label
+  ]
 
   return (
     <motion.div
@@ -699,7 +237,7 @@ export default function ProductDetailPage() {
       transition={{ duration: 0.5 }}
       className="min-h-screen bg-black"
     >
-      <SimpleNavbar setIsCartOpen={setIsCartOpen} cartItemsCount={cart.reduce((sum, item) => sum + item.quantity, 0)} />
+      <SimpleNavbar />
 
       {/* Update container max width and padding */}
       <div className="max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12 lg:py-16">
@@ -745,10 +283,10 @@ export default function ProductDetailPage() {
                 onClick={() => setIsFullscreenGallery(true)}
               >
                 <Image
-                  src={product.images[selectedSize as "30ml" | "50ml"][currentImage]}
+                  src={imagesForSelectedSize[currentImage]}
                   alt={`${product.name} ${selectedSize} - ${imageLabels[currentImage]}`}
                   fill
-                  className="object-cover w-full h-full" // Changed from object-contain to object-cover
+                  className="object-cover w-full h-full"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 40vw"
                   priority
                 />
@@ -866,7 +404,7 @@ export default function ProductDetailPage() {
 
               {/* Thumbnail Grid - Updated spacing */}
               <div className="grid grid-cols-4 gap-4 px-1">
-                {product.images[selectedSize as "30ml" | "50ml"].map((image, index) => (
+                {imagesForSelectedSize.map((image, index) => (
                   <motion.button
                     key={`${selectedSize}-thumb-${index}`}
                     className={`relative aspect-square rounded-lg overflow-hidden transition-all duration-300 ${
@@ -955,42 +493,33 @@ export default function ProductDetailPage() {
                   </span>
                 </div>
                 <div className="text-3xl font-bold mb-2 text-white">
-                  ₹{selectedSize === "30ml" ? "350" : "450"}
+                  ₹{selectedSize === "30" ? "350" : "450"}
                 </div>
               </motion.div>
 
-              {/* Size Selection for Desktop */}
-              <div className="hidden lg:block mb-8">
-                <motion.h3
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
-                  className="text-sm font-medium mb-3 text-gray-200 uppercase tracking-wider"
-                >
+              {/* Size Selection - Always Buttons, Responsive */}
+              <div className="mb-8">
+                <h3 className="text-sm font-medium mb-3 text-gray-200 uppercase tracking-wider">
                   Select Size
-                </motion.h3>
-                <div className="flex gap-4">
+                </h3>
+                <div className="flex gap-4 flex-col xs:flex-row sm:flex-row">
                   {product.sizeOptions.map((option, index) => (
-                    <motion.button
+                    <button
                       key={option.size}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.9 + index * 0.1 }}
                       onClick={() => {
                         setSelectedSize(option.size)
-                        setCurrentImage(0) // Reset to first image when changing size
+                        setCurrentImage(0)
                       }}
-                      className={`flex-1 py-4 rounded-xl border transition-all duration-300 ${
+                      className={`flex-1 py-3 rounded-xl border transition-all duration-300 text-base font-bold ${
                         selectedSize === option.size
-                          ? "border-white bg-white/10 text-white font-bold"
+                          ? "border-white bg-white/10 text-white"
                           : "border-gray-600 text-gray-300 hover:border-gray-400"
                       }`}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
+                      style={{ minWidth: 100 }}
                     >
-                      <div className="font-bold text-xl">{option.size}</div>
-                      <div className="text-sm">₹{option.price}</div>
-                    </motion.button>
+                      <div>{option.size}</div>
+                      <div className="text-sm font-normal">₹{option.price}</div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -1016,8 +545,8 @@ export default function ProductDetailPage() {
                         {noteType === "top" ? "Top Notes" : noteType === "heart" ? "Heart Notes" : "Base Notes"}
                       </h4>
                       <ul className="space-y-1">
-                        {product.fragranceNotes[noteType as keyof typeof product.fragranceNotes].map(
-                          (note, noteIndex) => (
+                        {product.notes[noteType as keyof typeof product.notes].map(
+                          (note: string, noteIndex: number) => (
                             <motion.li
                               key={noteIndex}
                               initial={{ opacity: 0, x: -10 }}
@@ -1140,7 +669,7 @@ export default function ProductDetailPage() {
                 {/* Updated Cart and Buy Now Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 mb-8 px-4">
                   <motion.button
-                    onClick={addToCart}
+                    onClick={handleAddToCart}
                     className="flex-1 py-4 px-6 rounded-xl flex items-center justify-center font-medium text-black bg-white hover:bg-gray-200 relative overflow-hidden transition-colors"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -1565,7 +1094,7 @@ export default function ProductDetailPage() {
                 {/* Image Container - Update sizing */}
                 <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-white/10 backdrop-blur-md border border-white/20">
                   <Image
-                    src={perfume.images["30ml"][0]}
+                    src={perfume.images["30"][0]}
                     alt={perfume.name}
                     fill
                     className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-300"
@@ -1609,7 +1138,6 @@ export default function ProductDetailPage() {
       <AnimatePresence>
         {isFullscreenGallery && (
           <motion.div
-
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1627,7 +1155,7 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
-              {product.images[selectedSize as "30ml" | "50ml"].map((_, index) => (
+              {imagesForSelectedSize.map((_, index) => (
                 <motion.button
                   key={index}
                   onClick={() => setCurrentImage(index)}
@@ -1665,7 +1193,7 @@ export default function ProductDetailPage() {
             <div className="flex flex-col items-center max-w-[90vw] max-h-[90vh]">
               <div className="relative w-full h-full">
                 <Image
-                  src={product.images[selectedSize as "30ml" | "50ml"][currentImage]}
+                  src={imagesForSelectedSize[currentImage]}
                   alt={`${product.name} ${selectedSize} - ${imageLabels[currentImage]}`}
                   width={1200}
                   height={1200}
@@ -1678,15 +1206,7 @@ export default function ProductDetailPage() {
         )}
       </AnimatePresence>
 
-      <Cart
-        isOpen={isCartOpen}
-        setIsOpen={setIsCartOpen}
-        cart={cart}
-        total={calculateTotal()}
-        updateQuantity={updateQuantity}
-        removeFromCart={removeFromCart}
-        checkout={checkout}
-      />
+      <Cart />
 
       <Footer />
     </motion.div>

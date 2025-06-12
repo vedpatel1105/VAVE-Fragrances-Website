@@ -2,23 +2,20 @@
 "use client"
 
 import SimpleNavbar from "@/src/app/components/SimpleNavbar"
+import { ProductInfo } from "@/src/data/product-info"
 import Image from "next/image"
 
 export default function About() {
   return (
     <>
-      <SimpleNavbar
-        setIsCartOpen={(isOpen: boolean) => {
-          /* handle cart open state */
-        }}
-      />
+      <SimpleNavbar />
       <div className="min-h-screen bg-background pt-20">
         <div className="container mx-auto px-4 py-12">
           <h1 className="text-4xl font-bold mb-8 font-serif text-center">About Us</h1>
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="md:w-1/2">
               <Image
-                src="https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/vave_about.png"
+                src={`${ProductInfo.baseUrl}/about/about.webp`}
                 alt="Perfume creation process"
                 width={600}
                 height={400}

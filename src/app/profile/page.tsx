@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import dynamic from "next/dynamic"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -11,7 +12,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import SimpleNavbar from "@/src/app/components/SimpleNavbar"
 import Footer from "@/src/app/components/Footer"
 import {
   User,
@@ -28,89 +28,173 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react"
+import { profileService, type UserProfile, type Address, type UserOrder, type OrderItem } from "@/src/lib/profileService"
+import { useToast } from "@/components/ui/use-toast"
+import { AddAddressModal } from "@/src/app/components/AddAddressModal"
+import { createAvatar } from '@dicebear/core';
+import { initials } from '@dicebear/collection';
+
+interface ExtendedUserProfile extends UserProfile {
+  avatarUrl?: string;
+}
+
+const SimpleNavbar = dynamic(() => import("@/src/app/components/SimpleNavbar"), { ssr: false })
+const Cart = dynamic(() => import("@/src/app/components/Cart"), { ssr: false })
 
 export default function Profile() {
-  const [profile, setProfile] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "+91 9876543210",
-    avatar: "/avatar-placeholder.jpg",
-    addresses: [
-      {
-        id: 1,
-        type: "Home",
-        address: "123 Main Street, Apartment 4B",
-        city: "Mumbai",
-        state: "Maharashtra",
-        pincode: "400001",
-        isDefault: true,
-      },
-      {
-        id: 2,
-        type: "Office",
-        address: "456 Business Park, Building C",
-        city: "Mumbai",
-        state: "Maharashtra",
-        pincode: "400051",
-        isDefault: false,
-      },
-    ],
+  const { toast } = useToast()
+  const [isLoading, setIsLoading] = useState(false)
+  const [profile, setProfile] = useState<ExtendedUserProfile>({
+    id: "",
+    full_name: "",
+    email: "",
+    phone: "",
+    is_active: true,
+    avatarUrl: ""
   })
 
+  const [addresses, setAddresses] = useState<Address[]>([])
+  const [orders, setOrders] = useState<UserOrder[]>([])
   const [cart, setCart] = useState<any[]>([])
   const [wishlist, setWishlist] = useState<any[]>([])
-  const [orders, setOrders] = useState([
-    {
-      id: "ORD123456",
-      date: "2023-10-15",
-      status: "Delivered",
-      items: [
-        { id: 1, name: "Havoc", size: "50ml", price: 550, quantity: 1 },
-        { id: 3, name: "Duskfall", size: "30ml", price: 350, quantity: 1 },
-      ],
-      total: 900,
-      shippingAddress: "123 Main Street, Apartment 4B, Mumbai, Maharashtra, 400001",
-      paymentMethod: "Credit Card",
-    },
-    {
-      id: "ORD123457",
-      date: "2023-11-02",
-      status: "Processing",
-      items: [{ id: 2, name: "Lavior", size: "50ml", price: 550, quantity: 1 }],
-      total: 550,
-      shippingAddress: "123 Main Street, Apartment 4B, Mumbai, Maharashtra, 400001",
-      paymentMethod: "UPI",
-    },
-  ])
   const [isCartOpen, setIsCartOpen] = useState(false)
 
-  // Load cart and wishlist from localStorage on component mount
+  // Generate avatar URL when email changes
   useEffect(() => {
-    try {
-      const storedCart = localStorage.getItem("cart")
-      if (storedCart) {
-        setCart(JSON.parse(storedCart))
+    const generateAvatar = async () => {
+      if (profile.email) {
+        const avatar = createAvatar(initials, {
+          seed: profile.email,
+          backgroundColor: ["b6e3f4", "c0aede", "d1d4f9"],
+          radius: 50
+        });
+        const svg = await avatar.toDataUri();
+        setProfile(prev => ({ ...prev, avatarUrl: svg }));
       }
+    };
+    generateAvatar();
+  }, [profile.email]);
 
-      const storedWishlist = localStorage.getItem("wishlist")
-      if (storedWishlist) {
-        setWishlist(JSON.parse(storedWishlist))
+  // Load profile data
+  useEffect(() => {
+    const loadProfileData = async () => {
+      setIsLoading(true)
+      try {
+        const profileData = await profileService.getProfile()
+        setProfile(profileData)
+        
+        const addressesData = await profileService.getAddresses()
+        setAddresses(addressesData.filter(addr => addr !== null))
+        
+        const ordersData = await profileService.getOrders()
+        setOrders(ordersData)
+      } catch (error) {
+        console.error("Error loading profile data:", error)
+        toast({
+          title: "Error Loading Profile",
+          description: "Unable to load your profile information. Please try again later.",
+          variant: "destructive",
+          duration: 5000
+        })
+      } finally {
+        setIsLoading(false)
       }
-    } catch (error) {
-      console.error("Error loading cart/wishlist:", error)
     }
+
+    loadProfileData()
   }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setProfile((prev) => ({ ...prev, [name]: value }))
+    setProfile((prev: ExtendedUserProfile) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Here you would typically send the updated profile to an API
-    console.log("Updated profile:", profile)
-    alert("Profile updated successfully!")
+    try {
+      const updatedProfile = await profileService.updateProfile({
+        full_name: profile.full_name,
+        phone: profile.phone
+      })
+      setProfile(updatedProfile)
+      toast({
+        title: "Success",
+        description: "Profile updated successfully"
+      })
+    } catch (error) {
+      console.error("Error updating profile:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const handleAddAddress = async (address: Omit<Address, 'id' | 'created_at'>) => {
+    setIsLoading(true)
+    try {
+      // If new address is default, update all other addresses to non-default
+      if (address.is_default) {
+        await Promise.all(
+          addresses
+            .filter(addr => addr)
+            .map(addr => 
+              profileService.updateAddress(addr.id, { is_default: false })
+            )
+        )
+      }
+      const newAddress = await profileService.addAddress(address)
+      // Reload all addresses to ensure consistency
+      const updatedAddresses = await profileService.getAddresses()
+      setAddresses(updatedAddresses.filter(addr => addr !== null))
+      toast({
+        title: "Success",
+        description: "Address added successfully"
+      })
+    } catch (error) {
+      console.error("Error adding address:", error)
+      toast({
+        title: "Error",
+        description: "Failed to add address",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleUpdateAddress = async (id: string, updates: Partial<Omit<Address, 'id' | 'user_id' | 'created_at'>>) => {
+    setIsLoading(true)
+    try {
+      // If setting as default, update all other addresses to non-default
+      if (updates.is_default) {
+        await Promise.all(
+          addresses
+            .filter(addr => addr && addr.id !== id)
+            .map(addr => 
+              profileService.updateAddress(addr.id, { is_default: false })
+            )
+        )
+      }
+      await profileService.updateAddress(id, updates)
+      // Reload all addresses to ensure consistency
+      const updatedAddresses = await profileService.getAddresses()
+      setAddresses(updatedAddresses.filter(addr => addr !== null))
+      toast({
+        title: "Success",
+        description: "Address updated successfully"
+      })
+    } catch (error) {
+      console.error("Error updating address:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update address",
+        variant: "destructive"
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const getOrderStatusColor = (status: string) => {
@@ -145,7 +229,7 @@ export default function Profile() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <SimpleNavbar setIsCartOpen={setIsCartOpen} cartItemsCount={cart.reduce((sum, item) => sum + item.quantity, 0)} />
+      <SimpleNavbar />
 
       <div className="container mx-auto px-4 py-24">
         <div className="flex flex-col md:flex-row gap-8">
@@ -155,10 +239,10 @@ export default function Profile() {
               <CardContent className="p-6">
                 <div className="flex flex-col items-center">
                   <Avatar className="h-20 w-20 mb-4">
-                    <AvatarImage src={profile.avatar || "/placeholder.svg"} alt={profile.name} />
-                    <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={profile.avatarUrl} alt={profile.full_name} />
+                    <AvatarFallback>{profile.full_name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <h2 className="text-xl font-bold">{profile.name}</h2>
+                  <h2 className="text-xl font-bold">{profile.full_name}</h2>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{profile.email}</p>
                 </div>
 
@@ -205,28 +289,46 @@ export default function Profile() {
                 <CardTitle className="text-sm font-medium">Shipping Addresses</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {profile.addresses.map((address) => (
-                  <div key={address.id} className="text-sm">
-                    <div className="flex justify-between items-start mb-1">
-                      <div className="font-medium">{address.type}</div>
-                      {address.isDefault && (
-                        <Badge variant="outline" className="text-xs">
-                          Default
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-gray-500 dark:text-gray-400">
-                      {address.address}, {address.city}, {address.state}, {address.pincode}
-                    </p>
-                    <Button variant="ghost" size="sm" className="mt-1 h-7 px-2 text-xs">
-                      <Edit className="h-3 w-3 mr-1" />
-                      Edit
-                    </Button>
+                {isLoading ? (
+                  <div className="flex justify-center items-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
                   </div>
-                ))}
-                <Button variant="outline" size="sm" className="w-full mt-2">
-                  + Add New Address
-                </Button>
+                ) : (
+                  <>
+                    {addresses.length > 0 ? (
+                      addresses.map((address) => (
+                        <div key={address.id} className="text-sm">
+                          <div className="flex justify-between items-start mb-1">
+                            <div className="font-medium">{address.type}</div>
+                            {address.is_default && (
+                              <Badge variant="outline" className="text-xs">
+                                Default
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-gray-500 dark:text-gray-400">
+                            {address.address}, {address.city}, {address.state}, {address.pincode}
+                          </p>
+                          <AddAddressModal 
+                            onAddAddress={handleAddAddress} 
+                            onUpdateAddress={handleUpdateAddress}
+                            userId={profile.id}
+                            editAddress={address}
+                            isEdit={true}
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                        No addresses found. Add your first address below.
+                      </p>
+                    )}
+                    <AddAddressModal 
+                      onAddAddress={handleAddAddress} 
+                      userId={profile.id}
+                    />
+                  </>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -251,8 +353,13 @@ export default function Profile() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <Label htmlFor="name">Full Name</Label>
-                          <Input id="name" name="name" value={profile.name} onChange={handleInputChange} />
+                          <Label htmlFor="full_name">Full Name</Label>
+                          <Input
+                            id="full_name"
+                            name="full_name"
+                            value={profile.full_name}
+                            onChange={handleInputChange}
+                          />
                         </div>
                         <div>
                           <Label htmlFor="email">Email</Label>
@@ -261,24 +368,19 @@ export default function Profile() {
                             name="email"
                             type="email"
                             value={profile.email}
-                            onChange={handleInputChange}
+                            disabled
+                            className="bg-gray-100 text-black"
+                            readOnly
                           />
                         </div>
                         <div>
                           <Label htmlFor="phone">Phone Number</Label>
-                          <Input id="phone" name="phone" value={profile.phone} onChange={handleInputChange} />
-                        </div>
-                        <div>
-                          <Label htmlFor="avatar">Profile Picture</Label>
-                          <div className="flex items-center mt-2">
-                            <Avatar className="h-12 w-12 mr-4">
-                              <AvatarImage src={profile.avatar || "/placeholder.svg"} alt={profile.name} />
-                              <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <Button variant="outline" size="sm">
-                              Change
-                            </Button>
-                          </div>
+                          <Input
+                            id="phone"
+                            name="phone"
+                            value={profile.phone}
+                            onChange={handleInputChange}
+                          />
                         </div>
                       </div>
                       <Button type="submit">Update Profile</Button>
@@ -298,10 +400,16 @@ export default function Profile() {
                         <div>
                           <h4 className="font-medium">Default Shipping Address</h4>
                           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            {profile.addresses.find((a) => a.isDefault)?.address},
-                            {profile.addresses.find((a) => a.isDefault)?.city},
-                            {profile.addresses.find((a) => a.isDefault)?.state},
-                            {profile.addresses.find((a) => a.isDefault)?.pincode}
+                            {addresses.find((a) => a && a.is_default) ? (
+                              <>
+                                {addresses.find((a) => a && a.is_default)?.address},
+                                {addresses.find((a) => a && a.is_default)?.city},
+                                {addresses.find((a) => a && a.is_default)?.state},
+                                {addresses.find((a) => a && a.is_default)?.pincode}
+                              </>
+                            ) : (
+                              "No default address set"
+                            )}
                           </p>
                         </div>
                       </div>
@@ -339,7 +447,7 @@ export default function Profile() {
                               <div>
                                 <div className="font-medium">Order #{order.id}</div>
                                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                                  Placed on {new Date(order.date).toLocaleDateString()}
+                                  Placed on {new Date(order.created_at).toLocaleDateString()}
                                 </div>
                               </div>
                               <div className="flex items-center gap-4">
@@ -354,7 +462,7 @@ export default function Profile() {
                             </div>
                             <div className="p-4">
                               <div className="space-y-4">
-                                {order.items.map((item) => (
+                                {order.items.map((item: OrderItem) => (
                                   <div key={item.id} className="flex items-center gap-4">
                                     <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center">
                                       <ShoppingBag className="h-6 w-6 text-gray-500 dark:text-gray-400" />

@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/components/ui/use-toast"
+import { supabase } from "@/src/lib/supabaseClient"
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -30,20 +31,21 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      // In a real app, this would be an API call to authenticate
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: emailForm.email,
+        password: emailForm.password,
+      })
 
-      // Simulate successful login
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: "user123",
-          name: "John Doe",
-          email: emailForm.email,
-          phone: "+91 9876543210",
-          isLoggedIn: true,
-        }),
-      )
+      if (error) throw error
+
+      // Get user profile from users table
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', data.user.id)
+        .single()
+
+      if (profileError) throw profileError
 
       toast({
         title: "Login Successful",
@@ -51,86 +53,10 @@ export default function LoginPage() {
       })
 
       router.push("/profile")
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Handle phone login - send OTP
-  const handleSendOTP = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    try {
-      // In a real app, this would be an API call to send OTP
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      setOtpSent(true)
-      setCountdown(30)
-
-      // Start countdown
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer)
-            return 0
-          }
-          return prev - 1
-        })
-      }, 1000)
-
-      toast({
-        title: "OTP Sent",
-        description: `A verification code has been sent to ${phoneForm.phone}`,
-      })
-    } catch (error) {
-      toast({
-        title: "Failed to Send OTP",
-        description: "Please check your phone number and try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Handle phone login - verify OTP
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    try {
-      // In a real app, this would be an API call to verify OTP
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Simulate successful login
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: "user123",
-          name: "John Doe",
-          email: "john.doe@example.com",
-          phone: phoneForm.phone,
-          isLoggedIn: true,
-        }),
-      )
-
-      toast({
-        title: "Login Successful",
-        description: "Welcome back to Vave Fragrances!",
-      })
-
-      router.push("/profile")
-    } catch (error) {
-      toast({
-        title: "Verification Failed",
-        description: "Invalid OTP. Please try again.",
+        description: error.message || "Invalid email or password. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -143,34 +69,22 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      // In a real app, this would redirect to Google OAuth
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Simulate successful login
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: "user123",
-          name: "John Doe",
-          email: "john.doe@gmail.com",
-          phone: "+91 9876543210",
-          isLoggedIn: true,
-        }),
-      )
-
-      toast({
-        title: "Login Successful",
-        description: "Welcome back to Vave Fragrances!",
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
       })
 
-      router.push("/profile")
-    } catch (error) {
+      if (error) throw error
+
+      // The redirect will happen automatically
+    } catch (error: any) {
       toast({
         title: "Login Failed",
-        description: "Failed to login with Google. Please try again.",
+        description: error.message || "Failed to login with Google. Please try again.",
         variant: "destructive",
       })
-    } finally {
       setIsLoading(false)
     }
   }
@@ -190,10 +104,6 @@ export default function LoginPage() {
           </div>
 
           <Tabs defaultValue="email">
-            <TabsList className="grid grid-cols-2 mb-6">
-              <TabsTrigger value="email">Email</TabsTrigger>
-              <TabsTrigger value="phone">Phone</TabsTrigger>
-            </TabsList>
 
             <TabsContent value="email">
               <form onSubmit={handleEmailLogin} className="space-y-4">
@@ -270,118 +180,6 @@ export default function LoginPage() {
                   )}
                 </Button>
               </form>
-            </TabsContent>
-
-            <TabsContent value="phone">
-              {!otpSent ? (
-                <form onSubmit={handleSendOTP} className="space-y-4">
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <Input
-                      type="tel"
-                      placeholder="Phone number"
-                      className="pl-10"
-                      value={phoneForm.phone}
-                      onChange={(e) => setPhoneForm({ ...phoneForm, phone: e.target.value })}
-                      required
-                    />
-                  </div>
-
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? (
-                      <span className="flex items-center">
-                        <svg
-                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Sending OTP...
-                      </span>
-                    ) : (
-                      <span>Send OTP</span>
-                    )}
-                  </Button>
-                </form>
-              ) : (
-                <form onSubmit={handleVerifyOTP} className="space-y-4">
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                      Enter the OTP sent to {phoneForm.phone}
-                    </p>
-                    <Input
-                      type="text"
-                      placeholder="Enter OTP"
-                      value={phoneForm.otp}
-                      onChange={(e) => setPhoneForm({ ...phoneForm, otp: e.target.value })}
-                      required
-                      maxLength={6}
-                      className="text-center text-lg tracking-widest"
-                    />
-                    <div className="flex justify-between mt-2">
-                      <button
-                        type="button"
-                        className="text-sm text-accent hover:underline"
-                        onClick={() => setOtpSent(false)}
-                      >
-                        Change number
-                      </button>
-                      <button
-                        type="button"
-                        className="text-sm text-accent hover:underline"
-                        onClick={handleSendOTP}
-                        disabled={countdown > 0 || isLoading}
-                      >
-                        {countdown > 0 ? `Resend in ${countdown}s` : "Resend OTP"}
-                      </button>
-                    </div>
-                  </div>
-
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? (
-                      <span className="flex items-center">
-                        <svg
-                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Verifying...
-                      </span>
-                    ) : (
-                      <span>Verify & Sign in</span>
-                    )}
-                  </Button>
-                </form>
-              )}
             </TabsContent>
           </Tabs>
 

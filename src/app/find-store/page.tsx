@@ -12,7 +12,7 @@ export default function FindStorePage() {
 
   return (
     <main className="flex flex-col min-h-screen bg-background">
-      <SimpleNavbar setIsCartOpen={setIsCartOpen} />
+      <SimpleNavbar  />
 
       <div className="pt-24 pb-8 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
         <div className="container mx-auto">

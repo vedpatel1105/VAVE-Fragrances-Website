@@ -24,37 +24,65 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useToast } from "@/components/ui/use-toast"
+import { adminService } from "@/src/lib/adminService"
+import { supabase } from "@/src/lib/supabaseClient"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const { toast } = useToast()
   const [mounted, setMounted] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     setMounted(true)
 
-    // Check if user is authenticated
-    const isAuthenticated = localStorage.getItem("adminAuth") === "true"
-    if (!isAuthenticated && pathname !== "/admin") {
-      router.push("/admin")
+    // Check if user is admin
+    const checkAdmin = async () => {
+      try {
+        const adminStatus = await adminService.isAdmin()
+        setIsAdmin(adminStatus)
+        if (!adminStatus && pathname !== "/admin") {
+          router.push('/admin')
+          toast({
+            title: "Access Denied",
+            description: "You don't have permission to access this page",
+            variant: "destructive"
+          })
+        }
+      } catch (error) {
+        console.error('Error checking admin status:', error)
+        router.push('/admin')
+      } finally {
+        setIsLoading(false)
+      }
     }
+
+    checkAdmin()
   }, [pathname, router])
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminAuth")
-    localStorage.removeItem("adminEmail")
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out",
-    })
-    router.push("/admin")
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut()
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      })
+      router.push("/admin")
+    } catch (error) {
+      console.error('Logout error:', error)
+      toast({
+        title: "Error",
+        description: "Failed to logout",
+        variant: "destructive"
+      })
+    }
   }
 
   const navItems = [
-    { href: "/admin/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
-    { href: "/admin/products", label: "Products", icon: <Package className="h-5 w-5" /> },
     { href: "/admin/orders", label: "Orders", icon: <ShoppingBag className="h-5 w-5" /> },
+    { href: "/admin/products", label: "Products", icon: <Package className="h-5 w-5" /> },
     { href: "/admin/customers", label: "Customers", icon: <Users className="h-5 w-5" /> },
     { href: "/admin/inventory", label: "Inventory", icon: <Package className="h-5 w-5" /> },
     { href: "/admin/shipping", label: "Shipping", icon: <Truck className="h-5 w-5" /> },
@@ -88,7 +116,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <SheetContent side="left" className="w-[240px] p-0">
               <div className="h-full flex flex-col">
                 <div className="h-16 flex items-center justify-center border-b border-gray-200 dark:border-gray-700">
-                  <Link href="/admin/dashboard" className="text-xl font-bold">
+                  <Link href="/admin/orders" className="text-xl font-bold">
                     VAVE Admin
                   </Link>
                 </div>
@@ -141,7 +169,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="fixed top-0 left-0 z-40 h-screen hidden lg:block w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
         <div className="h-full flex flex-col">
           <div className="h-16 flex items-center justify-center border-b border-gray-200 dark:border-gray-700">
-            <Link href="/admin/dashboard" className="text-xl font-bold">
+            <Link href="/admin/orders" className="text-xl font-bold">
               VAVE Admin
             </Link>
           </div>

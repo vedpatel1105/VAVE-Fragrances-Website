@@ -189,7 +189,7 @@ export default function BestsellersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <SimpleNavbar setIsCartOpen={setIsCartOpen} cartItemsCount={cart.length} />
+      <SimpleNavbar cartItemsCount={cart.length} />
 
       <main className="container mx-auto px-4 py-24">
         <div className="flex items-center text-sm text-gray-500 mb-8">
