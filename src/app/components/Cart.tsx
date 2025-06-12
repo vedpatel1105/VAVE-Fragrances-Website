@@ -25,6 +25,11 @@ export interface CartItem {
   size: string
   type?: string
   fragrances?: string[]
+  images?: {
+    "30": string[]
+    "50": string[]
+    label: string
+  }
 }
 
 interface CartState {
@@ -83,7 +88,8 @@ export const useCartStore = create<CartState>()(
         return get().items.reduce(
           (total: number, item: { price: number; quantity: number }) => total + item.price * item.quantity,
           0
-        ) + (get().getTotalItems() >= 1000 ? 0 : 99) // Add shipping cost if applicable
+        )
+
       }
     }),
     {
@@ -170,7 +176,7 @@ export default function Cart() {
       // Place COD order
       const order = await orderService.placeOrder({
         items,
-        total: getTotalPrice(),
+        total: grandTotal,
         shipping_address: formattedAddress,
         payment_method: 'COD',
         status: "pending"
@@ -228,7 +234,7 @@ export default function Cart() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/50 z-[9999]"
+            className="fixed inset-0 bg-black/50 z-[9998]"
             onClick={() => setIsOpen(false)}
           />
 
@@ -276,7 +282,12 @@ export default function Cart() {
                     className="flex items-center space-x-4 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg"
                   >
                     <div className="relative w-16 h-16 rounded-md overflow-hidden flex-shrink-0">
-                      <Image src={item.image || "/placeholder.svg"} alt={item.name} fill className="object-cover" />
+                      <Image 
+                        src={item.images ? item.images[item.size as "30" | "50"][0] : item.image || "/placeholder.svg"} 
+                        alt={item.name} 
+                        fill 
+                        className="object-contain" 
+                      />
                     </div>
                     <div className="flex-1">
                       <h3 className="font-medium text-gray-900 dark:text-white">{item.name}</h3>
@@ -379,7 +390,7 @@ export default function Cart() {
 
           {/* Authentication Modal */}
           <Dialog open={showAuthModal} onOpenChange={setShowAuthModal}>
-            <DialogContent>
+            <DialogContent className="z-[10000]">
               <DialogHeader>
                 <DialogTitle>Authentication Required</DialogTitle>
                 <DialogDescription>
@@ -402,7 +413,7 @@ export default function Cart() {
 
           {/* Incomplete Order Modal */}
           <Dialog open={showIncompleteOrderModal} onOpenChange={setShowIncompleteOrderModal}>
-            <DialogContent>
+            <DialogContent className="z-[10000]">
               <DialogHeader>
                 <DialogTitle>Cannot Place Order</DialogTitle>
                 <DialogDescription>
@@ -419,7 +430,7 @@ export default function Cart() {
 
           {/* Address Modal */}
           <Dialog open={showAddressModal} onOpenChange={setShowAddressModal}>
-            <DialogContent>
+            <DialogContent className="z-[10000]">
               <DialogHeader>
                 <DialogTitle>No Address Found</DialogTitle>
                 <DialogDescription>
@@ -442,7 +453,7 @@ export default function Cart() {
 
           {/* Success Modal */}
           <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[500px] z-[10000]">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 text-green-600">
                   <CheckCircle2 className="h-6 w-6" />

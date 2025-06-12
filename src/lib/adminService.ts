@@ -9,13 +9,13 @@ export interface User {
 
 export const adminService = {
   async getCurrentUserRole(): Promise<'user' | 'admin'> {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) throw new Error('Not authenticated')
 
     const { data, error } = await supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .single()
 
     if (error) throw error
@@ -24,14 +24,30 @@ export const adminService = {
 
   async isAdmin(): Promise<boolean> {
     try {
-      const role = await this.getCurrentUserRole()
-      return role === 'admin'
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) return false
+
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .single()
+
+      if (error) return false
+      return data.role === 'admin'
     } catch (error) {
       return false
     }
   },
 
   async getAllUsers(): Promise<User[]> {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) throw new Error('Not authenticated')
+
+    // Verify admin status
+    const isAdmin = await this.isAdmin()
+    if (!isAdmin) throw new Error('Not authorized')
+
     const { data: roles, error: rolesError } = await supabase
       .from('user_roles')
       .select('user_id, role, created_at')
@@ -57,6 +73,9 @@ export const adminService = {
   },
 
   async setUserAsAdmin(userId: string): Promise<void> {
+    const isAdmin = await this.isAdmin()
+    if (!isAdmin) throw new Error('Not authorized')
+
     const { error } = await supabase
       .rpc('set_user_as_admin', { user_id: userId })
 
@@ -64,6 +83,9 @@ export const adminService = {
   },
 
   async removeAdminRole(userId: string): Promise<void> {
+    const isAdmin = await this.isAdmin()
+    if (!isAdmin) throw new Error('Not authorized')
+
     const { error } = await supabase
       .rpc('remove_admin_role', { user_id: userId })
 

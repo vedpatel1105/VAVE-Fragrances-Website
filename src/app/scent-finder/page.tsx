@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react"
+import { useState, useEffect } from "react"
 import SimpleNavbar from "@/src/app/components/SimpleNavbar"
 import Footer from "@/src/app/components/Footer"
 import { Button } from "@/components/ui/button"
@@ -10,185 +10,8 @@ import Image from "next/image"
 import { useToast } from "@/components/ui/use-toast"
 import { motion, AnimatePresence } from "framer-motion"
 import Cart from "@/src/app/components/Cart"
-
-const allProducts = [
-  {
-    id: 1,
-    name: "Oceane",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/oceane.jpg",
-    description: "Fresh, aquatic and energetic",
-    style: "Fresh",
-    occasion: "Daily",
-    intensity: "Light",
-    category: "Fresh Aquatic",
-    personality: "Energetic",
-    weather: "Summer",
-    notes: {
-      top: ["Green Apple", "Bergamot", "Lemon Zest"],
-      heart: ["Lavender", "Marine Accord", "Clary Sage"],
-      base: ["Vetiver", "Tonka Bean", "Musk"],
-    },
-    sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    noteTypes: ["aquatic", "fresh", "citrus", "lavender", "musky", "fruity"],
-  },
-  {
-    id: 2,
-    name: "Euphoria",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/euphoria.jpg",
-    description: "Floral, romantic and feminine",
-    style: "Floral",
-    occasion: "Evening",
-    intensity: "Moderate",
-    category: "Floral",
-    personality: "Romantic",
-    weather: "Spring",
-    notes: {
-      top: ["Pear", "Mandarin Orange", "Peony"],
-      heart: ["Osmanthus", "Rose", "Magnolia"],
-      base: ["Sandalwood", "Patchouli", "Vanilla"],
-    },
-    sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    noteTypes: ["floral", "sweet", "vanilla", "fruity", "woody"],
-  },
-  {
-    id: 3,
-    name: "Havoc",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/havoc30.jpg",
-    description: "Woody, aromatic and masculine",
-    style: "Woody",
-    occasion: "Daily",
-    intensity: "Strong",
-    category: "Woody Aromatic",
-    personality: "Confident",
-    weather: "All-season",
-    notes: {
-      top: ["Bitter Orange", "Green Apple", "Cardamom"],
-      heart: ["Tea Leaf", "Nutmeg", "Geranium"],
-      base: ["Cedarwood", "Vetiver", "Musk"],
-    },
-    sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    noteTypes: ["woody", "cardamom", "musky", "strong", "ice tea", "citrus", "attraction grabber"],
-  },
-  {
-    id: 4,
-    name: "Duskfall",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/duskfall.jpg",
-    description: "Citrus amber sophistication",
-    style: "Citrus",
-    occasion: "Evening",
-    intensity: "Moderate",
-    category: "Citrus Amber",
-    personality: "Sophisticated",
-    weather: "Fall",
-    notes: {
-      top: ["Sicilian Orange", "Ginger", "Citron"],
-      heart: ["Neroli", "Black Tea", "Ambrox"],
-      base: ["Olibanum", "Guaiac Wood", "Ambergris"],
-    },
-    sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    noteTypes: ["citrus", "woody", "ice tea", "attraction grabber"],
-  },
-  {
-    id: 5,
-    name: "Velora",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/velora.jpg",
-    description: "Gourmand warmth seduction",
-    style: "Gourmand",
-    occasion: "Special",
-    intensity: "Strong",
-    category: "Gourmand",
-    personality: "Seductive",
-    weather: "Winter",
-    notes: {
-      top: ["Pink Pepper", "Orange Blossom", "Pear"],
-      heart: ["Coffee", "Jasmine", "Almond"],
-      base: ["Vanilla", "Patchouli", "Cedarwood"],
-    },
-    sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    noteTypes: ["coffee", "vanilla", "sweet", "woody", "heavy", "attraction grabber"],
-  },
-  {
-    id: 6,
-    name: "Obsession",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/obsession.jpg",
-    description: "Spicy intensity addiction",
-    style: "Spicy",
-    occasion: "Night",
-    intensity: "Strong",
-    category: "Spicy Oriental",
-    personality: "Passionate",
-    weather: "Winter",
-    notes: {
-      top: ["Cardamom", "Red Berries"],
-      heart: ["Toffee", "Cinnamon Bark"],
-      base: ["Amberwood", "Tonka Bean", "Leather"],
-    },
-    sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    noteTypes: ["cardamom", "sweet", "chocolate", "heavy", "strong", "attraction grabber"],
-  },
-  {
-    id: 7,
-    name: "Mehfil",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/mehfil.jpg",
-    description: "Amber sweet opulence",
-    style: "Oriental",
-    occasion: "Special",
-    intensity: "Strong",
-    category: "Oriental Amber",
-    personality: "Luxurious",
-    weather: "Winter",
-    notes: {
-      top: ["Saffron", "Jasmine"],
-      heart: ["Amberwood", "Ambergris"],
-      base: ["Fir Resin", "Cedarwood", "Musk"],
-    },
-    sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    noteTypes: ["saffron", "woody", "musky", "heavy", "strong", "attraction grabber"],
-  },
-  {
-    id: 8,
-    name: "lavior",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/lavior.jpg",
-    description: "Herbal smoky uniqueness",
-    style: "Aromatic",
-    occasion: "Daily",
-    intensity: "Moderate",
-    category: "Aromatic Woody",
-    personality: "Unique",
-    weather: "All-season",
-    notes: {
-      top: ["Lavender", "Bergamot"],
-      heart: ["Clary Sage", "Oud Accord"],
-      base: ["Agarwood (Oud)", "Patchouli", "Musk"],
-    },
-    sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    noteTypes: ["lavender", "oud", "smoky", "musky", "woody"],
-  },
-]
+import { useCartStore } from "@/src/app/components/Cart"
+import { ProductInfo } from "@/src/data/product-info"
 
 const questions = [
   {
@@ -281,26 +104,16 @@ export default function ScentFinderPage() {
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [preferences, setPreferences] = useState<Record<string, any>>({})
   const [recommendedProducts, setRecommendedProducts] = useState<any[]>([])
-  const [cart, setCart] = useState<any[]>([])
-  const [selectedSize, setSelectedSize] = useState("30ml")
-  const [isCartOpen, setIsCartOpen] = useState(false)
+  const [selectedSize, setSelectedSize] = useState("30")
   const [selectedNotes, setSelectedNotes] = useState<string[]>([])
   const [isAddingToCart, setIsAddingToCart] = useState<Record<number, boolean>>({})
-
-  useEffect(() => {
-    const storedCart = localStorage.getItem("cart")
-    if (storedCart) {
-      setCart(JSON.parse(storedCart))
-    }
-  }, [])
+  const { addItem, setIsOpen } = useCartStore()
 
   const handleSelection = (questionId: string, value: string | string[]) => {
     const updatedPreferences = { ...preferences, [questionId]: value }
     setPreferences(updatedPreferences)
 
     if (questionId === "notes") {
-      // For the notes question, we're just collecting the notes but not advancing yet
-      setSelectedNotes(value as string[])
       return
     }
 
@@ -334,23 +147,30 @@ export default function ScentFinderPage() {
 
   const findMatchingFragrances = (prefs: Record<string, any>) => {
     // Enhanced matching algorithm with weighted scoring
-    const matches = allProducts.map((product) => {
+    const matches = ProductInfo.allProductItems.map((product) => {
       let score = 0
 
       // Primary matches (higher weight)
-      if (product.style.toLowerCase() === prefs.style) score += 3
-      if (product.intensity.toLowerCase() === prefs.intensity) score += 2
+      if (product.category.toLowerCase() === prefs.style) score += 3
+      if (product.specifications.sillage.toLowerCase().includes(prefs.intensity)) score += 2
 
       // Secondary matches
-      if (product.occasion.toLowerCase() === prefs.occasion) score += 2
-      if (product.personality.toLowerCase() === prefs.personality) score += 1
-      if (product.weather.toLowerCase() === prefs.weather) score += 1
+      if (product.specifications.fragrance_family.toLowerCase().includes(prefs.occasion)) score += 2
+      if (product.tagline.toLowerCase().includes(prefs.personality)) score += 1
 
       // Note matches (highest weight)
       if (prefs.notes && prefs.notes.length > 0) {
-        const noteMatches = prefs.notes.filter((note: string) => product.noteTypes.includes(note.toLowerCase())).length
-
-        score += noteMatches * 3 // Give high weight to note matches
+        const allNotes = [
+          ...product.notes.top,
+          ...product.notes.heart,
+          ...product.notes.base
+        ]
+        const noteMatches = prefs.notes.filter((note: string) => 
+          allNotes.some(productNote => 
+            productNote.toLowerCase().includes(note.toLowerCase())
+          )
+        ).length
+        score += noteMatches * 3
       }
 
       return {
@@ -381,39 +201,35 @@ export default function ScentFinderPage() {
     }
   }
 
-  const addToCart = (product: any) => {
+  const handleAddToCart = (product: any) => {
     try {
       setIsAddingToCart((prev) => ({ ...prev, [product.id]: true }))
 
-      const sizeOption = product.sizes.find((s: any) => s.size === selectedSize)
+      const sizeOption = product.sizeOptions.find((s: any) => s.size === selectedSize)
       const price = sizeOption ? sizeOption.price : product.price
 
       const cartItem = {
         id: product.id,
         name: product.name,
         price: price,
-        image: product.image,
+        image: product.images[selectedSize][0],
         quantity: 1,
         size: selectedSize,
         type: "single",
       }
 
-      const updatedCart = [...cart, cartItem]
-      setCart(updatedCart)
-      localStorage.setItem("cart", JSON.stringify(updatedCart))
+      addItem(cartItem)
+      setIsOpen(true)
 
       toast({
         title: "Added to Cart! 🛍️",
-        description: `${product.name} (${selectedSize}) has been added to your cart.`,
+        description: `${product.name} (${selectedSize}ml) has been added to your cart.`,
         duration: 3000,
       })
 
       setTimeout(() => {
         setIsAddingToCart((prev) => ({ ...prev, [product.id]: false }))
       }, 1000)
-
-      // Explicitly open the cart
-      setIsCartOpen(true)
     } catch (error) {
       console.error("Error adding to cart:", error)
       setIsAddingToCart((prev) => ({ ...prev, [product.id]: false }))
@@ -425,27 +241,11 @@ export default function ScentFinderPage() {
     }
   }
 
-  // Add checkout and calculate total functions
-  const checkout = () => {
-    if (cart.length === 0) return
-    let message = "Hi, I would like to order the following items:\n\n"
-    cart.forEach((item) => {
-      message += `${item.quantity}x ${item.name} (${item.size}) - Rs. ${item.price * item.quantity}\n`
-    })
-    message += `\nTotal: Rs. ${calculateTotal()}`
-    const encodedMessage = encodeURIComponent(message)
-    window.location.href = `https://wa.me/919328701508?text=${encodedMessage}`
-  }
-
-  const calculateTotal = () => {
-    return cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  }
-
   const resetQuiz = () => {
     setCurrentQuestion(0)
     setPreferences({})
     setRecommendedProducts([])
-    setSelectedSize("30ml")
+    setSelectedSize("30")
     setSelectedNotes([])
   }
 
@@ -475,7 +275,7 @@ export default function ScentFinderPage() {
         ))}
       </div>
 
-      <SimpleNavbar cartItemsCount={cart.length} />
+      <SimpleNavbar />
 
       <main className="container mx-auto px-4 py-24 relative z-10">
         <div className="max-w-4xl mx-auto">
@@ -603,197 +403,126 @@ export default function ScentFinderPage() {
                 </div>
               </motion.div>
             ) : (
-              // Enhanced recommendation display with glass morphism and fragrance notes
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold mb-2 text-white">Your Perfect Matches</h2>
-                  <p className="text-gray-300">Based on your preferences, we think you'll love these fragrances</p>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-8"
+              >
+                <div className="text-center mb-8">
+                  <h2 className="text-3xl font-semibold text-white mb-4">Your Perfect Matches</h2>
+                  <p className="text-gray-300">Based on your preferences, we recommend these fragrances</p>
                 </div>
 
-                {recommendedProducts.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                      transition: { delay: index * 0.2 },
-                    }}
-                    className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 shadow-2xl border border-white/10"
-                  >
-                    <div className="flex flex-col md:flex-row gap-6">
-                      <div className="w-full md:w-1/3 aspect-square relative rounded-xl overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {recommendedProducts.map((product) => (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="bg-white/5 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10"
+                    >
+                      <div className="relative aspect-square">
                         <Image
-                          src={product.image || "/placeholder.svg"}
+                          src={product.images[selectedSize][0] || "/placeholder.svg"}
                           alt={product.name}
                           fill
                           className="object-cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-                        <div className="absolute bottom-3 left-3 right-3">
-                          <span className="px-3 py-1 bg-white/20 backdrop-blur-xl text-white text-sm rounded-full border border-white/20">
-                            {product.category}
-                          </span>
-                        </div>
                       </div>
 
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start mb-4">
-                          <div>
-                            <h3 className="text-2xl font-bold mb-1 text-white">{product.name}</h3>
-                            <p className="text-gray-300 mb-3">{product.description}</p>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-white">
-                              ₹{product.sizes.find((s: { size: string }) => s.size === selectedSize)?.price || product.sizes[0].price}
-                            </div>
-                            <div className="text-sm text-gray-400">{selectedSize}</div>
-                          </div>
-                        </div>
+                      <div className="p-6">
+                        <h3 className="text-xl font-semibold text-white mb-2">{product.name}</h3>
+                        <p className="text-gray-300 text-sm mb-4">{product.description}</p>
 
-                        {/* Enhanced Fragrance Notes Section */}
-                        <div className="mb-6 bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-                          <h4 className="text-sm font-medium uppercase text-gray-300 mb-3 text-center">
-                            Fragrance Notes
-                          </h4>
-                          <div className="grid grid-cols-3 gap-4">
-                            <div className="text-center">
-                              <h5 className="text-xs font-medium uppercase text-gray-400 mb-2">Top Notes</h5>
-                              <div className="space-y-1">
-                                {product.notes.top.map((note: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined, i: Key | null | undefined) => (
-                                  <div key={i} className="text-xs text-gray-200 bg-white/10 rounded-full px-2 py-1">
-                                    {note}
-                                  </div>
-                                ))}
-                              </div>
+                        <div className="grid grid-cols-3 gap-4 mb-4">
+                          <div className="text-center">
+                            <h5 className="text-xs font-medium uppercase text-gray-400 mb-2">Top Notes</h5>
+                            <div className="space-y-1">
+                              {product.notes.top.map((note: string, i: number) => (
+                                <div key={i} className="text-xs text-gray-200 bg-white/10 rounded-full px-2 py-1">
+                                  {note}
+                                </div>
+                              ))}
                             </div>
-                            <div className="text-center">
-                              <h5 className="text-xs font-medium uppercase text-gray-400 mb-2">Heart Notes</h5>
-                              <div className="space-y-1">
-                                {product.notes.heart.map((note: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined, i: Key | null | undefined) => (
-                                  <div key={i} className="text-xs text-gray-200 bg-white/10 rounded-full px-2 py-1">
-                                    {note}
-                                  </div>
-                                ))}
-                              </div>
+                          </div>
+                          <div className="text-center">
+                            <h5 className="text-xs font-medium uppercase text-gray-400 mb-2">Heart Notes</h5>
+                            <div className="space-y-1">
+                              {product.notes.heart.map((note: string, i: number) => (
+                                <div key={i} className="text-xs text-gray-200 bg-white/10 rounded-full px-2 py-1">
+                                  {note}
+                                </div>
+                              ))}
                             </div>
-                            <div className="text-center">
-                              <h5 className="text-xs font-medium uppercase text-gray-400 mb-2">Base Notes</h5>
-                              <div className="space-y-1">
-                                {product.notes.base.map((note: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined, i: Key | null | undefined) => (
-                                  <div key={i} className="text-xs text-gray-200 bg-white/10 rounded-full px-2 py-1">
-                                    {note}
-                                  </div>
-                                ))}
-                              </div>
+                          </div>
+                          <div className="text-center">
+                            <h5 className="text-xs font-medium uppercase text-gray-400 mb-2">Base Notes</h5>
+                            <div className="space-y-1">
+                              {product.notes.base.map((note: string, i: number) => (
+                                <div key={i} className="text-xs text-gray-200 bg-white/10 rounded-full px-2 py-1">
+                                  {note}
+                                </div>
+                              ))}
                             </div>
                           </div>
                         </div>
 
                         <div className="space-y-4">
                           <div>
-                            <h4 className="text-sm font-medium mb-2 text-white">Select Size</h4>
+                            <h4 className="text-sm font-medium text-gray-300 mb-2">Size:</h4>
                             <div className="flex gap-2">
-                              {product.sizes.map((size: any) => (
-                                <Button
+                              {product.sizeOptions.map((size: { size: string; price: number }) => (
+                                <button
                                   key={size.size}
-                                  variant={selectedSize === size.size ? "default" : "outline"}
                                   onClick={() => setSelectedSize(size.size)}
-                                  className={
+                                  className={`px-3 py-1 rounded-full text-sm transition-all ${
                                     selectedSize === size.size
-                                      ? "bg-white/20 hover:bg-white/30 text-white border-white/20 backdrop-blur-xl"
-                                      : "text-gray-300 border-white/20 hover:border-white/30 hover:bg-white/10 backdrop-blur-xl"
-                                  }
+                                      ? "bg-white text-black font-medium"
+                                      : "bg-white/10 text-white hover:bg-white/20"
+                                  }`}
                                 >
-                                  {size.size} - ₹{size.price}
-                                </Button>
+                                  {size.size}ml
+                                </button>
                               ))}
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xl font-bold text-white">
+                              ₹{product.sizeOptions.find((s: { size: string; price: number }) => s.size === selectedSize)?.price || product.price}
+                            </span>
                             <Button
-                              className="w-full bg-white/20 hover:bg-white/30 text-white backdrop-blur-xl border border-white/20 text-sm sm:text-base"
-                              onClick={() => addToCart(product)}
+                              onClick={() => handleAddToCart(product)}
                               disabled={isAddingToCart[product.id]}
+                              className="bg-white text-black hover:bg-gray-200"
                             >
-                              {isAddingToCart[product.id] ? (
-                                <span className="flex items-center justify-center">
-                                  <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                                  Adding...
-                                </span>
-                              ) : (
-                                <>
-                                  <ShoppingBag className="mr-2 h-4 w-4" />
-                                  Add to Cart
-                                </>
-                              )}
+                              <ShoppingBag className="h-4 w-4 mr-2" />
+                              {isAddingToCart[product.id] ? "Adding..." : "Add to Cart"}
                             </Button>
-
-                            <Link
-                              href={`/product/${product.id}`}
-                              className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-2 px-4 rounded-md font-medium transition-colors backdrop-blur-xl border border-white/20 text-sm sm:text-base"
-                            >
-                              <Eye className="h-4 w-4" />
-                              View Details
-                            </Link>
-
-                            <Link
-                              href={`/checkout?product=${product.id}&size=${selectedSize}`}
-                              className="w-full flex items-center justify-center gap-2 bg-white/30 hover:bg-white/40 text-white py-2 px-4 rounded-md font-medium transition-colors backdrop-blur-xl border border-white/30 text-sm sm:text-base"
-                            >
-                              <Zap className="h-4 w-4" />
-                              Buy Now
-                            </Link>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))}
+                </div>
 
-                <motion.div
-                  className="mt-8 text-center"
-                  variants={resetButtonVariants}
-                  initial="initial"
-                  animate="animate"
-                  whileHover="hover"
-                >
+                <div className="text-center mt-8">
                   <Button
-                    variant="outline"
                     onClick={resetQuiz}
-                    className="gap-2 text-white border-white/20 hover:border-white/30 hover:bg-white/10 backdrop-blur-xl"
+                    variant="outline"
+                    className="text-white border-white/20 hover:bg-white/10"
                   >
-                    <Undo2 className="h-4 w-4" />
+                    <Undo2 className="h-4 w-4 mr-2" />
                     Try Again
                   </Button>
-                </motion.div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </main>
 
-      <Cart
-        isOpen={isCartOpen}
-        setIsOpen={setIsCartOpen}
-        cart={cart}
-        total={calculateTotal()}
-        updateQuantity={(id, size, qty) => {
-          const updatedCart = cart.map((item) =>
-            item.id === id && item.size === size ? { ...item, quantity: qty } : item,
-          )
-          setCart(updatedCart)
-          localStorage.setItem("cart", JSON.stringify(updatedCart))
-        }}
-        removeFromCart={(id, size) => {
-          const updatedCart = cart.filter((item) => !(item.id === id && item.size === size))
-          setCart(updatedCart)
-          localStorage.setItem("cart", JSON.stringify(updatedCart))
-        }}
-        checkout={checkout}
-      />
-
+      <Cart />
       <Footer />
     </div>
   )

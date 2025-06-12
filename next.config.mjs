@@ -10,9 +10,9 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "zdvvvqrrcowzjjpklmcz.supabase.co",
+        hostname: "tuqdytehmpzhlbxfvylv.supabase.co",
         port: "",
-        pathname: "/storage/v1/object/public/**",
+        pathname: "/storage/v1/object/public/vave-assets/**",
       },
     ],
   },

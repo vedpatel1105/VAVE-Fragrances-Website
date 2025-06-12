@@ -2,6 +2,7 @@
 "use client"
 
 import SimpleNavbar from "@/src/app/components/SimpleNavbar"
+import { ProductInfo } from "@/src/data/product-info"
 import Image from "next/image"
 
 export default function About() {
@@ -14,7 +15,7 @@ export default function About() {
           <div className="flex flex-col md:flex-row items-center gap-8">
             <div className="md:w-1/2">
               <Image
-                src="https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/vave_about.png"
+                src={`${ProductInfo.baseUrl}/about/about.webp`}
                 alt="Perfume creation process"
                 width={600}
                 height={400}

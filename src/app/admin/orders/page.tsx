@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
 import { orderService, Order } from "@/src/lib/orderService"
+import { adminService } from "@/src/lib/adminService"
 import { formatCurrency } from "@/lib/utils"
 
 export default function AdminOrdersPage() {
@@ -26,10 +27,37 @@ export default function AdminOrdersPage() {
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
   const [newStatus, setNewStatus] = useState<Order['status']>('pending')
   const [statusNotes, setStatusNotes] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Load orders
+  // Check if user is admin and load orders
   useEffect(() => {
-    loadOrders()
+    const checkAdminAndLoadOrders = async () => {
+      try {
+        const isAdmin = await adminService.isAdmin()
+        if (!isAdmin) {
+          toast({
+            title: "Access Denied",
+            description: "You don't have permission to access this page",
+            variant: "destructive"
+          })
+          router.replace('/admin')
+          return
+        }
+        await loadOrders()
+      } catch (error) {
+        console.error('Error checking admin status:', error)
+        toast({
+          title: "Error",
+          description: "Failed to verify admin status",
+          variant: "destructive"
+        })
+        router.replace('/admin')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    checkAdminAndLoadOrders()
   }, [])
 
   const loadOrders = async () => {
@@ -46,16 +74,16 @@ export default function AdminOrdersPage() {
     }
   }
 
-  // Search orders
-  const handleSearch = async () => {
-    if (!searchQuery) {
-      loadOrders()
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!searchQuery.trim()) {
+      await loadOrders()
       return
     }
 
     try {
-      const data = await orderService.searchOrders(searchQuery)
-      setOrders(data)
+      const results = await orderService.searchOrders(searchQuery)
+      setOrders(results)
     } catch (error) {
       console.error('Error searching orders:', error)
       toast({
@@ -66,7 +94,7 @@ export default function AdminOrdersPage() {
     }
   }
 
-  // Filter orders
+  // Filter orders based on status
   const filteredOrders = orders.filter(order => {
     if (statusFilter === "all") return true
     return order.status === statusFilter
@@ -74,20 +102,10 @@ export default function AdminOrdersPage() {
 
   // Sort orders
   const sortedOrders = [...filteredOrders].sort((a, b) => {
-    const dateA = new Date(a.created_at).getTime()
-    const dateB = new Date(b.created_at).getTime()
-
     if (sortBy === "newest") {
-      return dateB - dateA
-    } else if (sortBy === "oldest") {
-      return dateA - dateB
-    } else if (sortBy === "price-high") {
-      return b.total - a.total
-    } else if (sortBy === "price-low") {
-      return a.total - b.total
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     }
-
-    return 0
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   })
 
   // Update order status
@@ -148,6 +166,14 @@ export default function AdminOrdersPage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <div className="text-center">Loading...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto py-8 px-4">
       <motion.div
@@ -158,48 +184,41 @@ export default function AdminOrdersPage() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
           <h1 className="text-3xl font-bold mb-4 md:mb-0">Order Management</h1>
 
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative">
+          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+            <form onSubmit={handleSearch} className="relative flex-1">
               <Input
                 type="text"
                 placeholder="Search orders..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 className="pl-10"
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            </form>
+
+            <div className="flex gap-2">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white dark:bg-gray-800"
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="px-3 py-2 border rounded-lg bg-white dark:bg-gray-800"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+              </select>
             </div>
-
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Orders</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="processing">Processing</SelectItem>
-                <SelectItem value="shipped">Shipped</SelectItem>
-                <SelectItem value="delivered">Delivered</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="flex items-center">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Sort
-                  <ChevronDown className="h-4 w-4 ml-2" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => setSortBy("newest")}>Newest First</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy("oldest")}>Oldest First</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy("price-high")}>Price: High to Low</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy("price-low")}>Price: Low to High</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
         </div>
 

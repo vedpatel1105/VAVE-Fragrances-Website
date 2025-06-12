@@ -20,230 +20,10 @@ import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useCartStore } from "@/src/app/components/Cart"
+import { ProductInfo } from "@/src/data/product-info"
 
 const SimpleNavbar = dynamic(() => import("@/src/app/components/SimpleNavbar"), { ssr: false })
 const Cart = dynamic(() => import("@/src/app/components/Cart"), { ssr: false })
-
-// Sample products data
-const allProducts = [
-  {
-    id: 1,
-    name: "Oceane",
-    price: 350,
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/oceane30.jpg",
-    description: "A deep, aquatic fragrance that evokes the mystery of the ocean.",
-    rating: 4.8,
-    reviews: 112,
-    isNew: true,
-    sizes: [
-      { size: "30ml", price: 350 }, // Fixed price
-      { size: "50ml", price: 450 }, // Fixed price
-    ],
-    fragranceNotes: ["Sea Salt", "Citrus"],
-  },
-  {
-    id: 2,
-    name: "Euphoria",
-    price: 350,
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/euphoria30.jpg",
-    description: "An exhilarating blend of fruity and floral notes that lifts your spirits.",
-    rating: 4.6,
-    reviews: 87,
-    isNew: true,
-    discount: 10,
-    sizes: [
-      { size: "30ml", price: 350 }, // Fixed price
-      { size: "50ml", price: 450 }, // Fixed price
-    ],
-    fragranceNotes: ["Rose", "Jasmine"],
-  },
-  {
-    id: 3,
-    name: "Duskfall",
-    price: 350,
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/duskfall30.jpg",
-    description: "A mysterious and alluring scent perfect for evening wear.",
-    rating: 4.9,
-    reviews: 156,
-    isBestseller: true,
-    sizes: [
-      { size: "30ml", price: 350 }, // Fixed price
-      { size: "50ml", price: 450 }, // Fixed price
-    ],
-    fragranceNotes: ["Vetiver", "Sandalwood"],
-  },
-  {
-    id: 4,
-    name: "Lavior",
-    price: 350,
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/lavior30.jpg",
-    description: "A luxurious floral fragrance with hints of lavender and vanilla.",
-    rating: 4.7,
-    reviews: 98,
-    isLimited: true,
-    discount: 15,
-    sizes: [
-      { size: "30ml", price: 350 }, // Fixed price
-      { size: "50ml", price: 450 }, // Fixed price
-    ],
-    fragranceNotes: ["Lavender", "Vanilla"],
-  },
-  {
-    id: 5,
-    name: "Mehfil",
-    price: 350, // Fixed price
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/mehfil30.jpg",
-    description: "A mysterious and alluring scent perfect for evening wear.",
-    rating: 4.9,
-    reviews: 156,
-    isBestseller: true,
-    sizes: [
-      { size: "30ml", price: 350 }, // Fixed price
-      { size: "50ml", price: 450 }, // Fixed price
-    ],
-    fragranceNotes: ["Vetiver", "Sandalwood"],
-  },
-
-  {
-    id: 6,
-    name: "Obsession",
-    price: 350, // Fixed price
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/obsession30.jpg",
-    description: "A mysterious and alluring scent perfect for evening wear.",
-    rating: 4.9,
-    reviews: 156,
-    isBestseller: true,
-    sizes: [
-      { size: "30ml", price: 350 }, // Fixed price
-      { size: "50ml", price: 450 }, // Fixed price
-    ],
-    fragranceNotes: ["Vetiver", "Sandalwood"],
-  },
-  {
-    id: 7,
-    name: "Velora",
-    price: 350, // Fixed price
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/velora30.jpg",
-    description: "A mysterious and alluring scent perfect for evening wear.",
-    rating: 4.9,
-    reviews: 156,
-    isBestseller: true,
-    sizes: [
-      { size: "30ml", price: 450 },
-      { size: "50ml", price: 550 },
-    ],
-    fragranceNotes: ["Vetiver", "Sandalwood"],
-  },
-
-  {
-    id: 8,
-    name: "Havoc",
-    price: 350, // Fixed price
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/havoc30.jpg",
-    description: "A fresh and invigorating scent with notes of citrus and ocean breeze.",
-    rating: 4.8,
-    reviews: 124,
-    isNew: false,
-    isBestseller: true,
-    sizes: [
-      { size: "30ml", price: 350 }, // Fixed price
-      { size: "50ml", price: 450 }, // Fixed price
-    ],
-    fragranceNotes: ["Cedar", "Amber"],
-  },
-]
-
-// Layering fragrances data
-const layeringFragrances = [
-  {
-    id: 1,
-    name: "Havoc",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/havoc.jpg",
-    category: "Fresh",
-    notes: {
-      top: ["Bergamot", "Lemon", "Green Apple"],
-      heart: ["Lavender", "Geranium", "Mint"],
-      base: ["Cedar", "Musk", "Amber"],
-    },
-  },
-  {
-    id: 2,
-    name: "Lavior",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/lavior.jpg",
-    category: "Oriental",
-    notes: {
-      top: ["Lavender", "Bergamot", "Cardamom"],
-      heart: ["Rose", "Jasmine", "Cinnamon"],
-      base: ["Vanilla", "Sandalwood", "Patchouli"],
-    },
-  },
-  {
-    id: 3,
-    name: "Duskfall",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/duskfall.jpg",
-    category: "Woody",
-    notes: {
-      top: ["Black Pepper", "Pink Pepper", "Grapefruit"],
-      heart: ["Cedar", "Vetiver", "Patchouli"],
-      base: ["Oud", "Leather", "Tobacco"],
-    },
-  },
-  {
-    id: 4,
-    name: "Euphoria",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/euphoria.jpg",
-    category: "Floral",
-    notes: {
-      top: ["Peach", "Mandarin", "Pomegranate"],
-      heart: ["Peony", "Lotus", "Champaca"],
-      base: ["Mahogany", "Violet", "Cream"],
-    },
-  },
-  {
-    id: 5,
-    name: "Oceane",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/oceane.jpg",
-    category: "Aquatic",
-    notes: {
-      top: ["Sea Salt", "Ozonic", "Citrus"],
-      heart: ["Water Lily", "Seaweed", "Driftwood"],
-      base: ["Ambergris", "Musk", "Cedar"],
-    },
-  },
-  {
-    id: 6,
-    name: "Velora",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/velora.jpg",
-    category: "Woody",
-    notes: {
-      top: ["Saffron", "Nutmeg", "Coriander"],
-      heart: ["Rose", "Oud", "Patchouli"],
-      base: ["Amber", "Musk", "Sandalwood"],
-    },
-  },
-  {
-    id: 7,
-    name: "Obsession",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/obsession.jpg",
-    category: "Oriental",
-    notes: {
-      top: ["Mandarin", "Vanilla", "Green Notes"],
-      heart: ["Spicy Notes", "Floral Notes", "Exotic Fruits"],
-      base: ["Amber", "Sandalwood", "Musk"],
-    },
-  },
-  {
-    id: 8,
-    name: "Mehfil",
-    image: "https://zdvvvqrrcowzjjpklmcz.supabase.co/storage/v1/object/public/vave-products-img-public/img/mehfil.jpg",
-    category: "Spicy",
-    notes: {
-      top: ["Cardamom", "Saffron", "Rose"],
-      heart: ["Oud", "Jasmine", "Spices"],
-      base: ["Amber", "Musk", "Sandalwood"],
-    },
-  },
-]
 
 // Popular combinations
 const popularCombinations = [
@@ -348,7 +128,7 @@ export default function Home() {
       id: `layered-${selectedFragrance1.id}-${selectedFragrance2.id}`,
       name: layeredFragrance ? layeredFragrance.name : "Custom Layered Fragrance",
       price: prices[layeredSize],
-      image: selectedFragrance1.image,
+      image: selectedFragrance1.images["30"][0],
       quantity: 1,
       size: sizes[layeredSize],
       type: "layered",
@@ -385,14 +165,15 @@ export default function Home() {
 
   const addToCart = (product: any, quantity: number, size: string) => {
     try {
-      const sizeOption = product.sizes.find((s: any) => s.size === size)
+      const sizeOption = product.sizeOptions.find((s: any) => s.size === size)
       const price = sizeOption ? sizeOption.price : product.price
 
       const cartItem = {
         id: product.id,
         name: product.name,
         price: price,
-        image: product.image,
+        image: product.images[size][0],
+        images: product.images,
         quantity: quantity,
         size: size,
         type: "single",
@@ -403,7 +184,7 @@ export default function Home() {
 
       toast({
         title: "Added to Cart",
-        description: `${quantity} × ${product.name} (${size}) has been added to your cart.`,
+        description: `${quantity} × ${product.name} (${size}ml) has been added to your cart.`,
       })
     } catch (error) {
       console.error("Error adding to cart:", error)
@@ -463,8 +244,7 @@ export default function Home() {
 
   return (
     <main className="flex flex-col min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white">
-      <SimpleNavbar
-      />
+      <SimpleNavbar />
       <Hero />
       <div className="px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
         {/* Featured Products Section */}
@@ -483,17 +263,23 @@ export default function Home() {
             {/* Enhanced Product Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative">
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent blur-3xl -z-10" />
-              {allProducts.map((product) => (
+              {ProductInfo.allProductItems.map((product) => (
                 <div key={product.id} className="transform transition-transform duration-300 hover:-translate-y-2">
                   <EnhancedProductCard
-                    product={product}
+                    product={{
+                      ...product,
+                      images: {
+                        ...product.images,
+                        label: product.images.label || ""
+                      }
+                    }}
                     onAddToCart={(product, quantity) =>
-                      addToCart(product, quantity, selectedSizes[product.id] || product.sizes[0].size)
+                      addToCart(product, quantity, selectedSizes[product.id] || product.sizeOptions[0].size)
                     }
                     onAddToWishlist={addToWishlist}
                     onQuickView={handleQuickView}
                     inWishlist={wishlist.includes(product.id)}
-                    selectedSize={selectedSizes[product.id] || product.sizes[0].size}
+                    selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size}
                     onSizeSelect={(size: string) => handleSizeSelect(product.id, size)}
                   />
                 </div>
@@ -528,7 +314,7 @@ export default function Home() {
                       <label className="block text-lg font-semibold mb-4 text-center">Choose First Fragrance</label>
                       <Select
                         onValueChange={(value) => {
-                          const fragrance = layeringFragrances.find((f) => f.id.toString() === value)
+                          const fragrance = ProductInfo.allProductItems.find((f) => f.id.toString() === value)
                           setSelectedFragrance1(fragrance)
                         }}
                       >
@@ -536,7 +322,7 @@ export default function Home() {
                           <div className="flex items-center space-x-3">
                             {selectedFragrance1 && (
                               <Image
-                                src={selectedFragrance1.image || "/placeholder.svg"}
+                                src={selectedFragrance1.images["30"][0] || "/placeholder.svg"}
                                 alt={selectedFragrance1.name}
                                 width={40}
                                 height={40}
@@ -547,7 +333,7 @@ export default function Home() {
                           </div>
                         </SelectTrigger>
                         <SelectContent className="bg-gray-900 border-white/20">
-                          {layeringFragrances.map((fragrance) => (
+                          {ProductInfo.allProductItems.map((fragrance) => (
                             <SelectItem
                               key={fragrance.id}
                               value={fragrance.id.toString()}
@@ -555,7 +341,7 @@ export default function Home() {
                             >
                               <div className="flex items-center space-x-3">
                                 <Image
-                                  src={fragrance.image || "/placeholder.svg"}
+                                  src={fragrance.images["30"][0] || "/placeholder.svg"}
                                   alt={fragrance.name}
                                   width={30}
                                   height={30}
@@ -577,7 +363,7 @@ export default function Home() {
                       <label className="block text-lg font-semibold mb-4 text-center">Choose Second Fragrance</label>
                       <Select
                         onValueChange={(value) => {
-                          const fragrance = layeringFragrances.find((f) => f.id.toString() === value)
+                          const fragrance = ProductInfo.allProductItems.find((f) => f.id.toString() === value)
                           setSelectedFragrance2(fragrance)
                         }}
                       >
@@ -585,7 +371,7 @@ export default function Home() {
                           <div className="flex items-center space-x-3">
                             {selectedFragrance2 && (
                               <Image
-                                src={selectedFragrance2.image || "/placeholder.svg"}
+                                src={selectedFragrance2.images["30"][0] || "/placeholder.svg"}
                                 alt={selectedFragrance2.name}
                                 width={40}
                                 height={40}
@@ -596,7 +382,7 @@ export default function Home() {
                           </div>
                         </SelectTrigger>
                         <SelectContent className="bg-gray-900 border-white/20">
-                          {layeringFragrances.map((fragrance) => (
+                          {ProductInfo.allProductItems.map((fragrance) => (
                             <SelectItem
                               key={fragrance.id}
                               value={fragrance.id.toString()}
@@ -604,7 +390,7 @@ export default function Home() {
                             >
                               <div className="flex items-center space-x-3">
                                 <Image
-                                  src={fragrance.image || "/placeholder.svg"}
+                                  src={fragrance.images["30"][0] || "/placeholder.svg"}
                                   alt={fragrance.name}
                                   width={30}
                                   height={30}
@@ -678,16 +464,16 @@ export default function Home() {
                             </SelectTrigger>
                             <SelectContent className="bg-black/80 backdrop-blur-md border-white/20">
                               <SelectItem value="combo-30ml" className="text-white hover:bg-white/10">
-                                Combo 30ml + 30ml - ₹700 {/* Fixed price */}
+                                Combo 30ml + 30ml - ₹700
                               </SelectItem>
                               <SelectItem value="combo-50ml" className="text-white hover:bg-white/10">
-                                Combo 50ml + 50ml - ₹900 {/* Fixed price */}
+                                Combo 50ml + 50ml - ₹900
                               </SelectItem>
                               <SelectItem value="combo-30-50ml" className="text-white hover:bg-white/10">
-                                Combo 30ml + 50ml - ₹800 {/* Fixed price */}
+                                Combo 30ml + 50ml - ₹800
                               </SelectItem>
                               <SelectItem value="combo-50-30ml" className="text-white hover:bg-white/10">
-                                Combo 50ml + 30ml - ₹800 {/* Fixed price */}
+                                Combo 50ml + 30ml - ₹800
                               </SelectItem>
                             </SelectContent>
                           </Select>
@@ -713,8 +499,8 @@ export default function Home() {
                         <button
                           key={index}
                           onClick={() => {
-                            const frag1 = layeringFragrances.find((f) => f.name === combo.fragrance1)
-                            const frag2 = layeringFragrances.find((f) => f.name === combo.fragrance2)
+                            const frag1 = ProductInfo.allProductItems.find((f) => f.name === combo.fragrance1)
+                            const frag2 = ProductInfo.allProductItems.find((f) => f.name === combo.fragrance2)
                             setSelectedFragrance1(frag1)
                             setSelectedFragrance2(frag2)
                           }}
@@ -734,8 +520,7 @@ export default function Home() {
                   <div className="text-center">
                     <Link href="/layering">
                       <Button className="bg-white text-black hover:bg-gray-200 px-8 py-4 text-lg font-semibold rounded-xl transform hover:scale-105 transition-all duration-300">
-                        Explore 
-                       
+                        Explore More Combinations
                       </Button>
                     </Link>
                   </div>
@@ -749,10 +534,7 @@ export default function Home() {
         <div className="space-y-32">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 to-black/10 blur-3xl -z-10" />
-            
           </div>
-         
-          
         </div>
       </div>
 
@@ -778,7 +560,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
               <div className="aspect-square relative">
                 <Image
-                  src={selectedProduct.image || "/placeholder.svg"}
+                  src={selectedProduct.images["30"][0] || "/placeholder.svg"}
                   alt={selectedProduct.name}
                   fill
                   className="object-contain"
@@ -801,11 +583,11 @@ export default function Home() {
                 </div>
                 <p className="text-gray-700 dark:text-gray-300 mb-6">{selectedProduct.description}</p>
 
-                {selectedProduct.fragranceNotes && (
+                {selectedProduct.notes && (
                   <div className="mb-6">
                     <h3 className="text-sm font-medium mb-2">Key Notes:</h3>
                     <div className="flex flex-wrap gap-2">
-                      {selectedProduct.fragranceNotes.map((note: string, index: number) => (
+                      {[...selectedProduct.notes.top, ...selectedProduct.notes.heart, ...selectedProduct.notes.base].map((note: string, index: number) => (
                         <span key={index} className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
                           {note}
                         </span>
@@ -817,9 +599,9 @@ export default function Home() {
                 <div className="mb-6">
                   <h3 className="text-sm font-medium mb-2">Sizes:</h3>
                   <div className="flex gap-3">
-                    {selectedProduct.sizes.map((size: any) => (
+                    {selectedProduct.sizeOptions.map((size: any) => (
                       <div key={size.size} className="px-4 py-2 rounded-md text-sm bg-gray-100 dark:bg-gray-700">
-                        {size.size} - ₹{size.price}
+                        {size.size}ml - ₹{size.price}
                       </div>
                     ))}
                   </div>
@@ -829,7 +611,7 @@ export default function Home() {
                   <Button
                     className="flex-1"
                     onClick={() => {
-                      addToCart(selectedProduct, 1, selectedProduct.sizes[0].size)
+                      addToCart(selectedProduct, 1, selectedProduct.sizeOptions[0].size)
                       setIsQuickViewOpen(false)
                     }}
                   >

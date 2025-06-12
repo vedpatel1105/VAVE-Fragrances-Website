@@ -13,17 +13,43 @@ interface EnhancedProductCardProps {
   product: {
     id: number
     name: string
+    slug: string
+    category: string
+    tagline: string
     price: number
-    image: string | { [size: string]: string }
+    priceXL: number
+    images: {
+      "30": string[]
+      "50": string[]
+      label: string
+    }
     description: string
-    rating?: number
-    reviews?: number
-    isNew?: boolean
-    isBestseller?: boolean
-    isLimited?: boolean
-    discount?: number
-    fragranceNotes?: string[]
-    sizes?: { size: string; price: number }[]
+    longDescription: string
+    rating: number
+    reviews: number
+    isNew: boolean
+    isBestseller: boolean
+    isLimited: boolean
+    discount: number | null
+    ingredients: string[]
+    sizeOptions: { size: string; price: number }[]
+    specifications: {
+      fragrance_family: string
+      concentration: string
+      longevity: string
+      sillage: string
+      launch_year: string
+    }
+    notes: {
+      top: string[]
+      heart: string[]
+      base: string[]
+    }
+    layeringOptions: {
+      id: number
+      name: string
+      description: string
+    }[]
   }
   onAddToCart: (product: any, quantity: number, size: string) => void
   onAddToWishlist: (product: any) => void
@@ -39,7 +65,7 @@ export default function EnhancedProductCard({
   onAddToWishlist,
   onQuickView,
   inWishlist = false,
-  selectedSize = "30ml",
+  selectedSize = "30",
   onSizeSelect,
 }: EnhancedProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
@@ -48,7 +74,7 @@ export default function EnhancedProductCard({
   const router = useRouter()
 
   const getCurrentPrice = () => {
-    const sizeOption = product.sizes?.find((s) => s.size === selectedSize)
+    const sizeOption = product.sizeOptions.find((s) => s.size === selectedSize)
     return sizeOption ? sizeOption.price : product.price
   }
 
@@ -66,7 +92,7 @@ export default function EnhancedProductCard({
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const size = product.sizes && product.sizes.length > 0 ? product.sizes[0].size : "30ml"
+    const size = product.sizeOptions && product.sizeOptions.length > 0 ? product.sizeOptions[0].size : "30"
     onAddToCart(product, 1, size)
     router.push("/checkout")
   }
@@ -83,14 +109,10 @@ export default function EnhancedProductCard({
 
   // Add this useEffect to update image when size changes
   useEffect(() => {
-    if (
-      product.image &&
-      typeof product.image === "object" &&
-      product.image[selectedSize]
-    ) {
+    if (product.images && product.images[selectedSize as "30" | "50"]) {
       setCurrentImage(0) // Reset to first image when size changes
     }
-  }, [selectedSize, product.image])
+  }, [selectedSize, product.images])
 
   return (
     <motion.div
@@ -159,14 +181,10 @@ export default function EnhancedProductCard({
           transition={{ duration: 0.4 }}
         >
           <Image
-            src={
-              typeof product.image === "object"
-                ? product.image[selectedSize] || "/placeholder.svg"
-                : product.image || "/placeholder.svg"
-            }
+            src={product.images[selectedSize as "30" | "50"][currentImage] || "/placeholder.svg"}
             alt={product.name}
             fill
-            className="object-cover w-full h-full"
+            className="object-contain w-full h-full"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             priority
           />
@@ -179,7 +197,7 @@ export default function EnhancedProductCard({
       </div>
 
       {/* Content section */}
-      <motion.div 
+      <motion.div
         className="p-4 bg-gradient-to-t from-black via-black/95 to-transparent"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -204,7 +222,7 @@ export default function EnhancedProductCard({
 
         {/* Size Selection */}
         <div className="flex gap-2 mb-4">
-          {product.sizes?.map((size) => (
+          {product.sizeOptions.map((size) => (
             <button
               key={size.size}
               onClick={() => onSizeSelect(size.size)}
@@ -214,7 +232,7 @@ export default function EnhancedProductCard({
                   : "bg-white/10 text-white hover:bg-white/20"
               }`}
             >
-              {size.size}
+              {size.size}ml
             </button>
           ))}
         </div>
@@ -225,7 +243,7 @@ export default function EnhancedProductCard({
         </div>
 
         {/* Enhanced action buttons with animations */}
-        <div className="flex gap-2 mt-4">
+        <div className="flex gap-2">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

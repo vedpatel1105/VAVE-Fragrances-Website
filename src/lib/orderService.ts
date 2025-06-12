@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient'
 import { CartItem } from '@/src/app/components/Cart'
+import { adminService } from './adminService'
 
 export interface Order {
   id: string
@@ -88,6 +89,10 @@ export const orderService = {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Not authenticated')
 
+    // Check if user is admin
+    const isAdmin = await adminService.isAdmin()
+    if (!isAdmin) throw new Error('Not authorized')
+
     // Update order status
     const { error: orderError } = await supabase
       .from('user_orders')
@@ -110,6 +115,13 @@ export const orderService = {
   },
 
   async getAllOrders(): Promise<Order[]> {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+
+    // Check if user is admin
+    const isAdmin = await adminService.isAdmin()
+    if (!isAdmin) throw new Error('Not authorized')
+
     const { data, error } = await supabase
       .from('user_orders')
       .select('*')
@@ -120,6 +132,13 @@ export const orderService = {
   },
 
   async searchOrders(query: string): Promise<Order[]> {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+
+    // Check if user is admin
+    const isAdmin = await adminService.isAdmin()
+    if (!isAdmin) throw new Error('Not authorized')
+
     const { data, error } = await supabase
       .from('user_orders')
       .select('*')

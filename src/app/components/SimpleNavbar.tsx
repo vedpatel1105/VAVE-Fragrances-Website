@@ -11,6 +11,8 @@ import Cart from "@/src/app/components/Cart"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { createAvatar } from '@dicebear/core'
 import { initials } from '@dicebear/collection'
+import Image from "next/image"
+import { ProductInfo } from "@/src/data/product-info"
 
 
 export default function SimpleNavbar() {
@@ -54,7 +56,14 @@ export default function SimpleNavbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-serif font-bold text-white">VAVE</span>
+            {/* logo image */}
+            <Image
+              src={`${ProductInfo.baseUrl}/logo/logo.webp`}
+              alt="VAVE Logo"
+              width={120}
+              height={40}
+              className="h-8 w-auto"
+            />
           </Link>
 
           {/* Desktop Navigation */}
@@ -63,11 +72,10 @@ export default function SimpleNavbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium transition-colors ${
-                  isActive(link.href)
+                className={`text-sm font-medium transition-colors ${isActive(link.href)
                     ? "text-white"
                     : "text-gray-300 hover:text-white"
-                }`}
+                  }`}
               >
                 {link.label}
               </Link>
@@ -82,8 +90,8 @@ export default function SimpleNavbar() {
                 href="https://wa.me/919328701508"
                 target="_blank"
                 rel="noopener noreferrer"
-              className="p-2 rounded-full transition-colors bg-white/10 hover:bg-green-500/20"
-              aria-label="WhatsApp"
+                className="p-2 rounded-full transition-colors bg-white/10 hover:bg-green-500/20"
+                aria-label="WhatsApp"
               >
                 <MessageCircle className="h-5 w-5 text-white" />
               </a>
@@ -91,8 +99,8 @@ export default function SimpleNavbar() {
                 href="https://www.instagram.com/vavefragrances/"
                 target="_blank"
                 rel="noopener noreferrer"
-              className="p-2 rounded-full transition-colors bg-white/10 hover:bg-pink-500/20"
-              aria-label="Instagram"
+                className="p-2 rounded-full transition-colors bg-white/10 hover:bg-pink-500/20"
+                aria-label="Instagram"
               >
                 <Instagram className="h-5 w-5 text-white" />
               </a>
@@ -192,11 +200,10 @@ export default function SimpleNavbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`block px-3 py-2 rounded-md text-base font-medium ${
-                  isActive(link.href)
+                className={`block px-3 py-2 rounded-md text-base font-medium ${isActive(link.href)
                     ? "text-white bg-white/10"
                     : "text-gray-300 hover:text-white hover:bg-white/10"
-                }`}
+                  }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {link.label}
