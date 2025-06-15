@@ -304,6 +304,49 @@ export default function LayeringPage() {
                       </div>
                     </div>
 
+                    {/* Combined Fragrance Notes */}
+                    {layeredFragrance && (
+                      <div className="mb-8 bg-white/5 rounded-lg p-6">
+                        <h3 className="text-xl font-semibold mb-4">Combined Fragrance Profile</h3>
+                        <p className="text-gray-300 mb-4">{layeredFragrance.description}</p>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="text-sm font-medium mb-2">Top Notes</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {layeredFragrance.notes.top.map((note: string, idx: number) => (
+                                <span key={idx} className="text-xs bg-white/10 px-2 py-1 rounded-full">
+                                  {note}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <h4 className="text-sm font-medium mb-2">Heart Notes</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {layeredFragrance.notes.heart.map((note: string, idx: number) => (
+                                <span key={idx} className="text-xs bg-white/10 px-2 py-1 rounded-full">
+                                  {note}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <h4 className="text-sm font-medium mb-2">Base Notes</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {layeredFragrance.notes.base.map((note: string, idx: number) => (
+                                <span key={idx} className="text-xs bg-white/10 px-2 py-1 rounded-full">
+                                  {note}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Add to Cart Button */}
                     <Button
                       className="w-full bg-white text-black hover:bg-gray-200 py-6 text-lg font-semibold rounded-xl"
