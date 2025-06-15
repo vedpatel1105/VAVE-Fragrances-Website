@@ -164,7 +164,7 @@ export default function SimpleNavbar() {
                 <Button
                   variant="ghost"
                   className="text-white hover:text-white/80"
-                  onClick={() => router.push("/login")}
+                  onClick={() => router.push("/auth/login")}
                 >
                   Sign In
                 </Button>
