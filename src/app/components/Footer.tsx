@@ -15,13 +15,13 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/collection" className="text-dark/80 hover:text-gold transition-colors">
-                  New Arrivals
+                <Link href="/layering" className="text-dark/80 hover:text-gold transition-colors">
+                  Layering
                 </Link>
               </li>
               <li>
-                <Link href="/collection" className="text-dark/80 hover:text-gold transition-colors">
-                  Best Sellers
+                <Link href="/Scent-finder" className="text-dark/80 hover:text-gold transition-colors">
+                  Scent Finder
                 </Link>
               </li>
             </ul>
@@ -35,12 +35,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="text-dark/80 hover:text-gold transition-colors">
+                <Link href="/craftsmanship" className="text-dark/80 hover:text-gold transition-colors">
                   Craftsmanship
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="text-dark/80 hover:text-gold transition-colors">
+                <Link href="/sustainability" className="text-dark/80 hover:text-gold transition-colors">
                   Sustainability
                 </Link>
               </li>
