@@ -226,11 +226,11 @@ export default function RegisterPage() {
                 className="text-sm text-gray-600 dark:text-gray-400"
               >
                 I agree to the{" "}
-                <Link href="/terms" className="text-accent hover:underline">
+                <Link href="/terms" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
                   Terms of Service
                 </Link>{" "}
                 and{" "}
-                <Link href="/privacy" className="text-accent hover:underline">
+                <Link href="/privacy" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
                   Privacy Policy
                 </Link>
               </label>
