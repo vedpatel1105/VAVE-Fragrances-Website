@@ -4,7 +4,7 @@ export namespace ProductInfo {
     export const baseUrl =
         "https://tuqdytehmpzhlbxfvylv.supabase.co/storage/v1/object/public/vave-assets";
 
-    export const allProductItems = [
+    export const allProductItems: Product[] = [
         {
             id: 8,
             name: "Havoc",
@@ -672,4 +672,46 @@ export namespace ProductInfo {
             (product) => product.name.toLowerCase() === name.toLowerCase()
         );
     };
+
+    export interface Product {
+        id: number;
+        name: string;
+        slug: string;
+        category: string;
+        tagline: string;
+        price: number;
+        priceXL: number;
+        images: {
+            "30": string[];
+            "50": string[];
+            label: string;
+        };
+        description: string;
+        longDescription: string;
+        rating: number;
+        reviews: number;
+        isNew: boolean;
+        isBestseller: boolean;
+        isLimited: boolean;
+        discount: number | null;
+        ingredients: string[];
+        sizeOptions: { size: string; price: number }[];
+        specifications: {
+            fragrance_family: string;
+            concentration: string;
+            longevity: string;
+            sillage: string;
+            launch_year: string;
+        };
+        notes: {
+            top: string[];
+            heart: string[];
+            base: string[];
+        };
+        layeringOptions: {
+            id: number;
+            name: string;
+            description: string;
+        }[];
+    }
 }

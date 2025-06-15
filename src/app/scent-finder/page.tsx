@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import Cart from "@/src/app/components/Cart"
 import { useCartStore } from "@/src/app/components/Cart"
 import { ProductInfo } from "@/src/data/product-info"
+import { useRouter } from "next/navigation"
 
 const questions = [
   {
@@ -99,6 +100,8 @@ const resetButtonVariants = {
   hover: { scale: 1.05 },
 }
 
+
+
 export default function ScentFinderPage() {
   const { toast } = useToast()
   const [currentQuestion, setCurrentQuestion] = useState(0)
@@ -108,6 +111,7 @@ export default function ScentFinderPage() {
   const [selectedNotes, setSelectedNotes] = useState<string[]>([])
   const [isAddingToCart, setIsAddingToCart] = useState<Record<number, boolean>>({})
   const { addItem, setIsOpen } = useCartStore()
+  const router = useRouter()
 
   const handleSelection = (questionId: string, value: string | string[]) => {
     const updatedPreferences = { ...preferences, [questionId]: value }
@@ -132,6 +136,10 @@ export default function ScentFinderPage() {
         return [...prev, note]
       }
     })
+  }
+
+  const gotoProducPage = (id: number) => {
+    router.push(`/product/${id}`)
   }
 
   const handleNotesSubmit = () => {
@@ -165,8 +173,8 @@ export default function ScentFinderPage() {
           ...product.notes.heart,
           ...product.notes.base
         ]
-        const noteMatches = prefs.notes.filter((note: string) => 
-          allNotes.some(productNote => 
+        const noteMatches = prefs.notes.filter((note: string) =>
+          allNotes.some(productNote =>
             productNote.toLowerCase().includes(note.toLowerCase())
           )
         ).length
@@ -323,10 +331,9 @@ export default function ScentFinderPage() {
                             onClick={() => handleNoteToggle(option.value)}
                             className={`relative w-full h-auto p-4 flex flex-col items-center gap-2 rounded-xl
                               transition-all duration-300 group border backdrop-blur-xl
-                              ${
-                                selectedNotes.includes(option.value)
-                                  ? "bg-white/20 text-white border-white/30 shadow-lg"
-                                  : "bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-gray-200 hover:text-white"
+                              ${selectedNotes.includes(option.value)
+                                ? "bg-white/20 text-white border-white/30 shadow-lg"
+                                : "bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-gray-200 hover:text-white"
                               }`}
                           >
                             <span className="text-3xl transform group-hover:scale-110 transition-transform duration-300">
@@ -391,9 +398,8 @@ export default function ScentFinderPage() {
                     {questions.map((_, index) => (
                       <motion.div
                         key={index}
-                        className={`w-2.5 h-2.5 rounded-full backdrop-blur-sm ${
-                          index === currentQuestion ? "bg-white/80" : "bg-white/30"
-                        }`}
+                        className={`w-2.5 h-2.5 rounded-full backdrop-blur-sm ${index === currentQuestion ? "bg-white/80" : "bg-white/30"
+                          }`}
                         animate={{
                           scale: index === currentQuestion ? 1.2 : 1,
                         }}
@@ -420,6 +426,7 @@ export default function ScentFinderPage() {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       className="bg-white/5 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10"
+                      onClick={() => gotoProducPage(product.id)}
                     >
                       <div className="relative aspect-square">
                         <Image
@@ -475,11 +482,10 @@ export default function ScentFinderPage() {
                                 <button
                                   key={size.size}
                                   onClick={() => setSelectedSize(size.size)}
-                                  className={`px-3 py-1 rounded-full text-sm transition-all ${
-                                    selectedSize === size.size
-                                      ? "bg-white text-black font-medium"
-                                      : "bg-white/10 text-white hover:bg-white/20"
-                                  }`}
+                                  className={`px-3 py-1 rounded-full text-sm transition-all ${selectedSize === size.size
+                                    ? "bg-white text-black font-medium"
+                                    : "bg-white/10 text-white hover:bg-white/20"
+                                    }`}
                                 >
                                   {size.size}ml
                                 </button>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Image from "next/image"
-import { ShoppingBag, Star, Eye, X } from "lucide-react"
+import { ShoppingBag, Star, Eye, X, Zap } from "lucide-react"
 import SimpleNavbar from "@/src/app/components/SimpleNavbar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -10,6 +10,8 @@ import { useToast } from "@/components/ui/use-toast"
 import Cart from "@/src/app/components/Cart"
 import { useCartStore } from "@/src/app/components/Cart"
 import { ProductInfo } from "@/src/data/product-info"
+import { motion } from "framer-motion"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 
 // Function to generate layered fragrance description and notes
 const generateLayeredFragrance = (perfume1: any, perfume2: any) => {
@@ -173,10 +175,10 @@ export default function LayeringPage() {
         <div className="max-w-4xl mx-auto">
           {/* Hero Section with enhanced animations */}
           <div className="text-center mb-16">
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">Layering</h1>
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">Layering</h1>
             <div className="max-w-4xl mx-auto">
               <p className="text-xl text-gray-300 mb-4">What is Layering?</p>
-              <p className="text-lg text-gray-400 leading-relaxed">
+              <p className="text-base md:text-lg text-gray-400 leading-relaxed">
                 Layering is the art of combining two different fragrances to create your own unique scent. Simply
                 choose any two of our perfumes and wear them together - the scents will blend on your skin to form
                 a completely new fragrance that's uniquely yours. It's like being your own perfumer!
@@ -186,7 +188,7 @@ export default function LayeringPage() {
 
           {/* Main Layering Section with enhanced layout */}
           <div className="max-w-7xl mx-auto mb-16">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
               {/* Selection Area */}
               <div className="space-y-8">
                 {/* First Perfume Selection */}
@@ -212,8 +214,8 @@ export default function LayeringPage() {
                               className="object-cover rounded-lg"
                             />
                           </div>
-                          <h3 className="font-medium text-center">{perfume.name}</h3>
-                          <p className="text-sm text-gray-400 text-center">{perfume.category}</p>
+                          <h3 className="font-medium text-center text-sm md:text-base">{perfume.name}</h3>
+                          <p className="text-xs md:text-sm text-gray-400 text-center">{perfume.category}</p>
                         </CardContent>
                       </Card>
                     ))}
@@ -243,8 +245,8 @@ export default function LayeringPage() {
                               className="object-cover rounded-lg"
                             />
                           </div>
-                          <h3 className="font-medium text-center">{perfume.name}</h3>
-                          <p className="text-sm text-gray-400 text-center">{perfume.category}</p>
+                          <h3 className="font-medium text-center text-sm md:text-base">{perfume.name}</h3>
+                          <p className="text-xs md:text-sm text-gray-400 text-center">{perfume.category}</p>
                         </CardContent>
                       </Card>
                     ))}
@@ -252,181 +254,153 @@ export default function LayeringPage() {
                 </div>
               </div>
 
-              {/* Preview Area */}
+              {/* Result Area */}
               <div className="space-y-8">
-                <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                  <h2 className="text-2xl font-bold mb-6 text-center">Your Layered Fragrance</h2>
-                  {layeredFragrance ? (
-                    <div className="space-y-6">
-                      <p className="text-gray-300 text-center">{layeredFragrance.description}</p>
-
-                      {/* Size Selection */}
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">First Fragrance Size</label>
-                          <div className="flex gap-2">
-                            {selectedPerfume1.sizeOptions.map((size: any) => (
-                              <button
-                                key={size.size}
-                                onClick={() => setSelectedSize1(size.size)}
-                                className={`px-4 py-2 rounded-lg text-sm ${
-                                  selectedSize1 === size.size
-                                    ? "bg-white text-black"
-                                    : "bg-white/10 hover:bg-white/20"
-                                }`}
-                              >
-                                {size.size}ml
-                              </button>
-                            ))}
-                          </div>
+                {selectedPerfume1 && selectedPerfume2 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10"
+                  >
+                    <h2 className="text-2xl font-bold mb-6 text-center">Your Custom Blend</h2>
+                    
+                    {/* Selected Fragrances */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                      {/* First Perfume */}
+                      <div className="bg-white/5 rounded-lg p-4">
+                        <div className="aspect-square relative mb-4">
+                          <Image
+                            src={selectedPerfume1.images["30"][0]}
+                            alt={selectedPerfume1.name}
+                            fill
+                            className="object-cover rounded-lg"
+                          />
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Second Fragrance Size</label>
-                          <div className="flex gap-2">
-                            {selectedPerfume2.sizeOptions.map((size: any) => (
-                              <button
-                                key={size.size}
-                                onClick={() => setSelectedSize2(size.size)}
-                                className={`px-4 py-2 rounded-lg text-sm ${
-                                  selectedSize2 === size.size
-                                    ? "bg-white text-black"
-                                    : "bg-white/10 hover:bg-white/20"
-                                }`}
-                              >
-                                {size.size}ml
-                              </button>
-                            ))}
-                          </div>
+                        <h3 className="font-medium text-center mb-2">{selectedPerfume1.name}</h3>
+                        <div className="flex justify-center gap-2">
+                          {selectedPerfume1.notes.top.slice(0, 3).map((note: string, idx: number) => (
+                            <span key={idx} className="text-xs bg-white/10 px-2 py-1 rounded-full">
+                              {note}
+                            </span>
+                          ))}
                         </div>
                       </div>
 
-                      {/* Notes Section */}
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-lg font-medium">Fragrance Notes</h3>
-                          <button
-                            onClick={() => toggleNotes("notes")}
-                            className="text-sm text-gray-400 hover:text-white"
-                          >
-                            {showNotes["notes"] ? "Hide Notes" : "Show Notes"}
-                          </button>
+                      {/* Second Perfume */}
+                      <div className="bg-white/5 rounded-lg p-4">
+                        <div className="aspect-square relative mb-4">
+                          <Image
+                            src={selectedPerfume2.images["30"][0]}
+                            alt={selectedPerfume2.name}
+                            fill
+                            className="object-cover rounded-lg"
+                          />
                         </div>
-                        {showNotes["notes"] && (
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                              <h4 className="font-medium mb-2">Top Notes</h4>
-                              <div className="flex flex-wrap gap-2">
-                                {layeredFragrance.notes.top.map((note: string, idx: number) => (
-                                  <span
-                                    key={idx}
-                                    className="px-3 py-1 bg-white/10 rounded-full text-sm"
-                                  >
-                                    {note}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                            <div>
-                              <h4 className="font-medium mb-2">Heart Notes</h4>
-                              <div className="flex flex-wrap gap-2">
-                                {layeredFragrance.notes.heart.map((note: string, idx: number) => (
-                                  <span
-                                    key={idx}
-                                    className="px-3 py-1 bg-white/10 rounded-full text-sm"
-                                  >
-                                    {note}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                            <div>
-                              <h4 className="font-medium mb-2">Base Notes</h4>
-                              <div className="flex flex-wrap gap-2">
-                                {layeredFragrance.notes.base.map((note: string, idx: number) => (
-                                  <span
-                                    key={idx}
-                                    className="px-3 py-1 bg-white/10 rounded-full text-sm"
-                                  >
-                                    {note}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        )}
+                        <h3 className="font-medium text-center mb-2">{selectedPerfume2.name}</h3>
+                        <div className="flex justify-center gap-2">
+                          {selectedPerfume2.notes.top.slice(0, 3).map((note: string, idx: number) => (
+                            <span key={idx} className="text-xs bg-white/10 px-2 py-1 rounded-full">
+                              {note}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-
-                      {/* Add to Cart Button */}
-                      <Button
-                        className={`w-full py-6 text-lg ${
-                          isAnimating ? "animate-pulse" : ""
-                        }`}
-                        onClick={addLayeredProductToCart}
-                        disabled={isAnimating}
-                      >
-                        <ShoppingBag className="mr-2 h-5 w-5" />
-                        Add Layered Fragrance to Cart
-                      </Button>
                     </div>
-                  ) : (
-                    <div className="text-center text-gray-400">
-                      Select two fragrances to create your layered scent
-                    </div>
-                  )}
-                </div>
 
-                {/* Popular Combinations */}
-                <div className="bg-white/5 rounded-xl p-6 border border-white/10">
-                  <h2 className="text-2xl font-bold mb-6 text-center">Popular Combinations</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {popularCombinations.map((combo, index) => {
-                      const perfume1 = ProductInfo.allProductItems.find((p) => p.name === combo.fragrance1)
-                      const perfume2 = ProductInfo.allProductItems.find((p) => p.name === combo.fragrance2)
-                      return (
-                        <Card
-                          key={index}
-                          className="bg-white/5 border-white/10 hover:bg-white/10 cursor-pointer"
-                          onClick={() => {
-                            if (perfume1 && perfume2) {
-                              setSelectedPerfume1(perfume1)
-                              setSelectedPerfume2(perfume2)
-                            }
-                          }}
+                    {/* Size Selection */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">First Fragrance Size</label>
+                        <Select value={selectedSize1} onValueChange={setSelectedSize1}>
+                          <SelectTrigger className="w-full bg-white/5 border-white/10">
+                            <SelectValue placeholder="Select size" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {selectedPerfume1.sizeOptions.map((option: { size: string; price: number }) => (
+                              <SelectItem key={option.size} value={option.size}>
+                                {option.size}ml - ₹{option.price}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Second Fragrance Size</label>
+                        <Select value={selectedSize2} onValueChange={setSelectedSize2}>
+                          <SelectTrigger className="w-full bg-white/5 border-white/10">
+                            <SelectValue placeholder="Select size" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {selectedPerfume2.sizeOptions.map((option: { size: string; price: number }) => (
+                              <SelectItem key={option.size} value={option.size}>
+                                {option.size}ml - ₹{option.price}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Add to Cart Button */}
+                    <Button
+                      className="w-full bg-white text-black hover:bg-gray-200 py-6 text-lg font-semibold rounded-xl"
+                      onClick={addLayeredProductToCart}
+                      disabled={isAnimating}
+                    >
+                      {isAnimating ? (
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                         >
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-4">
-                              <div className="flex -space-x-4">
-                                <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-white">
-                                  <Image
-                                    src={perfume1?.images["30"][0] || "/placeholder.svg"}
-                                    alt={perfume1?.name || ""}
-                                    fill
-                                    className="object-cover"
-                                  />
-                                </div>
-                                <div className="w-16 h-16 relative rounded-full overflow-hidden border-2 border-white">
-                                  <Image
-                                    src={perfume2?.images["30"][0] || "/placeholder.svg"}
-                                    alt={perfume2?.name || ""}
-                                    fill
-                                    className="object-cover"
-                                  />
-                                </div>
-                              </div>
-                              <div>
-                                <h3 className="font-medium">{combo.name}</h3>
-                                <p className="text-sm text-gray-400">
-                                  {combo.fragrance1} + {combo.fragrance2}
-                                </p>
-                                <p className="text-sm text-green-400">{combo.popularity} loved</p>
-                              </div>
+                          <Zap className="h-6 w-6" />
+                        </motion.div>
+                      ) : (
+                        <>
+                          <ShoppingBag className="h-6 w-6 mr-2" />
+                          Add Combo to Cart
+                        </>
+                      )}
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="bg-white/5 backdrop-blur-md rounded-xl p-8 border border-white/10 h-full flex flex-col items-center justify-center text-center"
+                  >
+                    <div className="max-w-md">
+                      <h2 className="text-2xl font-bold mb-4">Create Your Custom Blend</h2>
+                      <p className="text-gray-300 mb-6">
+                        Select two fragrances from our collection to create your unique layered scent. 
+                        Each combination creates a distinctive aroma that's uniquely yours.
+                      </p>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3 text-sm text-gray-400">
+                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">1</div>
+                          <span>Choose your first fragrance from the left</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm text-gray-400">
+                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">2</div>
+                          <span>Select your second fragrance</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-sm text-gray-400">
+                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">3</div>
+                          <span>Choose sizes and add to cart</span>
+                        </div>
+                      </div>
+                      <div className="mt-8 p-4 bg-white/5 rounded-lg">
+                        <h3 className="text-lg font-semibold mb-2">Popular Combinations</h3>
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          {popularCombinations.slice(0, 4).map((combo, index) => (
+                            <div key={index} className="text-gray-400">
+                              {combo.name} ({combo.popularity})
                             </div>
-                          </CardContent>
-                        </Card>
-                      )
-                    })}
-                  </div>
-                </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
               </div>
             </div>
           </div>

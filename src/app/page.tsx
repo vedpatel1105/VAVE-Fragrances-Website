@@ -13,7 +13,6 @@ import SpecialOffers from "./components/SpecialOffers"
 import EnhancedProductCard from "./components/EnhancedProductCard"
 import { useToast } from "@/components/ui/use-toast"
 import StoreLocator from "./components/StoreLocator"
-import type { Product } from "../data/products"
 import Hero from "./components/Hero"
 import Newsletter from "./components/Newsletter"
 import Link from "next/link"
@@ -79,10 +78,10 @@ const generateLayeredFragrance = (perfume1: any, perfume2: any) => {
 }
 
 export interface EnhancedProductCardProps {
-  product: Product
-  onAddToCart: (product: Product, quantity: number) => void
-  onAddToWishlist: (product: Product) => void
-  onQuickView: (product: Product) => void
+  product: ProductInfo.Product
+  onAddToCart: (product: ProductInfo.Product, quantity: number) => void
+  onAddToWishlist: (product: ProductInfo.Product) => void
+  onQuickView: (product: ProductInfo.Product) => void
   onViewDetails: () => void
   inWishlist: boolean
   selectedSize: string

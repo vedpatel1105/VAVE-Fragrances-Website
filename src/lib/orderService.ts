@@ -1,6 +1,7 @@
 import { supabase } from './supabaseClient'
 import { CartItem } from '@/src/app/components/Cart'
 import { adminService } from './adminService'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
 export interface Order {
   id: string
@@ -86,35 +87,50 @@ export const orderService = {
 
   // Admin functions
   async updateOrderStatus(orderId: string, status: Order['status'], notes?: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
+    try {
+      // Check if user is admin first
+      const isAdmin = await adminService.isAdmin()
+      if (!isAdmin) throw new Error('Not authorized')
 
-    // Check if user is admin
-    const isAdmin = await adminService.isAdmin()
-    if (!isAdmin) throw new Error('Not authorized')
+      // Update order status
+      const supabase = createClientComponentClient()
+      const { error: orderError } = await supabase
+        .from('user_orders')
+        .update({ status })
+        .eq('id', orderId)
 
-    // Update order status
-    const { error: orderError } = await supabase
-      .from('user_orders')
-      .update({ status })
-      .eq('id', orderId)
+      if (orderError) throw orderError
 
-    if (orderError) throw orderError
+      // Try to add status history, but don't fail if it doesn't work
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          const { error: historyError } = await supabase
+            .from('order_status_history')
+            .insert({
+              order_id: orderId,
+              status,
+              changed_by: session.user.id,
+              notes
+            })
 
-    // Add status history
-    const { error: historyError } = await supabase
-      .from('order_status_history')
-      .insert({
-        order_id: orderId,
-        status,
-        changed_by: user.id,
-        notes
-      })
-
-    if (historyError) throw historyError
+          if (historyError) {
+            console.warn('Failed to update order status history:', historyError)
+            // Don't throw the error, just log it
+          }
+        }
+      } catch (historyError) {
+        console.warn('Error updating order status history:', historyError)
+        // Don't throw the error, just log it
+      }
+    } catch (error: any) {
+      console.error('Error updating order status:', error)
+      throw new Error(error.message || 'Failed to update order status')
+    }
   },
 
   async getAllOrders(): Promise<Order[]> {
+    const supabase = createClientComponentClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Not authenticated')
 

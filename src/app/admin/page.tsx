@@ -7,7 +7,7 @@ import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
-import { supabase } from "@/src/lib/supabaseClient"
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { adminService } from "@/src/lib/adminService"
 
 export default function AdminLoginPage() {
@@ -16,6 +16,7 @@ export default function AdminLoginPage() {
   const [form, setForm] = useState({ email: "", password: "" })
   const router = useRouter()
   const { toast } = useToast()
+  const supabase = createClientComponentClient()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,6 +30,12 @@ export default function AdminLoginPage() {
       })
 
       if (error) throw error
+
+      // Verify session was set
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        throw new Error("Failed to establish session")
+      }
 
       // Then check if the user is an admin
       const isAdmin = await adminService.isAdmin()
@@ -44,6 +51,7 @@ export default function AdminLoginPage() {
 
       // Redirect to orders page
       router.push('/admin/orders')
+      router.refresh() // Force a refresh to ensure new session is picked up
     } catch (error: any) {
       toast({
         title: "Login Failed",
