@@ -19,47 +19,7 @@ export default function CraftsmanshipPage() {
         >
           <h1 className="text-4xl md:text-5xl font-serif font-bold text-center mb-8">Our Craftsmanship</h1>
 
-          <div className="relative aspect-video mb-12 rounded-xl overflow-hidden">
-            <Image src="/craftsmanship-hero.jpg" alt="VAVE Fragrances - Craftsmanship" fill className="object-cover" />
-          </div>
-
-          <div className="prose prose-lg dark:prose-invert max-w-none">
-            <h2>The Art of Perfumery</h2>
-            <p>
-              At VAVE, craftsmanship is not just a process—it's a passion that drives every aspect of our fragrance
-              creation. Our master perfumers combine centuries-old techniques with modern innovation to create scents
-              that are both timeless and contemporary.
-            </p>
-
-            <p>
-              Each fragrance in our collection is the result of meticulous attention to detail, from the initial concept
-              to the final bottling. We believe that true luxury lies in the perfect harmony of ingredients, technique,
-              and artistry.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-12">
-              <div className="relative aspect-square rounded-lg overflow-hidden">
-                <Image
-                  src="/ingredient-selection.jpg"
-                  alt="Premium ingredient selection process"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="flex flex-col justify-center">
-                <h3>Premium Ingredients</h3>
-                <p>
-                  We source the finest raw materials from around the world. From Bulgarian rose petals to Indian
-                  sandalwood, every ingredient is carefully selected for its quality, purity, and olfactory properties.
-                </p>
-                <ul>
-                  <li>Hand-picked botanicals from certified suppliers</li>
-                  <li>Sustainable sourcing practices</li>
-                  <li>Quality testing at every stage</li>
-                </ul>
-              </div>
-            </div>
-
+         
             <h2>Our Process</h2>
             <p>
               Creating a VAVE fragrance is a journey that can take anywhere from six months to two years. Our process
@@ -135,7 +95,7 @@ export default function CraftsmanshipPage() {
                 "Craftsmanship is our commitment to creating fragrances that are not just beautiful, but unforgettable."
               </p>
             </div>
-          </div>
+      
         </motion.div>
       </main>
       <Footer />
