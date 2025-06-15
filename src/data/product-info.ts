@@ -27,7 +27,7 @@ export namespace ProductInfo {
                 label: `${baseUrl}/havoc/label.webp`,
             },
             description:
-                "A bold and sophisticated woody aromatic fragrance for the man.",
+                "A bold and sophisticated woody aromatic fragrance for man.",
             longDescription: `
       <p>Havoc is a bold statement of confidence and charisma. This fragrance opens with invigorating top notes of bitter orange, green apple, and cardamom, creating an immediate fresh impression.</p>
       
