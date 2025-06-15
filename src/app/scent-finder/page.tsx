@@ -158,14 +158,27 @@ export default function ScentFinderPage() {
     // Enhanced matching algorithm with weighted scoring
     const matches = ProductInfo.allProductItems.map((product) => {
       let score = 0
+      let matchedPreferences = []
 
       // Primary matches (higher weight)
-      if (product.category.toLowerCase() === prefs.style) score += 3
-      if (product.specifications.sillage.toLowerCase().includes(prefs.intensity)) score += 2
+      if (product.category.toLowerCase() === prefs.style) {
+        score += 3
+        matchedPreferences.push('style')
+      }
+      if (product.specifications.sillage.toLowerCase().includes(prefs.intensity)) {
+        score += 2
+        matchedPreferences.push('intensity')
+      }
 
       // Secondary matches
-      if (product.specifications.fragrance_family.toLowerCase().includes(prefs.occasion)) score += 2
-      if (product.tagline.toLowerCase().includes(prefs.personality)) score += 1
+      if (product.specifications.fragrance_family.toLowerCase().includes(prefs.occasion)) {
+        score += 2
+        matchedPreferences.push('occasion')
+      }
+      if (product.tagline.toLowerCase().includes(prefs.personality)) {
+        score += 1
+        matchedPreferences.push('personality')
+      }
 
       // Note matches (highest weight)
       if (prefs.notes && prefs.notes.length > 0) {
@@ -178,36 +191,75 @@ export default function ScentFinderPage() {
           allNotes.some(productNote =>
             productNote.toLowerCase().includes(note.toLowerCase())
           )
-        ).length
-        score += noteMatches * 3
+        )
+        if (noteMatches.length > 0) {
+          score += noteMatches.length * 3
+          matchedPreferences.push('notes')
+        }
       }
 
       return {
         product,
         score,
+        matchedPreferences
       }
     })
 
-    // Sort by score and get top matches
-    const bestMatches = matches
-      .sort((a, b) => b.score - a.score)
-      .filter((match) => match.score > 0)
-      .slice(0, 3)
+    // Sort by score
+    const sortedMatches = matches.sort((a, b) => b.score - a.score)
+    
+    // Get exact matches (score > 0)
+    let bestMatches = sortedMatches.filter(match => match.score > 0)
 
-    if (bestMatches.length > 0) {
-      setRecommendedProducts(bestMatches.map((match) => match.product))
+    // If we don't have 3 matches, add random products that match at least one preference
+    if (bestMatches.length < 3) {
+      const remainingMatches = sortedMatches
+        .filter(match => !bestMatches.includes(match) && match.matchedPreferences.length > 0)
+        
+      // Add random products from remaining matches until we have 3
+      while (bestMatches.length < 3 && remainingMatches.length > 0) {
+        const randomIndex = Math.floor(Math.random() * remainingMatches.length)
+        bestMatches.push(remainingMatches.splice(randomIndex, 1)[0])
+      }
 
-      toast({
-        title: "Found Your Perfect Matches! 🎉",
-        description: `We found ${bestMatches.length} fragrances that match your preferences.`,
-      })
-    } else {
-      toast({
-        title: "No exact match found",
-        description: "Try adjusting your preferences for more options.",
-        variant: "destructive",
-      })
+      // If we still don't have 3, add random products
+      if (bestMatches.length < 3) {
+        const unusedProducts = ProductInfo.allProductItems
+          .filter(product => !bestMatches.some(match => match.product.id === product.id))
+        
+        while (bestMatches.length < 3 && unusedProducts.length > 0) {
+          const randomIndex = Math.floor(Math.random() * unusedProducts.length)
+          bestMatches.push({
+            product: unusedProducts.splice(randomIndex, 1)[0],
+            score: 0,
+            matchedPreferences: []
+          })
+        }
+      }
     }
+
+    // Take only the top 3
+    bestMatches = bestMatches.slice(0, 3)
+
+    setRecommendedProducts(bestMatches.map(match => match.product))
+
+    // Customized toast message based on match quality
+    const perfectMatches = bestMatches.filter(match => match.score > 5).length
+    const partialMatches = bestMatches.filter(match => match.score > 0 && match.score <= 5).length
+
+    let toastMessage = ""
+    if (perfectMatches === 3) {
+      toastMessage = "We found your perfect matches! 🎉"
+    } else if (perfectMatches > 0 || partialMatches > 0) {
+      toastMessage = "We found some great matches based on your preferences! ✨"
+    } else {
+      toastMessage = "Here are some fragrances you might enjoy! 🌟"
+    }
+
+    toast({
+      title: toastMessage,
+      description: `We've selected 3 fragrances for you to explore.`,
+    })
   }
 
   const handleAddToCart = (product: any) => {
