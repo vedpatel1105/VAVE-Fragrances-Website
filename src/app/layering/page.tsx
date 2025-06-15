@@ -100,7 +100,7 @@ export default function LayeringPage() {
         image: selectedPerfume1.images[selectedSize1][0],
         quantity: 1,
         type: "layered",
-        size: `${selectedSize1}ml + ${selectedSize2}ml`,
+        size: `${selectedSize1}ml + ${selectedSize2}`,
         sizes: {
           perfume1: selectedSize1,
           perfume2: selectedSize2,
