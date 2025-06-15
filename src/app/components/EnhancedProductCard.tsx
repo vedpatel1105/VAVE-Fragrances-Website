@@ -2,60 +2,21 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
-import { Heart, ShoppingBag, Zap, Star } from "lucide-react"
+import { Heart, ShoppingBag, Zap, Star, Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button" // Add this import
+import { Button } from "@/components/ui/button"
+import { ProductInfo } from "@/src/data/product-info"
 
 interface EnhancedProductCardProps {
-  product: {
-    id: number
-    name: string
-    slug: string
-    category: string
-    tagline: string
-    price: number
-    priceXL: number
-    images: {
-      "30": string[]
-      "50": string[]
-      label: string
-    }
-    description: string
-    longDescription: string
-    rating: number
-    reviews: number
-    isNew: boolean
-    isBestseller: boolean
-    isLimited: boolean
-    discount: number | null
-    ingredients: string[]
-    sizeOptions: { size: string; price: number }[]
-    specifications: {
-      fragrance_family: string
-      concentration: string
-      longevity: string
-      sillage: string
-      launch_year: string
-    }
-    notes: {
-      top: string[]
-      heart: string[]
-      base: string[]
-    }
-    layeringOptions: {
-      id: number
-      name: string
-      description: string
-    }[]
-  }
-  onAddToCart: (product: any, quantity: number, size: string) => void
-  onAddToWishlist: (product: any) => void
-  onQuickView: (product: any) => void
-  inWishlist?: boolean
-  selectedSize?: string
+  product: ProductInfo.Product
+  onAddToCart: (product: ProductInfo.Product, quantity: number) => void
+  onAddToWishlist: (product: ProductInfo.Product) => void
+  onQuickView: (product: ProductInfo.Product) => void
+  inWishlist: boolean
+  selectedSize: string
   onSizeSelect: (size: string) => void
 }
 
@@ -64,36 +25,34 @@ export default function EnhancedProductCard({
   onAddToCart,
   onAddToWishlist,
   onQuickView,
-  inWishlist = false,
-  selectedSize = "30",
+  inWishlist,
+  selectedSize,
   onSizeSelect,
 }: EnhancedProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const [isWishlisted, setIsWishlisted] = useState(inWishlist)
-  const [currentImage, setCurrentImage] = useState(0)
+  const [quantity, setQuantity] = useState(1)
   const router = useRouter()
 
-  const getCurrentPrice = () => {
-    const sizeOption = product.sizeOptions.find((s) => s.size === selectedSize)
-    return sizeOption ? sizeOption.price : product.price
+  const handleQuantityChange = (value: number) => {
+    if (value >= 1 && value <= 10) {
+      setQuantity(value)
+    }
   }
 
   const handleAddToWishlist = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setIsWishlisted(!isWishlisted)
     onAddToWishlist(product)
   }
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const currentPrice = getCurrentPrice()
-    onAddToCart(product, 1, selectedSize)
+    onAddToCart(product, quantity)
   }
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.stopPropagation()
     const size = product.sizeOptions && product.sizeOptions.length > 0 ? product.sizeOptions[0].size : "30"
-    onAddToCart(product, 1, size)
+    onAddToCart(product, quantity)
     router.push("/checkout")
   }
 
@@ -107,22 +66,16 @@ export default function EnhancedProductCard({
     router.push(`/product/${product.id}`)
   }
 
-  // Add this useEffect to update image when size changes
-  useEffect(() => {
-    if (product.images && product.images[selectedSize as "30" | "50"]) {
-      setCurrentImage(0) // Reset to first image when size changes
-    }
-  }, [selectedSize, product.images])
-
   return (
     <motion.div
-      className="group relative overflow-hidden bg-black/95 backdrop-blur-md backdrop-filter rounded-xl border border-white/5"
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.2 }}
+      className="group relative bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg transition-all duration-300 hover:shadow-xl"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      whileHover={{ y: -5 }}
     >
       {/* Enhanced badge section */}
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-        {product.isNew && (
+        {product.isNew ? (
           <motion.span
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -130,8 +83,8 @@ export default function EnhancedProductCard({
           >
             New
           </motion.span>
-        )}
-        {product.isBestseller && (
+        ) : ''}
+        {product.isBestseller ? (
           <motion.span
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -140,8 +93,8 @@ export default function EnhancedProductCard({
           >
             Bestseller
           </motion.span>
-        )}
-        {product.discount && (
+        ) : ''}
+        {product.discount && product.discount > 0 ? (
           <motion.span
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -150,7 +103,7 @@ export default function EnhancedProductCard({
           >
             {product.discount}% Off
           </motion.span>
-        )}
+        ) : ''}
       </div>
 
       {/* Enhanced wishlist button */}
@@ -158,38 +111,35 @@ export default function EnhancedProductCard({
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         className={`absolute top-4 right-4 z-20 p-2.5 rounded-full backdrop-blur-md shadow-xl
-          ${
-            isWishlisted
-              ? "bg-gradient-to-r from-red-600/90 to-red-500/80 text-white"
-              : "bg-gradient-to-r from-gray-900/90 to-gray-800/80 text-white"
+          ${inWishlist
+            ? "bg-gradient-to-r from-red-600/90 to-red-500/80 text-white"
+            : "bg-gradient-to-r from-gray-900/90 to-gray-800/80 text-white"
           }`}
         onClick={handleAddToWishlist}
       >
         <Heart
-          className={`h-5 w-5 transform transition-transform duration-300 ${isWishlisted ? "scale-110 fill-current" : "scale-100"}`}
+          className={`h-5 w-5 transform transition-transform duration-300 ${inWishlist ? "scale-110 fill-current" : "scale-100"}`}
         />
       </motion.button>
 
       {/* Image section with edge-to-edge fit */}
-      <div 
-        className="relative aspect-[4/5] w-full overflow-hidden cursor-pointer" 
+      <div
+        className="relative aspect-square overflow-hidden"
         onClick={handleViewProduct}
       >
-        <motion.div 
+        <motion.div
           className="absolute inset-0 w-full h-full"
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.4 }}
         >
           <Image
-            src={product.images[selectedSize as "30" | "50"][currentImage] || "/placeholder.svg"}
+            src={product.images[selectedSize as "30" | "50"]?.[0] || product.images["30"][0]}
             alt={product.name}
             fill
-            className="object-contain w-full h-full"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            priority
+            className="object-cover transition-transform duration-300 group-hover:scale-110"
           />
         </motion.div>
-        
+
         {/* Hover overlay */}
         <motion.div
           className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
@@ -226,11 +176,10 @@ export default function EnhancedProductCard({
             <button
               key={size.size}
               onClick={() => onSizeSelect(size.size)}
-              className={`px-3 py-1 rounded-full text-sm transition-all ${
-                selectedSize === size.size
+              className={`px-3 py-1 rounded-full text-sm transition-all ${selectedSize === size.size
                   ? "bg-white text-black font-medium"
                   : "bg-white/10 text-white hover:bg-white/20"
-              }`}
+                }`}
             >
               {size.size}ml
             </button>
@@ -239,7 +188,7 @@ export default function EnhancedProductCard({
 
         {/* Price */}
         <div className="text-lg font-bold text-white mb-2">
-          ₹{getCurrentPrice()}
+          ₹{product.sizeOptions.find(opt => opt.size === selectedSize)?.price || product.price || ""}
         </div>
 
         {/* Enhanced action buttons with animations */}
@@ -268,6 +217,26 @@ export default function EnhancedProductCard({
           </motion.button>
         </div>
       </motion.div>
+
+      {/* Quick Actions */}
+      <div className="absolute top-4 right-4 flex flex-col gap-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="bg-white/90 hover:bg-white text-gray-900 rounded-full shadow-lg"
+          onClick={handleAddToWishlist}
+        >
+          <Heart className={`h-5 w-5 ${inWishlist ? "fill-red-500 text-red-500" : ""}`} />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="bg-white/90 text-gray-900 rounded-full shadow-lg"
+          onClick={handleQuickView}
+        >
+          <Eye className="h-5 w-5" />
+        </Button>
+      </div>
     </motion.div>
   )
 }

@@ -2,6 +2,8 @@
 
 import type React from "react"
 import dynamic from "next/dynamic"
+import { useRouter } from "next/navigation"
+import { useAuthStore } from "@/src/lib/auth"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -43,7 +45,8 @@ const Cart = dynamic(() => import("@/src/app/components/Cart"), { ssr: false })
 
 export default function Profile() {
   const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+  const { user, isAuthenticated, isLoading } = useAuthStore()
   const [profile, setProfile] = useState<ExtendedUserProfile>({
     id: "",
     full_name: "",
@@ -78,7 +81,6 @@ export default function Profile() {
   // Load profile data
   useEffect(() => {
     const loadProfileData = async () => {
-      setIsLoading(true)
       try {
         const profileData = await profileService.getProfile()
         setProfile(profileData)
@@ -96,13 +98,17 @@ export default function Profile() {
           variant: "destructive",
           duration: 5000
         })
-      } finally {
-        setIsLoading(false)
       }
     }
 
     loadProfileData()
   }, [])
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/")
+    }
+  }, [isAuthenticated, isLoading, router])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -132,7 +138,6 @@ export default function Profile() {
   }
 
   const handleAddAddress = async (address: Omit<Address, 'id' | 'created_at'>) => {
-    setIsLoading(true)
     try {
       // If new address is default, update all other addresses to non-default
       if (address.is_default) {
@@ -159,13 +164,10 @@ export default function Profile() {
         description: "Failed to add address",
         variant: "destructive"
       })
-    } finally {
-      setIsLoading(false)
     }
   }
 
   const handleUpdateAddress = async (id: string, updates: Partial<Omit<Address, 'id' | 'user_id' | 'created_at'>>) => {
-    setIsLoading(true)
     try {
       // If setting as default, update all other addresses to non-default
       if (updates.is_default) {
@@ -192,8 +194,6 @@ export default function Profile() {
         description: "Failed to update address",
         variant: "destructive"
       })
-    } finally {
-      setIsLoading(false)
     }
   }
 

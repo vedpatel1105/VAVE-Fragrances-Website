@@ -13,10 +13,12 @@ import { createAvatar } from '@dicebear/core'
 import { initials } from '@dicebear/collection'
 import Image from "next/image"
 import { ProductInfo } from "@/src/data/product-info"
+import { motion, AnimatePresence } from "framer-motion"
 
 
 export default function SimpleNavbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string>("")
   const pathname = usePathname()
   const { user, logout } = useAuthStore()
@@ -37,6 +39,14 @@ export default function SimpleNavbar() {
     generateAvatar()
   }, [user?.email])
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
   const isActive = (path: string) => pathname === path
 
   const navLinks = [
@@ -51,9 +61,13 @@ export default function SimpleNavbar() {
   ]
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled ? "bg-black/80 backdrop-blur-md" : "bg-transparent"
+      }`}
+    >
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             {/* logo image */}
@@ -72,10 +86,7 @@ export default function SimpleNavbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium transition-colors ${isActive(link.href)
-                    ? "text-white"
-                    : "text-gray-300 hover:text-white"
-                  }`}
+                className="text-white hover:text-gray-300 transition-colors"
               >
                 {link.label}
               </Link>
@@ -112,19 +123,17 @@ export default function SimpleNavbar() {
               </Link>
             </div>
 
-            {/* Cart Icon */}
+            {/* Cart Button */}
             <Button
               variant="ghost"
               size="icon"
-              className="relative text-gray-300 hover:text-white"
+              className="text-white hover:bg-white/10 relative"
               onClick={() => setIsOpen(true)}
             >
-              <ShoppingBag className="h-5 w-5" />
-              {getTotalItems() > 0 && (
-                <span className="absolute -top-1 -right-1 bg-white text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {getTotalItems()}
-                </span>
-              )}
+              <ShoppingBag className="h-6 w-6" />
+              <span className="absolute -top-1 -right-1 bg-white text-black rounded-full w-5 h-5 text-xs flex items-center justify-center">
+                {getTotalItems()}
+              </span>
             </Button>
 
             {/* User Menu */}
@@ -134,7 +143,7 @@ export default function SimpleNavbar() {
                   variant="ghost"
                   size="icon"
                   className="text-gray-300 hover:text-white"
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={avatarUrl} alt={user.full_name || ""} />
@@ -142,34 +151,41 @@ export default function SimpleNavbar() {
                   </Avatar>
                 </Button>
 
-                {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1">
-                    <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">{user.full_name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
-                    </div>
-                    <Link
-                      href="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                      onClick={() => setIsMenuOpen(false)}
+                <AnimatePresence>
+                  {isMobileMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute right-0 mt-2 w-48 bg-black/95 backdrop-blur-md rounded-md shadow-lg py-1 z-50"
                     >
-                      Profile
-                    </Link>
-                    <button
-                      onClick={() => {
-                        logout()
-                        setIsMenuOpen(false)
-                      }}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
+                      <div className="px-4 py-2 border-b border-white/10">
+                        <p className="text-sm font-medium text-white">{user.full_name}</p>
+                        <p className="text-xs text-gray-400">{user.email}</p>
+                      </div>
+                      <Link
+                        href="/profile"
+                        className="block px-4 py-2 text-sm text-white hover:bg-white/10"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Profile
+                      </Link>
+                      <button
+                        onClick={async () => {
+                          await logout()
+                          setIsMobileMenuOpen(false)
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-white/10"
+                      >
+                        Logout
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             ) : (
               <Link href="/auth/login">
-                <Button variant="ghost" className="text-gray-300 hover:text-white">
+                <Button variant="ghost" className="text-white hover:bg-white/10">
                   Login
                 </Button>
               </Link>
@@ -179,63 +195,74 @@ export default function SimpleNavbar() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden text-gray-300 hover:text-white"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="md:hidden text-white hover:bg-white/10"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMenuOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
+              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
         </div>
       </div>
 
       {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="md:hidden bg-black/95 backdrop-blur-md border-t border-white/10">
-          <div className="px-2 pt-2 pb-3 space-y-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`block px-3 py-2 rounded-md text-base font-medium ${isActive(link.href)
-                    ? "text-white bg-white/10"
-                    : "text-gray-300 hover:text-white hover:bg-white/10"
-                  }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <div className="flex justify-start space-x-4 mt-4">
-              <a
-                href="https://wa.me/919328701508"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-full transition-colors bg-white/10 hover:bg-green-500/20"
-              >
-                <MessageCircle className="h-5 w-5 text-white" />
-              </a>
-              <a
-                href="https://www.instagram.com/vavefragrances/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-2 rounded-full transition-colors bg-white/10 hover:bg-pink-500/20"
-              >
-                <Instagram className="h-5 w-5 text-white" />
-              </a>
-              <Link
-                href="/wishlist"
-                className="p-2 rounded-full transition-colors bg-white/10 hover:bg-white/20"
-              >
-                <Heart className="h-5 w-5 text-white" />
-              </Link>
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="md:hidden bg-black/95 backdrop-blur-md"
+          >
+            <div className="container mx-auto px-4 py-4">
+              <div className="flex flex-col space-y-4">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="text-white hover:text-gray-300 transition-colors py-2"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                {!user && (
+                  <Link
+                    href="/auth/login"
+                    className="text-white hover:text-gray-300 transition-colors py-2"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                )}
+                <div className="flex justify-start space-x-4 mt-4">
+                  <a
+                    href="https://wa.me/919328701508"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-full transition-colors bg-white/10 hover:bg-green-500/20"
+                  >
+                    <MessageCircle className="h-5 w-5 text-white" />
+                  </a>
+                  <a
+                    href="https://www.instagram.com/vavefragrances/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-full transition-colors bg-white/10 hover:bg-pink-500/20"
+                  >
+                    <Instagram className="h-5 w-5 text-white" />
+                  </a>
+                  <Link
+                    href="/wishlist"
+                    className="p-2 rounded-full transition-colors bg-white/10 hover:bg-white/20"
+                  >
+                    <Heart className="h-5 w-5 text-white" />
+                  </Link>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Cart Component */}
       <Cart />

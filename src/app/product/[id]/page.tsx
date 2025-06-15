@@ -293,7 +293,7 @@ export default function ProductDetailPage() {
 
                 {/* Badges */}
                 <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-                  {product.isNew && (
+                  {product.isNew ? (
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -303,8 +303,8 @@ export default function ProductDetailPage() {
                         NEW
                       </Badge>
                     </motion.div>
-                  )}
-                  {product.isBestseller && (
+                  ) : ''}
+                  {product.isBestseller ? (
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -314,8 +314,8 @@ export default function ProductDetailPage() {
                         BESTSELLER
                       </Badge>
                     </motion.div>
-                  )}
-                  {product.isLimited && (
+                  ) : ''}
+                  {product.isLimited ? (
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -325,8 +325,8 @@ export default function ProductDetailPage() {
                         LIMITED EDITION
                       </Badge>
                     </motion.div>
-                  )}
-                  {product.discount && (
+                  ) : ''}
+                  {product.discount ? (
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -336,7 +336,7 @@ export default function ProductDetailPage() {
                         {product.discount}% OFF
                       </Badge>
                     </motion.div>
-                  )}
+                  ) : ''}
                 </div>
 
                 {/* Wishlist Button - Fixed Position */}
