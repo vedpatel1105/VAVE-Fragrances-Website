@@ -60,19 +60,19 @@ const questions = [
       { value: "oud", label: "Oud", icon: "🪵", description: "Exotic, rich and luxurious" },
       { value: "saffron", label: "Saffron", icon: "🧡", description: "Warm, spicy and precious" },
       { value: "cardamom", label: "Cardamom", icon: "🌱", description: "Spicy, aromatic and exotic" },
+      { value: "bergamot", label: "Bergamot", icon: "🍊", description: "Citrusy, fresh and uplifting" },
+      { value: "cinnamon", label: "Cinnamon", icon: "🍂", description: "Warm, spicy and comforting" },
+      { value: "nutmeg", label: "Nutmeg", icon: "🌰", description: "Warm, spicy and aromatic" },
+      { value: "jasmine", label: "Jasmine", icon: "🌼", description: "Floral, sweet and exotic" },
+      { value: "peach", label: "Peach", icon: "🍑", description: "Sweet, juicy and playful" },
+      { value: "apple", label: "Apple", icon: "🍏", description: "Crisp, fresh and fruity" },
+      { value: "berry", label: "Berry", icon: "🍓", description: "Sweet, tangy and vibrant" },
+      { value: "coconut", label: "Coconut", icon: "🥥", description: "Tropical, creamy and exotic" },
+      { value: "almond", label: "Almond", icon: "🌰", description: "Nutty, sweet and comforting" },
     ],
     multiSelect: true,
   },
-  {
-    id: "personality",
-    title: "Which best describes your personality?",
-    options: [
-      { value: "energetic", label: "Energetic & Bold", icon: "⚡", description: "Full of life" },
-      { value: "romantic", label: "Romantic & Soft", icon: "💝", description: "Sweet and gentle" },
-      { value: "sophisticated", label: "Sophisticated & Elegant", icon: "👑", description: "Refined taste" },
-      { value: "adventurous", label: "Adventurous & Free", icon: "🌟", description: "Spontaneous spirit" },
-    ],
-  },
+
   {
     id: "weather",
     title: "When do you want your fragrance to shine?",
@@ -90,6 +90,7 @@ const questions = [
       { value: "light", label: "Subtle & Close", icon: "🍃", description: "Intimate presence" },
       { value: "moderate", label: "Balanced & Present", icon: "🌿", description: "Noticeable but not overwhelming" },
       { value: "strong", label: "Bold & Lasting", icon: "💫", description: "Makes a statement" },
+      { value: "intense", label: "Powerful & Commanding", icon: "🔥", description: "Unforgettable impact" },
     ],
   },
 ]
@@ -425,10 +426,12 @@ export default function ScentFinderPage() {
                       key={product.id}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="bg-white/5 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10"
-                      onClick={() => gotoProducPage(product.id)}
+                      className="bg-white/5 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 flex flex-col"
                     >
-                      <div className="relative aspect-square">
+                      <div 
+                        className="relative aspect-square cursor-pointer"
+                        onClick={() => gotoProducPage(product.id)}
+                      >
                         <Image
                           src={product.images[selectedSize][0] || "/placeholder.svg"}
                           alt={product.name}
@@ -437,55 +440,43 @@ export default function ScentFinderPage() {
                         />
                       </div>
 
-                      <div className="p-6">
+                      <div className="p-6 flex flex-col flex-1">
                         <h3 className="text-xl font-semibold text-white mb-2">{product.name}</h3>
-                        <p className="text-gray-300 text-sm mb-4">{product.description}</p>
+                        <p className="text-gray-300 text-sm mb-4 line-clamp-2">{product.description}</p>
 
-                        <div className="grid grid-cols-3 gap-4 mb-4">
-                          <div className="text-center">
-                            <h5 className="text-xs font-medium uppercase text-gray-400 mb-2">Top Notes</h5>
-                            <div className="space-y-1">
-                              {product.notes.top.map((note: string, i: number) => (
-                                <div key={i} className="text-xs text-gray-200 bg-white/10 rounded-full px-2 py-1">
-                                  {note}
-                                </div>
-                              ))}
+                        <div className="grid grid-cols-3 gap-2 mb-4">
+                          {['top', 'heart', 'base'].map((noteType) => (
+                            <div key={noteType} className="text-center">
+                              <h5 className="text-xs font-medium uppercase text-gray-400 mb-2">
+                                {noteType.charAt(0).toUpperCase() + noteType.slice(1)} Notes
+                              </h5>
+                              <div className="space-y-1">
+                                {product.notes[noteType as keyof typeof product.notes].slice(0, 2).map((note: string, i: number) => (
+                                  <div key={i} className="text-xs text-gray-200 bg-white/10 rounded-full px-2 py-1 truncate">
+                                    {note}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                          <div className="text-center">
-                            <h5 className="text-xs font-medium uppercase text-gray-400 mb-2">Heart Notes</h5>
-                            <div className="space-y-1">
-                              {product.notes.heart.map((note: string, i: number) => (
-                                <div key={i} className="text-xs text-gray-200 bg-white/10 rounded-full px-2 py-1">
-                                  {note}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="text-center">
-                            <h5 className="text-xs font-medium uppercase text-gray-400 mb-2">Base Notes</h5>
-                            <div className="space-y-1">
-                              {product.notes.base.map((note: string, i: number) => (
-                                <div key={i} className="text-xs text-gray-200 bg-white/10 rounded-full px-2 py-1">
-                                  {note}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                          ))}
                         </div>
 
-                        <div className="space-y-4">
+                        <div className="mt-auto space-y-4">
                           <div>
                             <h4 className="text-sm font-medium text-gray-300 mb-2">Size:</h4>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 flex-wrap">
                               {product.sizeOptions.map((size: { size: string; price: number }) => (
                                 <button
                                   key={size.size}
-                                  onClick={() => setSelectedSize(size.size)}
-                                  className={`px-3 py-1 rounded-full text-sm transition-all ${selectedSize === size.size
-                                    ? "bg-white text-black font-medium"
-                                    : "bg-white/10 text-white hover:bg-white/20"
-                                    }`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedSize(size.size);
+                                  }}
+                                  className={`px-3 py-1 rounded-full text-sm transition-all ${
+                                    selectedSize === size.size
+                                      ? "bg-white text-black font-medium"
+                                      : "bg-white/10 text-white hover:bg-white/20"
+                                  }`}
                                 >
                                   {size.size}ml
                                 </button>
@@ -493,12 +484,15 @@ export default function ScentFinderPage() {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between pt-4 border-t border-white/10">
                             <span className="text-xl font-bold text-white">
                               ₹{product.sizeOptions.find((s: { size: string; price: number }) => s.size === selectedSize)?.price || product.price}
                             </span>
                             <Button
-                              onClick={() => handleAddToCart(product)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddToCart(product);
+                              }}
                               disabled={isAddingToCart[product.id]}
                               className="bg-white text-black hover:bg-gray-200"
                             >
