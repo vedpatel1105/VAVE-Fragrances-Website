@@ -87,10 +87,10 @@ const questions = [
     id: "intensity",
     title: "How noticeable should your fragrance be?",
     options: [
-      { value: "light", label: "Subtle & Close", icon: "🍃", description: "Intimate presence" },
-      { value: "moderate", label: "Balanced & Present", icon: "🌿", description: "Noticeable but not overwhelming" },
-      { value: "strong", label: "Bold & Lasting", icon: "💫", description: "Makes a statement" },
-      { value: "intense", label: "Powerful & Commanding", icon: "🔥", description: "Unforgettable impact" },
+      { value: "light", label: "Light", icon: "🍃", description: "Intimate presence" },
+      { value: "moderate", label: "Moderate", icon: "🌿", description: "Noticeable but not overwhelming" },
+      { value: "strong", label: "Strong", icon: "💫", description: "Makes a statement" },
+      { value: "intense", label: "Intense", icon: "🔥", description: "Unforgettable impact" },
     ],
   },
 ]
