@@ -7,8 +7,16 @@ import Footer from "@/src/app/components/Footer"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
+import { useRef } from "react"
 
 export default function ShippingReturnsPage() {
+  const shippingRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>
+  const returnRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>
+
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
     <>
       <Navbar setIsCartOpen={() => {}} />
@@ -31,7 +39,11 @@ export default function ShippingReturnsPage() {
                 We want to ensure your Vave fragrances reach you quickly and safely. Here's everything you need to know
                 about our shipping process.
               </p>
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => scrollToSection(shippingRef)}
+              >
                 View Shipping Details
               </Button>
             </div>
@@ -45,42 +57,40 @@ export default function ShippingReturnsPage() {
                 Not completely satisfied with your purchase? Our hassle-free return policy makes it easy to return or
                 exchange your items.
               </p>
-              <Button variant="outline" className="w-full">
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => scrollToSection(returnRef)}
+              >
                 View Return Policy
               </Button>
             </div>
           </div>
 
-          <section id="shipping" className="mb-12">
+          <section id="shipping" ref={shippingRef} className="mb-12">
             <h2 className="text-3xl font-bold mb-6">Shipping Information</h2>
 
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-8">
               <h3 className="text-xl font-bold mb-4">Shipping Methods & Timeframes</h3>
-
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200 dark:border-gray-700">
-                      <th className="text-left py-3 px-4">Shipping Method</th>
-                      <th className="text-left py-3 px-4">Estimated Delivery</th>
+                      <th className="text-left py-3 px-4">Location</th>
+                      <th className="text-left py-3 px-4">Delivery Time</th>
                       <th className="text-left py-3 px-4">Cost</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="border-b border-gray-200 dark:border-gray-700">
-                      <td className="py-3 px-4">Standard Shipping</td>
-                      <td className="py-3 px-4">3-5 business days</td>
-                      <td className="py-3 px-4">₹99 (Free on orders above ₹1000)</td>
-                    </tr>
-                    <tr className="border-b border-gray-200 dark:border-gray-700">
-                      <td className="py-3 px-4">Express Shipping</td>
-                      <td className="py-3 px-4">1-2 business days</td>
-                      <td className="py-3 px-4">₹199</td>
+                      <td className="py-3 px-4">Within City</td>
+                      <td className="py-3 px-4">2-3 business days</td>
+                      <td className="py-3 px-4">₹49 - ₹99</td>
                     </tr>
                     <tr>
-                      <td className="py-3 px-4">Same Day Delivery</td>
-                      <td className="py-3 px-4">Same day (order before 12 PM)</td>
-                      <td className="py-3 px-4">₹299 (Available in select cities)</td>
+                      <td className="py-3 px-4">Outside City</td>
+                      <td className="py-3 px-4">4-7 business days</td>
+                      <td className="py-3 px-4">₹99 - ₹199 (Based on distance)</td>
                     </tr>
                   </tbody>
                 </table>
@@ -136,83 +146,55 @@ export default function ShippingReturnsPage() {
 
           <Separator className="my-12" />
 
-          <section id="returns" className="mb-12">
+          <section id="returns" ref={returnRef} className="mb-12">
             <h2 className="text-3xl font-bold mb-6">Return Policy</h2>
 
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm mb-8">
               <div className="flex items-center mb-4">
                 <Clock className="h-6 w-6 text-accent mr-3" />
-                <h3 className="text-xl font-bold">30-Day Return Policy</h3>
+                <h3 className="text-xl font-bold">Important Return Information</h3>
               </div>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                We want you to be completely satisfied with your purchase. If you're not happy with your order, you can
-                return it within 30 days of delivery for a full refund or exchange.
+                Due to the nature of fragrances and for hygiene reasons, we have a strict return policy. Returns are only accepted in the following cases:
               </p>
 
               <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                <h4 className="font-bold mb-2">Return Conditions:</h4>
+                <h4 className="font-bold mb-2">Returns Are Only Accepted If:</h4>
                 <ul className="list-disc pl-5 space-y-1 text-gray-700 dark:text-gray-300">
-                  <li>Items must be unused and in their original packaging</li>
-                  <li>Seal must be intact for fragrances</li>
-                  <li>Original receipt or proof of purchase required</li>
-                  <li>Gift receipts are valid for returns (store credit only)</li>
+                  <li>The product received is damaged or defective</li>
+                  <li>You received a different product than what was ordered</li>
+                  <li>The seal is unbroken and the package is completely unopened</li>
                 </ul>
+                
+                <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <p className="text-red-600 dark:text-red-400 font-medium">
+                    Please Note: We cannot accept returns of opened or used fragrances for hygiene and safety reasons. 
+                    Make sure to check your order carefully upon receipt.
+                  </p>
+                </div>
               </div>
             </div>
 
             <Accordion type="single" collapsible className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
               <AccordionItem value="item-1">
-                <AccordionTrigger className="px-6">How to Initiate a Return</AccordionTrigger>
+                <AccordionTrigger className="px-6">How to Report a Problem</AccordionTrigger>
                 <AccordionContent className="px-6 pb-4">
                   <ol className="list-decimal pl-5 space-y-2 text-gray-700 dark:text-gray-300">
-                    <li>Log in to your account and go to "My Orders"</li>
-                    <li>Select the order containing the item(s) you wish to return</li>
-                    <li>Click on "Return Items" and follow the prompts</li>
-                    <li>Print the return shipping label (if applicable)</li>
-                    <li>Package the item(s) securely with all original packaging</li>
-                    <li>Attach the return shipping label and drop off at the nearest courier location</li>
+                    <li>Contact customer service within 48 hours of delivery</li>
+                    <li>Provide your order number and clear photos of the issue</li>
+                    <li>Our team will review your case within 24 hours</li>
+                    <li>If approved, we'll provide return shipping instructions or replacement details</li>
                   </ol>
-                  <p className="mt-4">
-                    Alternatively, you can contact our customer service team at support@Vave.com or call us at
-                    1-800-Vave-HELP for assistance with your return.
-                  </p>
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem value="item-2">
-                <AccordionTrigger className="px-6">Refund Process</AccordionTrigger>
-                <AccordionContent className="px-6 pb-4">
-                  <p className="text-gray-700 dark:text-gray-300 mb-4">
-                    Once we receive your return, our team will inspect the item(s) to ensure they meet our return
-                    conditions. Refunds will be processed within 5-7 business days after inspection. The refund will be
-                    issued to the original payment method used for the purchase.
-                  </p>
-                  <p className="text-gray-700 dark:text-gray-300">
-                    Please note that shipping charges are non-refundable unless the return is due to our error (damaged
-                    item, wrong item shipped, etc.).
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-3">
-                <AccordionTrigger className="px-6">Exchanges</AccordionTrigger>
+                <AccordionTrigger className="px-6">Refund Process for Valid Returns</AccordionTrigger>
                 <AccordionContent className="px-6 pb-4">
                   <p className="text-gray-700 dark:text-gray-300">
-                    If you'd like to exchange an item for a different size, fragrance, or product, you can request an
-                    exchange during the return process. If the exchange item is of higher value, you'll need to pay the
-                    difference. If it's of lower value, we'll refund the difference to your original payment method.
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-4">
-                <AccordionTrigger className="px-6">Damaged or Defective Items</AccordionTrigger>
-                <AccordionContent className="px-6 pb-4">
-                  <p className="text-gray-700 dark:text-gray-300">
-                    If you receive a damaged or defective item, please contact our customer service team within 48 hours
-                    of delivery. Please provide photos of the damaged item and packaging. We'll arrange for a
-                    replacement or refund as soon as possible, and you won't be responsible for return shipping costs in
-                    these cases.
+                    For valid returns (damaged, wrong item, or unopened products), refunds will be processed within 5-7 
+                    business days after we receive and verify the returned item. The refund will be issued to the 
+                    original payment method used for the purchase.
                   </p>
                 </AccordionContent>
               </AccordionItem>
@@ -261,9 +243,9 @@ export default function ShippingReturnsPage() {
                 <AccordionTrigger className="px-6">Can I return a gift?</AccordionTrigger>
                 <AccordionContent className="px-6 pb-4">
                   <p className="text-gray-700 dark:text-gray-300">
-                    Yes, gifts can be returned with a gift receipt within 30 days of the purchase date. Returns with
-                    gift receipts will be issued as store credit at the current selling price. The gift giver will not
-                    be notified of the return.
+                    Due to our strict return policy on fragrances, gift returns follow the same guidelines as regular returns. 
+                    We can only accept returns for damaged items, wrong deliveries, or completely unopened products. 
+                    Any approved returns will be issued as store credit.
                   </p>
                 </AccordionContent>
               </AccordionItem>
@@ -281,8 +263,98 @@ export default function ShippingReturnsPage() {
             </Accordion>
           </section>
 
-         
-            
+          <section id="contact" className="mb-12">
+            <h2 className="text-3xl font-bold mb-6">Need Help?</h2>
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
+              <form action="https://formsubmit.co/vavefragrances@gmail.com" method="POST">
+                <input type="hidden" name="_template" value="table" />
+                <input type="hidden" name="_subject" value="New Product Issue Report" />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      required
+                      className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                      placeholder="Your full name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Phone Number</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      required
+                      className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                      placeholder="Your contact number"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      required
+                      className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                      placeholder="Your email address"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Order Number</label>
+                    <input
+                      type="text"
+                      name="order_number"
+                      className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                      placeholder="If applicable"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Product Name</label>
+                    <input
+                      type="text"
+                      name="product_name"
+                      required
+                      className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                      placeholder="Name of the fragrance"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Product Size</label>
+                    <select
+                      name="product_size"
+                      required
+                      className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                    >
+                      <option value="">Select size</option>
+                      <option value="30ml">30ml</option>
+                      <option value="50ml">50ml</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-sm font-medium mb-2">Describe the Issue</label>
+                  <textarea
+                    name="issue_description"
+                    required
+                    rows={4}
+                    className="w-full p-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
+                    placeholder="Please describe the issue you're experiencing with the product"
+                  ></textarea>
+                </div>
+
+                <Button type="submit" className="w-full">Submit Report</Button>
+              </form>
+            </div>
+          </section>
         </motion.div>
       </main>
       <Footer />
