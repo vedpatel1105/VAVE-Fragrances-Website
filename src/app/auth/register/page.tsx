@@ -292,7 +292,7 @@ export default function RegisterPage() {
                 <Image
                   src="/google-logo.svg"
                   alt="Google"
-                  width={20}
+                  width={20} 
                   height={20}
                   className="mr-2"
                 />
