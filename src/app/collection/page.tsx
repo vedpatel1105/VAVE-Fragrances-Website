@@ -133,7 +133,6 @@ export default function CollectionPage() {
                   handleAddToCart(product, quantity, selectedSizes[product.id] || product.sizeOptions[0].size as Size)
                 }
                 onAddToWishlist={handleAddToWishlist}
-                onQuickView={() => {}}
                 inWishlist={isInWishlist(product.id.toString())}
                 selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size as Size}
                 onSizeSelect={(size) => handleSizeSelect(product.id, size as Size)}
@@ -148,3 +147,4 @@ export default function CollectionPage() {
     </div>
   )
 }
+
