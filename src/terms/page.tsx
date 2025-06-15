@@ -7,7 +7,7 @@ export default function TermsPage() {
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.5 }} 
       className="container mx-auto px-4 py-8 max-w-4xl"
     >
       <h1 className="text-3xl font-bold mb-6">Terms of Service</h1>
