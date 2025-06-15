@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
-import { Heart, ShoppingBag, Zap, Star, Eye } from "lucide-react"
+import { Heart, ShoppingBag, Zap, Star } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ProductInfo } from "@/src/data/product-info"
@@ -14,7 +14,6 @@ interface EnhancedProductCardProps {
   product: ProductInfo.Product
   onAddToCart: (product: ProductInfo.Product, quantity: number) => void
   onAddToWishlist: (product: ProductInfo.Product) => void
-  onQuickView: (product: ProductInfo.Product) => void
   inWishlist: boolean
   selectedSize: string
   onSizeSelect: (size: string) => void
@@ -24,7 +23,6 @@ export default function EnhancedProductCard({
   product,
   onAddToCart,
   onAddToWishlist,
-  onQuickView,
   inWishlist,
   selectedSize,
   onSizeSelect,
@@ -56,15 +54,15 @@ export default function EnhancedProductCard({
     router.push("/checkout")
   }
 
-  const handleQuickView = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onQuickView(product)
-  }
-
   const handleViewProduct = (e: React.MouseEvent) => {
     e.stopPropagation()
     router.push(`/product/${product.id}`)
   }
+
+  const handleSizeSelect = (e: React.MouseEvent, size: string) => {
+    e.stopPropagation();
+    onSizeSelect(size);
+  };
 
   return (
     <motion.div
@@ -125,9 +123,9 @@ export default function EnhancedProductCard({
         />
       </motion.button>
 
-      {/* Image section with edge-to-edge fit */}
+      {/* Image section with increased height */}
       <div
-        className="relative aspect-square overflow-hidden"
+        className="relative aspect-[4/5] overflow-hidden cursor-pointer" // Changed from aspect-square to aspect-[4/5]
         onClick={handleViewProduct}
       >
         <motion.div
@@ -136,10 +134,16 @@ export default function EnhancedProductCard({
           transition={{ duration: 0.4 }}
         >
           <Image
-            src={product.images[selectedSize as "30" | "50"]?.[0] || product.images["30"][0]}
+            src={
+              (["30", "50"].includes(selectedSize) && product.images[selectedSize as "30" | "50"]
+                ? product.images[selectedSize as "30" | "50"][0]
+                : product.images["30"][0])
+            }
             alt={product.name}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-110"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority
           />
         </motion.div>
 
@@ -150,12 +154,7 @@ export default function EnhancedProductCard({
       </div>
 
       {/* Content section */}
-      <motion.div
-        className="p-4 bg-gradient-to-t from-black via-black/95 to-transparent"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
+      <div className="p-4 bg-gradient-to-t from-black via-black/95 to-transparent">
         <div className="flex justify-between items-start mb-2">
           <h3
             className="text-lg font-bold text-white cursor-pointer hover:text-accent transition-colors"
@@ -173,18 +172,19 @@ export default function EnhancedProductCard({
 
         <p className="text-sm text-gray-300 line-clamp-2 mb-4 font-light">{product.description}</p>
 
-        {/* Size Selection */}
-        <div className="flex gap-2 mb-4">
+        {/* Size Selection - Fixed and improved */}
+        <div className="flex flex-wrap gap-2 mb-4">
           {product.sizeOptions.map((size) => (
             <button
               key={size.size}
-              onClick={() => onSizeSelect(size.size)}
-              className={`px-3 py-1 rounded-full text-sm transition-all ${selectedSize === size.size
-                  ? "bg-white text-black font-medium"
-                  : "bg-white/10 text-white hover:bg-white/20"
-                }`}
+              onClick={(e) => handleSizeSelect(e, size.size)}
+              className={`px-3 py-1 rounded-full text-sm transition-all ${
+                selectedSize === size.size
+                ? "bg-white text-black font-medium shadow-lg"
+                : "bg-white/10 text-white hover:bg-white/20"
+              }`}
             >
-              {size.size}ml
+              {size.size}ml - ₹{size.price}
             </button>
           ))}
         </div>
@@ -219,10 +219,10 @@ export default function EnhancedProductCard({
             Buy Now
           </motion.button>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Quick Actions */}
-      <div className="absolute top-4 right-4 flex flex-col gap-2">
+      {/* Quick Actions - Only Wishlist */}
+      <div className="absolute top-4 right-4">
         <Button
           variant="ghost"
           size="icon"
@@ -230,14 +230,6 @@ export default function EnhancedProductCard({
           onClick={handleAddToWishlist}
         >
           <Heart className={`h-5 w-5 ${inWishlist ? "fill-red-500 text-red-500" : ""}`} />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="bg-white/90 text-gray-900 rounded-full shadow-lg"
-          onClick={handleQuickView}
-        >
-          <Eye className="h-5 w-5" />
         </Button>
       </div>
     </motion.div>
