@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useToast } from "@/components/ui/use-toast"
 import Cart from "@/src/app/components/Cart"
-import { useCartStore } from "@/src/app/components/Cart"
 import { ProductInfo } from "@/src/data/product-info"
 import { motion } from "framer-motion"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import PopularCombination from "../components/PopularCombination"
+import { useCartStore } from "@/src/lib/cartStore"
 
 // Function to generate layered fragrance description and notes
 const generateLayeredFragrance = (perfume1: any, perfume2: any) => {
@@ -124,44 +125,6 @@ export default function LayeringPage() {
       ...prev,
       [id]: !prev[id],
     }))
-  }
-
-  const addPopularComboToCart = (perfume1: any, perfume2: any) => {
-    if (!perfume1 || !perfume2) return
-
-    setIsAnimating(true)
-
-    setTimeout(() => {
-      const sizeOption1 = perfume1.sizeOptions.find((s: any) => s.size === "30")
-      const sizeOption2 = perfume2.sizeOptions.find((s: any) => s.size === "30")
-      const totalPrice = (sizeOption1 ? sizeOption1.price : perfume1.price) + 
-                        (sizeOption2 ? sizeOption2.price : perfume2.price)
-
-      const layeredProduct = {
-        id: `layered-${perfume1.id}-${perfume2.id}-${Date.now()}`,
-        name: `${perfume1.name} + ${perfume2.name}`,
-        price: totalPrice,
-        image: perfume1.images["30"][0],
-        quantity: 1,
-        type: "layered",
-        size: "30ml + 30ml",
-        sizes: {
-          perfume1: "30",
-          perfume2: "30",
-        },
-        description: `Custom layered fragrance: ${perfume1.name} (30ml) + ${perfume2.name} (30ml)`,
-      }
-
-      addItem(layeredProduct)
-      setIsOpen(true)
-
-      toast({
-        title: "Popular Combination Added! 🎉",
-        description: `${layeredProduct.name} has been added to your cart.`,
-      })
-
-      setIsAnimating(false)
-    }, 1200)
   }
 
   const layeredFragrance =
@@ -406,6 +369,9 @@ export default function LayeringPage() {
           </div>
         </div>
       </main>
+
+      {/* Popular Combinations Section */}
+      <PopularCombination />
 
       <Cart />
     </div>

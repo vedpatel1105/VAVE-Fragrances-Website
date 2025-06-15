@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import SimpleNavbar from "@/src/app/components/SimpleNavbar"
 import { useToast } from "@/components/ui/use-toast"
 import Cart from "@/src/app/components/Cart"
@@ -12,33 +12,25 @@ import { X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
-import { useCartStore } from "@/src/app/components/Cart"
 import { ProductInfo } from "@/src/data/product-info"
+import { useWishlistStore } from "@/src/store/wishlist"
+import { useCartStore } from "@/src/lib/cartStore"
+
+type Size = "30" | "50"
 
 export default function CollectionPage() {
   const { toast } = useToast()
-  const [wishlist, setWishlist] = useState<number[]>([])
-  const [selectedSizes, setSelectedSizes] = useState<{ [key: number]: string }>({})
+  const [selectedSizes, setSelectedSizes] = useState<{ [key: number]: Size }>({})
   const { addItem, setIsOpen, getTotalItems } = useCartStore()
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore()
 
-  useEffect(() => {
+  const handleAddToCart = (product: ProductInfo.Product, quantity: number, size: Size) => {
     try {
-      const storedWishlist = localStorage.getItem("wishlist")
-      if (storedWishlist) {
-        setWishlist(JSON.parse(storedWishlist))
-      }
-    } catch (error) {
-      console.error("Error loading wishlist:", error)
-    }
-  }, [])
-
-  const handleAddToCart = (product: any, quantity: number, size: string) => {
-    try {
-      const sizeOption = product.sizeOptions.find((s: any) => s.size === size)
+      const sizeOption = product.sizeOptions.find((s) => s.size === size)
       const price = sizeOption ? sizeOption.price : product.price
 
       const cartItem = {
-        id: product.id,
+        id: product.id.toString(),
         name: product.name,
         price: price,
         image: product.images[size][0],
@@ -65,37 +57,34 @@ export default function CollectionPage() {
     }
   }
 
-  const handleSizeSelect = (productId: number, size: string) => {
+  const handleSizeSelect = (productId: number, size: Size) => {
     setSelectedSizes(prev => ({
       ...prev,
       [productId]: size
     }))
   }
 
-  const addToWishlist = (product: any) => {
+  const handleAddToWishlist = (product: ProductInfo.Product) => {
     try {
-      // Check if product is already in wishlist
-      const exists = wishlist.includes(product.id)
-
-      let updatedWishlist
-      if (exists) {
-        // Remove from wishlist
-        updatedWishlist = wishlist.filter((id) => id !== product.id)
+      if (isInWishlist(product.id.toString())) {
+        removeFromWishlist(product.id.toString())
         toast({
           title: "Removed from Wishlist",
           description: `${product.name} has been removed from your wishlist.`,
         })
       } else {
-        // Add to wishlist
-        updatedWishlist = [...wishlist, product.id]
+        addToWishlist({
+          id: product.id.toString(),
+          name: product.name,
+          price: product.price,
+          image: product.images["30"][0],
+          slug: product.slug
+        })
         toast({
           title: "Added to Wishlist",
           description: `${product.name} has been added to your wishlist.`,
         })
       }
-
-      setWishlist(updatedWishlist)
-      localStorage.setItem("wishlist", JSON.stringify(updatedWishlist))
     } catch (error) {
       console.error("Error updating wishlist:", error)
       toast({
@@ -141,13 +130,13 @@ export default function CollectionPage() {
                   }
                 }}
                 onAddToCart={(product, quantity) =>
-                  handleAddToCart(product, quantity, selectedSizes[product.id] || product.sizeOptions[0].size)
+                  handleAddToCart(product, quantity, selectedSizes[product.id] || product.sizeOptions[0].size as Size)
                 }
-                onAddToWishlist={addToWishlist}
+                onAddToWishlist={handleAddToWishlist}
                 onQuickView={() => {}}
-                inWishlist={wishlist.includes(product.id)}
-                selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size}
-                onSizeSelect={(size) => handleSizeSelect(product.id, size)}
+                inWishlist={isInWishlist(product.id.toString())}
+                selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size as Size}
+                onSizeSelect={(size) => handleSizeSelect(product.id, size as Size)}
               />
             </motion.div>
           ))}

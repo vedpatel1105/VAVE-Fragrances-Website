@@ -28,6 +28,8 @@ import {
   Sun,
   Package,
   Maximize2,
+  ChevronLeft,
+  Star,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import SimpleNavbar from "@/src/app/components/SimpleNavbar"
@@ -35,8 +37,10 @@ import { useToast } from "@/components/ui/use-toast"
 import Footer from "@/src/app/components/Footer"
 import { motion, AnimatePresence } from "framer-motion"
 import Cart from "@/src/app/components/Cart"
-import { useCartStore } from "@/src/app/components/Cart"
 import { ProductInfo } from "@/src/data/product-info"
+import { useWishlistStore } from "@/src/store/wishlist"
+import { Button } from "@/components/ui/button"
+import { useCartStore } from "@/src/lib/cartStore"
 
 export default function ProductDetailPage() {
   const params = useParams()
@@ -51,6 +55,7 @@ export default function ProductDetailPage() {
   const [activeTab, setActiveTab] = useState("description")
   const [isFullscreenGallery, setIsFullscreenGallery] = useState(false)
   const { addItem, setIsOpen } = useCartStore()
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore()
 
   // Find the current product based on the ID in the URL
   const productId = Number(params.id)
@@ -124,9 +129,8 @@ export default function ProductDetailPage() {
       setTimeout(() => {
         const sizeOption = product.sizeOptions.find((s) => s.size === selectedSize)
         const price = sizeOption ? sizeOption.price : product.price
-
-        addItem({
-          id: product.id,
+        const cartItem = {
+          id: product.id.toString(),
           name: product.name,
           price: price,
           image: product.images[selectedSize as "30" | "50"][0],
@@ -134,7 +138,8 @@ export default function ProductDetailPage() {
           size: selectedSize,
           type: "single",
           images: product.images
-        })
+        }
+        addItem(cartItem)
 
         toast({
           title: "Added to Cart",
@@ -162,22 +167,25 @@ export default function ProductDetailPage() {
 
   const handleAddToWishlist = () => {
     try {
-      const storedWishlist = localStorage.getItem("wishlist")
-      let wishlist = storedWishlist ? JSON.parse(storedWishlist) : []
-
-      if (isWishlisted) {
-        wishlist = wishlist.filter((id: number) => id !== product.id)
+      if (isInWishlist(product.id.toString())) {
+        removeFromWishlist(product.id.toString())
+        toast({
+          title: "Removed from Wishlist",
+          description: `${product.name} has been removed from your wishlist.`,
+        })
       } else {
-        wishlist.push(product.id)
+        addToWishlist({
+          id: product.id.toString(),
+          name: product.name,
+          price: product.price,
+          image: product.images["30"][0],
+          slug: product.slug
+        })
+        toast({
+          title: "Added to Wishlist",
+          description: `${product.name} has been added to your wishlist.`,
+        })
       }
-
-      localStorage.setItem("wishlist", JSON.stringify(wishlist))
-      setIsWishlisted(!isWishlisted)
-
-      toast({
-        title: isWishlisted ? "Removed from Wishlist" : "Added to Wishlist",
-        description: `${product.name} has been ${isWishlisted ? "removed from" : "added to"} your wishlist.`,
-      })
     } catch (error) {
       console.error("Error updating wishlist:", error)
       toast({
@@ -350,14 +358,12 @@ export default function ProductDetailPage() {
                   }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className={`absolute top-4 right-4 z-20 p-3 rounded-full backdrop-blur-md shadow-xl transition-all duration-300 ${
-                    isWishlisted ? "bg-white text-black" : "bg-white/20 text-white hover:bg-white/30"
-                  }`}
+                  className={`absolute top-4 right-4 z-20 p-3 rounded-full backdrop-blur-md shadow-xl transition-all duration-300 ${isInWishlist(product.id.toString()) ? "bg-white text-black" : "bg-white/20 text-white hover:bg-white/30"
+                    }`}
                 >
                   <Heart
-                    className={`h-5 w-5 transition-all duration-300 ${
-                      isWishlisted ? "fill-current scale-110" : "scale-100"
-                    }`}
+                    className={`h-5 w-5 transition-all duration-300 ${isInWishlist(product.id.toString()) ? "text-red-500 fill-red-500 scale-110" : "scale-100"
+                      }`}
                   />
                 </motion.button>
 
@@ -407,11 +413,10 @@ export default function ProductDetailPage() {
                 {imagesForSelectedSize.map((image, index) => (
                   <motion.button
                     key={`${selectedSize}-thumb-${index}`}
-                    className={`relative aspect-square rounded-lg overflow-hidden transition-all duration-300 ${
-                      currentImage === index 
-                        ? "ring-2 ring-white/80 scale-105 z-10" 
+                    className={`relative aspect-square rounded-lg overflow-hidden transition-all duration-300 ${currentImage === index
+                        ? "ring-2 ring-white/80 scale-105 z-10"
                         : "ring-1 ring-white/20 hover:ring-white/40"
-                    }`}
+                      }`}
                     onClick={() => setCurrentImage(index)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -474,9 +479,8 @@ export default function ProductDetailPage() {
                         initial={{ opacity: 0, scale: 0 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.8 + star * 0.1 }}
-                        className={`h-5 w-5 ${
-                          star <= Math.round(product.rating) ? "text-white fill-white" : "text-gray-600"
-                        }`}
+                        className={`h-5 w-5 ${star <= Math.round(product.rating) ? "text-white fill-white" : "text-gray-600"
+                          }`}
                         viewBox="0 0 20 20"
                         fill="currentColor"
                       >
@@ -493,7 +497,7 @@ export default function ProductDetailPage() {
                   </span>
                 </div>
                 <div className="text-3xl font-bold mb-2 text-white">
-                  ₹{selectedSize === "30" ? "350" : "450"}
+                  ₹{product.sizeOptions.find((s) => s.size === selectedSize)?.price || product.price}
                 </div>
               </motion.div>
 
@@ -510,11 +514,10 @@ export default function ProductDetailPage() {
                         setSelectedSize(option.size)
                         setCurrentImage(0)
                       }}
-                      className={`flex-1 py-3 rounded-xl border transition-all duration-300 text-base font-bold ${
-                        selectedSize === option.size
+                      className={`flex-1 py-3 rounded-xl border transition-all duration-300 text-base font-bold ${selectedSize === option.size
                           ? "border-white bg-white/10 text-white"
                           : "border-gray-600 text-gray-300 hover:border-gray-400"
-                      }`}
+                        }`}
                       style={{ minWidth: 100 }}
                     >
                       <div>{option.size}</div>
@@ -788,9 +791,8 @@ export default function ProductDetailPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 1.8 + index * 0.1 }}
                       onClick={() => setActiveTab(tab)}
-                      className={`py-2 px-4 text-sm font-medium capitalize whitespace-nowrap ${
-                        activeTab === tab ? "text-white border-b-2 border-white" : "text-gray-400 hover:text-gray-200"
-                      }`}
+                      className={`py-2 px-4 text-sm font-medium capitalize whitespace-nowrap ${activeTab === tab ? "text-white border-b-2 border-white" : "text-gray-400 hover:text-gray-200"
+                        }`}
                     >
                       {tab.replace("-", " ")}
                     </motion.button>
@@ -1101,7 +1103,7 @@ export default function ProductDetailPage() {
                     sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                   />
                 </div>
-                
+
                 {/* Product Info - Update spacing */}
                 <div className="mt-4 space-y-2 px-2">
                   <h3 className="font-bold text-sm sm:text-base lg:text-lg text-white">{perfume.name}</h3>
@@ -1112,9 +1114,8 @@ export default function ProductDetailPage() {
                       {[1, 2, 3, 4, 5].map((star) => (
                         <svg
                           key={star}
-                          className={`h-3 w-3 ${
-                            star <= Math.round(perfume.rating) ? "text-white fill-white" : "text-gray-600"
-                          }`}
+                          className={`h-3 w-3 ${star <= Math.round(perfume.rating) ? "text-white fill-white" : "text-gray-600"
+                            }`}
                           viewBox="0 0 20 20"
                           fill="currentColor"
                         >
@@ -1161,9 +1162,8 @@ export default function ProductDetailPage() {
                   onClick={() => setCurrentImage(index)}
                   whileHover={{ scale: 1.2 }}
                   whileTap={{ scale: 0.9 }}
-                  className={`w-2 h-2 rounded-full ${
-                    currentImage === index ? "bg-white" : "bg-white/40"
-                  } transition-colors duration-200`}
+                  className={`w-2 h-2 rounded-full ${currentImage === index ? "bg-white" : "bg-white/40"
+                    } transition-colors duration-200`}
                 />
               ))}
             </div>

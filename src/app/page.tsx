@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { Star, X, ArrowRight } from "lucide-react"
+import { Star, X, ArrowRight, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { ShoppingBag } from "lucide-react"
@@ -18,8 +18,11 @@ import Newsletter from "./components/Newsletter"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useCartStore } from "@/src/app/components/Cart"
 import { ProductInfo } from "@/src/data/product-info"
+import PopularCombination from "./components/PopularCombination"
+import { useWishlistStore } from "@/src/store/wishlist"
+import { motion } from "framer-motion"
+import { useCartStore } from "../lib/cartStore"
 
 const SimpleNavbar = dynamic(() => import("@/src/app/components/SimpleNavbar"), { ssr: false })
 const Cart = dynamic(() => import("@/src/app/components/Cart"), { ssr: false })
@@ -90,13 +93,13 @@ export interface EnhancedProductCardProps {
 
 export default function Home() {
   const [isCartOpen, setIsCartOpen] = useState(false)
-  const [wishlist, setWishlist] = useState<number[]>([])
   const { toast } = useToast()
   const router = useRouter()
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
   const [selectedSizes, setSelectedSizes] = useState<{ [key: number]: string }>({})
   const { addItem, setIsOpen, getTotalItems } = useCartStore()
+  const { items: wishlistItems, addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore()
 
   // Layering states
   const [selectedFragrance1, setSelectedFragrance1] = useState<any>(null)
@@ -110,10 +113,10 @@ export default function Home() {
 
     // Update the prices and sizes objects in the addLayeredToCart function
     const prices = {
-      "combo-30ml": 700,
-      "combo-50ml": 900,
-      "combo-30-50ml": 800,
-      "combo-50-30ml": 800,
+      "combo-30ml": 800,
+      "combo-50ml": 1000,
+      "combo-30-50ml": 900,
+      "combo-50-30ml": 900,
     }
 
     const sizes = {
@@ -150,25 +153,13 @@ export default function Home() {
     }))
   }
 
-  // Load wishlist from localStorage on component mount
-  useEffect(() => {
-    try {
-      const storedWishlist = localStorage.getItem("wishlist")
-      if (storedWishlist) {
-        setWishlist(JSON.parse(storedWishlist))
-      }
-    } catch (error) {
-      console.error("Error loading wishlist:", error)
-    }
-  }, [])
-
   const addToCart = (product: any, quantity: number, size: string) => {
     try {
       const sizeOption = product.sizeOptions.find((s: any) => s.size === size)
       const price = sizeOption ? sizeOption.price : product.price
 
       const cartItem = {
-        id: product.id,
+        id: product.id.toString(),
         name: product.name,
         price: price,
         image: product.images[size][0],
@@ -195,30 +186,27 @@ export default function Home() {
     }
   }
 
-  const addToWishlist = (product: any) => {
+  const handleAddToWishlist = (product: ProductInfo.Product) => {
     try {
-      // Check if product is already in wishlist
-      const exists = wishlist.includes(product.id)
-
-      let updatedWishlist
-      if (exists) {
-        // Remove from wishlist
-        updatedWishlist = wishlist.filter((id) => id !== product.id)
+      if (isInWishlist(product.id.toString())) {
+        removeFromWishlist(product.id.toString())
         toast({
           title: "Removed from Wishlist",
           description: `${product.name} has been removed from your wishlist.`,
         })
       } else {
-        // Add to wishlist
-        updatedWishlist = [...wishlist, product.id]
+        addToWishlist({
+          id: product.id.toString(),
+          name: product.name,
+          price: product.price,
+          image: product.images["30"][0],
+          slug: product.slug
+        })
         toast({
           title: "Added to Wishlist",
           description: `${product.name} has been added to your wishlist.`,
         })
       }
-
-      setWishlist(updatedWishlist)
-      localStorage.setItem("wishlist", JSON.stringify(updatedWishlist))
     } catch (error) {
       console.error("Error updating wishlist:", error)
       toast({
@@ -275,9 +263,9 @@ export default function Home() {
                     onAddToCart={(product, quantity) =>
                       addToCart(product, quantity, selectedSizes[product.id] || product.sizeOptions[0].size)
                     }
-                    onAddToWishlist={addToWishlist}
+                    onAddToWishlist={() => handleAddToWishlist(product)}
                     onQuickView={handleQuickView}
-                    inWishlist={wishlist.includes(product.id)}
+                    inWishlist={isInWishlist(product.id.toString())}
                     selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size}
                     onSizeSelect={(size: string) => handleSizeSelect(product.id, size)}
                   />
@@ -491,29 +479,7 @@ export default function Home() {
                   )}
 
                   {/* Popular Combinations */}
-                  <div className="mb-8">
-                    <h3 className="text-xl font-semibold mb-4 text-center">Popular Combinations</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {popularCombinations.map((combo, index) => (
-                        <button
-                          key={index}
-                          onClick={() => {
-                            const frag1 = ProductInfo.allProductItems.find((f) => f.name === combo.fragrance1)
-                            const frag2 = ProductInfo.allProductItems.find((f) => f.name === combo.fragrance2)
-                            setSelectedFragrance1(frag1)
-                            setSelectedFragrance2(frag2)
-                          }}
-                          className="bg-black/40 backdrop-blur-md hover:bg-white/10 rounded-lg p-4 transition-all duration-300 hover:scale-105 border border-white/10"
-                        >
-                          <div className="text-sm font-medium mb-1">{combo.name}</div>
-                          <div className="text-xs text-gray-400 mb-2">
-                            {combo.fragrance1} + {combo.fragrance2}
-                          </div>
-                          <div className="text-xs text-green-400">{combo.popularity} loved</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  <PopularCombination />
 
                   {/* CTA */}
                   <div className="text-center">

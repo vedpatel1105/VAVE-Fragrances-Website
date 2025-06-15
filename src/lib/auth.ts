@@ -61,12 +61,7 @@ export const useAuthStore = create<AuthState>()(
                     const { error } = await supabase.auth.signOut();
                     // Ignore session_not_found error (406)
                     if (error && (error as any).status !== 403) throw error;
-                    set({
-                        user: null,
-                        isAuthenticated: false,
-                        isLoading: false,
-                    });
-                    window.location.href = "/";
+                    
                 } catch (error: any) {
                     // Always clear state on logout, even if error
                     set({
@@ -80,6 +75,12 @@ export const useAuthStore = create<AuthState>()(
                     }
                 } finally {
                     set({ isLoading: false });
+                    set({
+                        user: null,
+                        isAuthenticated: false,
+                        isLoading: false,
+                    });
+                    window.location.href = "/";
                 }
             },
             checkAuth: async () => {

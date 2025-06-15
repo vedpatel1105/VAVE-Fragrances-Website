@@ -714,4 +714,32 @@ export namespace ProductInfo {
             description: string;
         }[];
     }
+
+    // Popular combinations
+    export const popularCombinations = [
+        {
+            fragrance1: "Oceane",
+            fragrance2: "Euphoria",
+            name: "Ocean Bloom",
+            popularity: "95%",
+        },
+        {
+            fragrance1: "Duskfall",
+            fragrance2: "Obsession",
+            name: "Dark Mystery",
+            popularity: "92%",
+        },
+        {
+            fragrance1: "Lavior",
+            fragrance2: "Mehfil",
+            name: "Royal Spice",
+            popularity: "88%",
+        },
+        {
+            fragrance1: "Havoc",
+            fragrance2: "Velora",
+            name: "Fresh Woods",
+            popularity: "85%",
+        },
+    ];
 }

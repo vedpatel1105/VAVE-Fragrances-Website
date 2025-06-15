@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient'
-import { CartItem } from '@/src/app/components/Cart'
 import { adminService } from './adminService'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { CartItem } from './cartStore'
 
 export interface Order {
   id: string

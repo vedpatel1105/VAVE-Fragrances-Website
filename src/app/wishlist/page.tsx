@@ -4,150 +4,67 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { ShoppingBag, Heart, Trash2 } from "lucide-react"
-import Navbar from "@/src/app/components/Navbar"
 import Footer from "@/src/app/components/Footer"
 import EnhancedProductCard from "@/src/app/components/EnhancedProductCard"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
+import { ProductInfo } from "@/src/data/product-info"
+import { useWishlistStore } from "@/src/store/wishlist"
+import { useCartStore } from "@/src/lib/cartStore"
+import SimpleNavbar from "@/src/app/components/SimpleNavbar"
 
-// Sample products data
-const allProducts = [
-  {
-    id: 1,
-    name: "Havoc",
-    price: 350,
-    image: "/img/havoc50.png",
-    description: "A fresh and invigorating scent with notes of citrus and ocean breeze.",
-    rating: 4.8,
-    reviews: 124,
-    isNew: false,
-    isBestseller: true,
-    sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    offers: ["Buy 2 get 1 free sample", "Free shipping on orders above ₹1000"],
-  },
-  {
-    id: 2,
-    name: "Lavior",
-    price: 350,
-    image: "/img/lavior50.png",
-    description: "A luxurious floral fragrance with hints of lavender and vanilla.",
-    rating: 4.7,
-    reviews: 98,
-    isLimited: true,
-    discount: 15,
-    sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    offers: ["Limited edition gift box available", "Free shipping on orders above ₹1000"],
-  },
-  {
-    id: 3,
-    name: "Duskfall",
-    price: 350,
-    image: "/img/duskfall50.png",
-    description: "A mysterious and alluring scent perfect for evening wear.",
-    rating: 4.9,
-    reviews: 156,
-    isBestseller: true,
-    sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    offers: ["Buy 2 get 1 free sample", "Free shipping on orders above ₹1000"],
-  },
-  {
-    id: 4,
-    name: "Euphoria",
-    price: 350,
-    image: "/img/euphoria50.png",
-    description: "An exhilarating blend of fruity and floral notes that lifts your spirits.",
-    rating: 4.6,
-    reviews: 87,
-    isNew: true,
-    discount: 10,
-    sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    offers: ["New launch special: Free gift with purchase", "Free shipping on orders above ₹1000"],
-  },
-  {
-    id: 5,
-    name: "Oceane",
-    price: 350,
-    image: "/img/oceane50.png",
-    description: "A deep, aquatic fragrance that evokes the mystery of the ocean.",
-    rating: 4.8,
-    reviews: 112,
-    isNew: true,
-    sizes: [
-      { size: "30ml", price: 350 },
-      { size: "50ml", price: 450 },
-    ],
-    offers: ["New launch special: Free gift with purchase", "Free shipping on orders above ₹1000"],
-  },
-]
+type Product = ProductInfo.Product
 
 export default function WishlistPage() {
-  const [wishlistItems, setWishlistItems] = useState<any[]>([])
-  const [isCartOpen, setIsCartOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({})
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
 
-  useEffect(() => {
-    // Load wishlist from localStorage
-    const loadWishlist = () => {
-      setIsLoading(true)
-      try {
-        const storedWishlist = localStorage.getItem("wishlist")
-        if (storedWishlist) {
-          const wishlistIds = JSON.parse(storedWishlist)
-          // Find products that match the wishlist IDs
-          const items = allProducts.filter((product) => wishlistIds.includes(product.id))
-          setWishlistItems(items)
-        }
-      } catch (error) {
-        console.error("Error loading wishlist:", error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  // Wishlist store
+  const {
+    items: wishlistItems,
+    removeFromWishlist,
+    clearWishlist
+  } = useWishlistStore()
 
-    loadWishlist()
+  // Cart store
+  const {
+    addItem: addToCart,
+    setIsOpen: setIsCartOpen
+  } = useCartStore()
+
+  useEffect(() => {
+    // Simulate loading state
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 500)
+    setMounted(true)
+    return () => clearTimeout(timer)
   }, [])
 
-  const addToWishlist = (product: any) => {
+  const handleAddToWishlist = (product: Product) => {
     try {
-      // Check if product is already in wishlist
-      const exists = wishlistItems.some((item) => item.id === product.id)
-
-      let updatedWishlist
-      if (exists) {
-        // Remove from wishlist
-        updatedWishlist = wishlistItems.filter((item) => item.id !== product.id)
+      if (wishlistItems.some((item) => item.id === product.id.toString())) {
+        removeFromWishlist(product.id.toString())
         toast({
           title: "Removed from Wishlist",
           description: `${product.name} has been removed from your wishlist.`,
         })
       } else {
-        // Add to wishlist
-        updatedWishlist = [...wishlistItems, product]
+        useWishlistStore.getState().addToWishlist({
+          id: product.id.toString(),
+          name: product.name,
+          price: product.price,
+          image: product.images["30"][0],
+          slug: product.slug
+        })
         toast({
           title: "Added to Wishlist",
           description: `${product.name} has been added to your wishlist.`,
         })
       }
-
-      setWishlistItems(updatedWishlist)
-
-      // Save to localStorage
-      const wishlistIds = updatedWishlist.map((item) => item.id)
-      localStorage.setItem("wishlist", JSON.stringify(wishlistIds))
     } catch (error) {
       console.error("Error updating wishlist:", error)
       toast({
@@ -158,67 +75,30 @@ export default function WishlistPage() {
     }
   }
 
-  const removeFromWishlist = (productId: number) => {
+  const handleAddToCart = (product: Product, quantity: number) => {
     try {
-      const updatedWishlist = wishlistItems.filter((item) => item.id !== productId)
-      setWishlistItems(updatedWishlist)
-
-      // Save to localStorage
-      const wishlistIds = updatedWishlist.map((item) => item.id)
-      localStorage.setItem("wishlist", JSON.stringify(wishlistIds))
-
-      toast({
-        title: "Removed from Wishlist",
-        description: "Item has been removed from your wishlist.",
-      })
-    } catch (error) {
-      console.error("Error removing from wishlist:", error)
-      toast({
-        title: "Error",
-        description: "Failed to remove from wishlist. Please try again.",
-        variant: "destructive",
-      })
-    }
-  }
-
-  const addToCart = (product: any, quantity: number, size: string) => {
-    try {
-      // Get current cart
-      const storedCart = localStorage.getItem("cart")
-      const cart = storedCart ? JSON.parse(storedCart) : []
-
-      // Find the price based on selected size
-      const sizeOption = product.sizes.find((s: any) => s.size === size)
+      const size = selectedSizes[product.id] || product.sizeOptions[0].size
+      const sizeOption = product.sizeOptions.find((s) => s.size === size)
       const price = sizeOption ? sizeOption.price : product.price
 
-      // Check if item already exists in cart
-      const existingItemIndex = cart.findIndex((item: any) => item.id === product.id && item.size === size)
-
-      if (existingItemIndex >= 0) {
-        // Update quantity if item exists
-        cart[existingItemIndex].quantity += quantity
-      } else {
-        // Add new item to cart
-        cart.push({
-          id: product.id,
-          name: product.name,
-          price: price,
-          image: product.image,
-          quantity: quantity,
-          size: size,
-        })
+      const cartItem = {
+        id: product.id.toString(),
+        name: product.name,
+        price: price,
+        image: product.images[size as "30" | "50"][0],
+        images: product.images,
+        quantity: quantity,
+        size: size,
+        type: "single",
       }
 
-      // Save updated cart
-      localStorage.setItem("cart", JSON.stringify(cart))
+      addToCart(cartItem)
+      setIsCartOpen(true)
 
       toast({
         title: "Added to Cart",
-        description: `${quantity} × ${product.name} (${size}) has been added to your cart.`,
+        description: `${quantity} × ${product.name} (${size}ml) has been added to your cart.`,
       })
-
-      // Optionally open the cart
-      setIsCartOpen(true)
     } catch (error) {
       console.error("Error adding to cart:", error)
       toast({
@@ -229,16 +109,20 @@ export default function WishlistPage() {
     }
   }
 
-  const handleQuickView = (product: any) => {
-    // In a real app, this might open a modal or navigate to the product page
-    console.log("Quick view:", product)
+  const handleQuickView = (product: Product) => {
+    router.push(`/product/${product.id}`)
   }
 
-  const clearWishlist = () => {
-    try {
-      setWishlistItems([])
-      localStorage.removeItem("wishlist")
+  const handleSizeSelect = (productId: string, size: string) => {
+    setSelectedSizes(prev => ({
+      ...prev,
+      [productId]: size
+    }))
+  }
 
+  const handleClearWishlist = () => {
+    try {
+      clearWishlist()
       toast({
         title: "Wishlist Cleared",
         description: "All items have been removed from your wishlist.",
@@ -253,49 +137,36 @@ export default function WishlistPage() {
     }
   }
 
-  const moveAllToCart = () => {
+  const handleMoveAllToCart = () => {
     try {
       if (wishlistItems.length === 0) return
 
-      // Get current cart
-      const storedCart = localStorage.getItem("cart")
-      const cart = storedCart ? JSON.parse(storedCart) : []
+      wishlistItems.forEach((item) => {
+        const product = ProductInfo.allProductItems.find(p => p.id.toString() === item.id)
+        if (product) {
+          const size = selectedSizes[product.id] || product.sizeOptions[0].size
+          const sizeOption = product.sizeOptions.find(s => s.size === size)
+          const price = sizeOption ? sizeOption.price : product.price
 
-      // Add all wishlist items to cart
-      wishlistItems.forEach((product) => {
-        // Default to first size option
-        const size = product.sizes[0].size
-        const price = product.sizes[0].price
-
-        // Check if item already exists in cart
-        const existingItemIndex = cart.findIndex((item: any) => item.id === product.id && item.size === size)
-
-        if (existingItemIndex >= 0) {
-          // Update quantity if item exists
-          cart[existingItemIndex].quantity += 1
-        } else {
-          // Add new item to cart
-          cart.push({
-            id: product.id,
+          const cartItem = {
+            id: product.id.toString(),
             name: product.name,
             price: price,
-            image: product.image,
+            image: product.images[size as "30" | "50"][0],
+            images: product.images,
             quantity: 1,
             size: size,
-          })
+            type: "single",
+          }
+          addToCart(cartItem)
         }
       })
 
-      // Save updated cart
-      localStorage.setItem("cart", JSON.stringify(cart))
-
+      setIsCartOpen(true)
       toast({
         title: "Added to Cart",
         description: `${wishlistItems.length} items have been added to your cart.`,
       })
-
-      // Optionally open the cart
-      setIsCartOpen(true)
     } catch (error) {
       console.error("Error adding to cart:", error)
       toast({
@@ -306,9 +177,13 @@ export default function WishlistPage() {
     }
   }
 
+  if (!mounted) {
+    return null
+  }
+
   return (
     <>
-      <Navbar setIsCartOpen={setIsCartOpen} />
+      <SimpleNavbar />
       <main className="container mx-auto py-16 px-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
@@ -321,11 +196,11 @@ export default function WishlistPage() {
 
             {wishlistItems.length > 0 && (
               <div className="flex gap-4 mt-4 md:mt-0">
-                <Button variant="outline" onClick={clearWishlist}>
+                <Button variant="outline" onClick={handleClearWishlist}>
                   <Trash2 className="h-4 w-4 mr-2" />
                   Clear Wishlist
                 </Button>
-                <Button onClick={moveAllToCart}>
+                <Button onClick={handleMoveAllToCart}>
                   <ShoppingBag className="h-4 w-4 mr-2" />
                   Add All to Cart
                 </Button>
@@ -349,24 +224,30 @@ export default function WishlistPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               <AnimatePresence>
-                {wishlistItems.map((product) => (
-                  <motion.div
-                    key={product.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <EnhancedProductCard
-                      product={product}
-                      onAddToCart={addToCart}
-                      onAddToWishlist={() => removeFromWishlist(product.id)}
-                      onQuickView={handleQuickView}
-                      inWishlist={true}
-                    />
-                  </motion.div>
-                ))}
+                {wishlistItems.map((item) => {
+                  const product = ProductInfo.allProductItems.find(p => p.id.toString() === item.id)
+                  if (!product) return null
+                  return (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <EnhancedProductCard
+                        product={product}
+                        onAddToCart={handleAddToCart}
+                        onAddToWishlist={() => handleAddToWishlist(product)}
+                        onQuickView={handleQuickView}
+                        inWishlist={true}
+                        selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size}
+                        onSizeSelect={(size) => handleSizeSelect(product.id.toString(), size)}
+                      />
+                    </motion.div>
+                  )
+                })}
               </AnimatePresence>
             </div>
           )}
@@ -376,17 +257,19 @@ export default function WishlistPage() {
             <div className="mt-16">
               <h2 className="text-2xl font-bold mb-8">You May Also Like</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {allProducts
-                  .filter((product) => !wishlistItems.some((item) => item.id === product.id))
+                {ProductInfo.allProductItems
+                  .filter((product) => !wishlistItems.some((item) => item.id === product.id.toString()))
                   .slice(0, 4)
                   .map((product) => (
                     <EnhancedProductCard
                       key={product.id}
                       product={product}
-                      onAddToCart={addToCart}
-                      onAddToWishlist={() => addToWishlist(product)}
+                      onAddToCart={handleAddToCart}
+                      onAddToWishlist={() => handleAddToWishlist(product)}
                       onQuickView={handleQuickView}
                       inWishlist={false}
+                      selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size}
+                      onSizeSelect={(size) => handleSizeSelect(product.id.toString(), size)}
                     />
                   ))}
               </div>

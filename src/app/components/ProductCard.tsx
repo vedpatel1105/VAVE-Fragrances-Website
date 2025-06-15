@@ -82,16 +82,23 @@ export default function ProductCard({ product, onAddToCart, onAddToWishlist, onQ
       </div>
 
       {/* Wishlist button */}
-      <button
-        className={`absolute top-3 right-3 z-10 p-2 rounded-full ${
+      <motion.button
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+        className={`absolute top-4 right-4 z-20 p-2.5 rounded-full backdrop-blur-md shadow-xl transition-colors duration-300 ${
           isWishlisted
-            ? "bg-red-50 text-red-500 dark:bg-red-900/20 dark:text-red-300"
-            : "bg-white/80 text-gray-600 dark:bg-gray-800/80 dark:text-gray-300"
-        } shadow-sm transition-all duration-200`}
+            ? "bg-white/80 hover:bg-white text-red-500"
+            : "bg-white/80 hover:bg-white text-gray-600 hover:text-red-500"
+        }`}
         onClick={handleAddToWishlist}
+        aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
       >
-        <Heart className={`h-5 w-5 ${isWishlisted ? "fill-current" : ""}`} />
-      </button>
+        <Heart
+          className={`h-5 w-5 transform transition-transform duration-300 ${
+            isWishlisted ? "fill-red-500 text-red-500" : ""
+          }`}
+        />
+      </motion.button>
 
       {/* Image */}
       <div className="relative aspect-[3/4] overflow-hidden">

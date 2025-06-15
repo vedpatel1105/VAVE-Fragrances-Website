@@ -110,15 +110,18 @@ export default function EnhancedProductCard({
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        className={`absolute top-4 right-4 z-20 p-2.5 rounded-full backdrop-blur-md shadow-xl
-          ${inWishlist
-            ? "bg-gradient-to-r from-red-600/90 to-red-500/80 text-white"
-            : "bg-gradient-to-r from-gray-900/90 to-gray-800/80 text-white"
-          }`}
+        className={`absolute top-4 right-4 z-20 p-2.5 rounded-full backdrop-blur-md shadow-xl transition-colors duration-300 ${
+          inWishlist
+            ? "bg-white/80 hover:bg-white text-red-500"
+            : "bg-white/80 hover:bg-white text-gray-600 hover:text-red-500"
+        }`}
         onClick={handleAddToWishlist}
+        aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
       >
         <Heart
-          className={`h-5 w-5 transform transition-transform duration-300 ${inWishlist ? "scale-110 fill-current" : "scale-100"}`}
+          className={`h-5 w-5 transform transition-transform duration-300 ${
+            inWishlist ? "fill-red-500 text-red-500" : ""
+          }`}
         />
       </motion.button>
 

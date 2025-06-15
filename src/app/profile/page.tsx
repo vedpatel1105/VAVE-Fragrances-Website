@@ -4,7 +4,6 @@ import type React from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/src/lib/auth"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,12 +28,17 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
+  Trash2,
 } from "lucide-react"
 import { profileService, type UserProfile, type Address, type UserOrder, type OrderItem } from "@/src/lib/profileService"
 import { useToast } from "@/components/ui/use-toast"
 import { AddAddressModal } from "@/src/app/components/AddAddressModal"
-import { createAvatar } from '@dicebear/core';
-import { initials } from '@dicebear/collection';
+import { createAvatar } from '@dicebear/core'
+import { initials } from '@dicebear/collection'
+import { useWishlistStore } from "@/src/store/wishlist"
+import { ProductInfo } from "@/src/data/product-info"
+import Image from "next/image"
+import { useCartStore } from "@/src/lib/cartStore"
 
 interface ExtendedUserProfile extends UserProfile {
   avatarUrl?: string;
@@ -47,6 +51,8 @@ export default function Profile() {
   const { toast } = useToast()
   const router = useRouter()
   const { user, isAuthenticated, isLoading } = useAuthStore()
+  const { items: wishlistItems, removeFromWishlist } = useWishlistStore()
+  const { addItem, setIsOpen } = useCartStore()
   const [profile, setProfile] = useState<ExtendedUserProfile>({
     id: "",
     full_name: "",
@@ -58,9 +64,7 @@ export default function Profile() {
 
   const [addresses, setAddresses] = useState<Address[]>([])
   const [orders, setOrders] = useState<UserOrder[]>([])
-  const [cart, setCart] = useState<any[]>([])
-  const [wishlist, setWishlist] = useState<any[]>([])
-  const [isCartOpen, setIsCartOpen] = useState(false)
+  const [selectedSizes, setSelectedSizes] = useState<{ [key: string]: string }>({})
 
   // Generate avatar URL when email changes
   useEffect(() => {
@@ -224,6 +228,63 @@ export default function Profile() {
         return <AlertCircle className="h-4 w-4 mr-1" />
       default:
         return <Clock className="h-4 w-4 mr-1" />
+    }
+  }
+
+  const handleAddToCart = (product: ProductInfo.Product, size: string) => {
+    try {
+      const sizeOption = product.sizeOptions.find((s) => s.size === size)
+      const price = sizeOption ? sizeOption.price : product.price
+
+      const cartItem = {
+        id: product.id.toString(),
+        name: product.name,
+        price: price,
+        image: product.images[size as "30" | "50"][0],
+        images: product.images,
+        quantity: 1,
+        size: size,
+        type: "single",
+      }
+      addItem(cartItem)
+
+      setIsOpen(true)
+
+      toast({
+        title: "Added to Cart",
+        description: `${product.name} (${size}ml) has been added to your cart.`,
+      })
+    } catch (error) {
+      console.error("Error adding to cart:", error)
+      toast({
+        title: "Error",
+        description: "Failed to add to cart. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleSizeSelect = (productId: string, size: string) => {
+    setSelectedSizes(prev => ({
+      ...prev,
+      [productId]: size
+    }))
+  }
+
+  const handleRemoveFromWishlist = (productId: string) => {
+    try {
+      removeFromWishlist(productId)
+      toast({
+        title: "Removed from Wishlist",
+        description: "Item has been removed from your wishlist.",
+      })
+    } catch (error) {
+      console.error("Error removing from wishlist:", error)
+      toast({
+        title: "Error",
+        description: "Failed to remove from wishlist. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -507,17 +568,58 @@ export default function Profile() {
                     <CardDescription>Products you've saved for later.</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {wishlist.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {/* Wishlist items would go here */}
-                        <div className="text-center py-12">
-                          <Heart className="h-12 w-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-                          <h3 className="text-lg font-medium mb-2">Your wishlist is empty</h3>
-                          <p className="text-gray-500 dark:text-gray-400 mb-4">
-                            Save your favorite items to your wishlist for later.
-                          </p>
-                          <Button>Explore Collection</Button>
-                        </div>
+                    {wishlistItems.length > 0 ? (
+                      <div className="space-y-6">
+                        {wishlistItems.map((item) => {
+                          const product = ProductInfo.allProductItems.find(p => p.id.toString() === item.id)
+                          if (!product) return null
+
+                          return (
+                            <div key={item.id} className="flex items-center gap-6 p-4 border rounded-lg">
+                              <div className="relative w-24 h-24">
+                                <Image
+                                  src={item.image}
+                                  alt={item.name}
+                                  fill
+                                  className="object-cover rounded-md"
+                                />
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="font-medium">{item.name}</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">₹{item.price}</p>
+                                <div className="mt-2">
+                                  <select
+                                    className="w-24 px-2 py-1 text-sm border rounded-md"
+                                    value={selectedSizes[item.id] || product.sizeOptions[0].size}
+                                    onChange={(e) => handleSizeSelect(item.id, e.target.value)}
+                                  >
+                                    {product.sizeOptions.map((size) => (
+                                      <option key={size.size} value={size.size}>
+                                        {size.size}ml
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                              <div className="flex flex-col gap-2">
+                                <Button
+                                  variant="outline"
+                                  onClick={() => handleAddToCart(product, selectedSizes[item.id] || product.sizeOptions[0].size)}
+                                >
+                                  Add to Cart
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
+                                  onClick={() => handleRemoveFromWishlist(item.id)}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Remove
+                                </Button>
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     ) : (
                       <div className="text-center py-12">
@@ -526,7 +628,7 @@ export default function Profile() {
                         <p className="text-gray-500 dark:text-gray-400 mb-4">
                           Save your favorite items to your wishlist for later.
                         </p>
-                        <Button>Explore Collection</Button>
+                        <Button onClick={() => router.push("/collection")}>Explore Collection</Button>
                       </div>
                     )}
                   </CardContent>

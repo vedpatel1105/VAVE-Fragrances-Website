@@ -10,9 +10,9 @@ import Image from "next/image"
 import { useToast } from "@/components/ui/use-toast"
 import { motion, AnimatePresence } from "framer-motion"
 import Cart from "@/src/app/components/Cart"
-import { useCartStore } from "@/src/app/components/Cart"
 import { ProductInfo } from "@/src/data/product-info"
 import { useRouter } from "next/navigation"
+import { useCartStore } from "@/src/lib/cartStore"
 
 const questions = [
   {
