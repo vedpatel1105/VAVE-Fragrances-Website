@@ -58,7 +58,7 @@ export default function ProductDetailPage() {
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore()
 
   // Find the current product based on the ID in the URL
-  const productId = Number(params.id)
+  const productId = params.id
   const product = ProductInfo.allProductItems.find((p) => p.id === productId)
 
   if (!product) {

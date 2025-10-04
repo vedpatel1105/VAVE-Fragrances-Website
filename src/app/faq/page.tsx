@@ -11,6 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import SimpleNavbar from "../components/SimpleNavbar"
 
 // FAQ data organized by categories
 type FAQCategory = keyof typeof faqData;
@@ -195,7 +196,7 @@ export default function FAQPage() {
 
   return (
     <>
-      <Navbar setIsCartOpen={() => {}} />
+      <SimpleNavbar />
       <main className="container mx-auto py-16 px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -281,7 +282,7 @@ export default function FAQPage() {
 
           {/* FAQ Categories */}
           {(!searchQuery || searchResults.length === 0) && (
-            <Tabs defaultValue="all" value={activeTab} onVolumeChange={setActiveTab}>
+            <Tabs defaultValue="all" value={activeTab} onValueChange={(value) => setActiveTab(value as FAQCategory)}>
               <TabsList className="w-full grid grid-cols-6">
                 <TabsTrigger value="all">All</TabsTrigger>
                 <TabsTrigger value="products">Products</TabsTrigger>

@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { useRef } from "react"
+import SimpleNavbar from "../components/SimpleNavbar"
 
 export default function ShippingReturnsPage() {
   const shippingRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>
@@ -19,7 +20,7 @@ export default function ShippingReturnsPage() {
 
   return (
     <>
-      <Navbar setIsCartOpen={() => {}} />
+      <SimpleNavbar />
       <main className="container mx-auto py-16 px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -97,7 +97,7 @@ export default function Home() {
   const router = useRouter()
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
-  const [selectedSizes, setSelectedSizes] = useState<{ [key: number]: string }>({})
+  const [selectedSizes, setSelectedSizes] = useState<{ [key: number | string]: string }>({})
   const { addItem, setIsOpen, getTotalItems } = useCartStore()
   const { items: wishlistItems, addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore()
 
@@ -146,7 +146,7 @@ export default function Home() {
     })
   }
 
-  const handleSizeSelect = (productId: number, size: string) => {
+  const handleSizeSelect = (productId: number | string, size: string) => {
     setSelectedSizes((prev) => ({
       ...prev,
       [productId]: size,
@@ -264,7 +264,6 @@ export default function Home() {
                       addToCart(product, quantity, selectedSizes[product.id] || product.sizeOptions[0].size)
                     }
                     onAddToWishlist={() => handleAddToWishlist(product)}
-                    onQuickView={handleQuickView}
                     inWishlist={isInWishlist(product.id.toString())}
                     selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size}
                     onSizeSelect={(size: string) => handleSizeSelect(product.id, size)}

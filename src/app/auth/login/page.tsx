@@ -1,9 +1,7 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { motion } from "framer-motion"
@@ -14,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/src/lib/supabaseClient"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -38,21 +37,42 @@ export default function LoginPage() {
 
       if (error) throw error
 
-      // Get user profile from users table
+      // Get user profile from profiles table
       const { data: profile, error: profileError } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .eq('id', data.user.id)
         .single()
 
-      if (profileError) throw profileError
+      if (profileError && profileError.code !== 'PGRST116') {
+        throw profileError
+      }
+
+      // If profile doesn't exist, create one
+      if (!profile) {
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: data.user.id,
+              email: data.user.email,
+              full_name: data.user.user_metadata?.full_name || "",
+            },
+          ])
+
+        if (insertError) throw insertError
+      }
 
       toast({
         title: "Login Successful",
         description: "Welcome back to Vave Fragrances!",
       })
 
-      router.push("/profile")
+  // Get the redirect URL from the query parameters
+  const params = new URLSearchParams(window.location.search)
+  const redirectTo = params.get('redirect') || '/profile'
+  // Use window.location.replace for reliability
+  window.location.replace(redirectTo)
     } catch (error: any) {
       toast({
         title: "Login Failed",
@@ -66,19 +86,27 @@ export default function LoginPage() {
 
   // Handle Google login
   const handleGoogleLogin = async () => {
-    setIsLoading(true)
-
     try {
+      setIsLoading(true)
+
+      // Get the redirect URL from the query parameters
+      const params = new URLSearchParams(window.location.search)
+      const redirectPath = params.get('redirect') || '/profile'
+
+      // Always pass the redirect param to callback
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
+          redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`,
+          queryParams: { access_type: "offline", prompt: "consent" },
+        }
       })
 
-      if (error) throw error
+      if (error) {
+        throw new Error(error.message || 'Failed to sign in with Google')
+      }
 
-      // The redirect will happen automatically
+      // The user will be redirected to Google's login page
     } catch (error: any) {
       toast({
         title: "Login Failed",

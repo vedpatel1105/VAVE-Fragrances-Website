@@ -20,7 +20,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/Scent-finder" className="text-dark/80 hover:text-gold transition-colors">
+                <Link href="/scent-finder" className="text-dark/80 hover:text-gold transition-colors">
                   Scent Finder
                 </Link>
               </li>
@@ -64,6 +64,16 @@ export default function Footer() {
                   FAQ
                 </Link>
               </li>
+              <li>
+                <Link href="/terms" className="text-dark/80 hover:text-gold transition-colors">
+                  Terms of Service
+                </Link>
+              </li>
+              <li>
+                <Link href="/privacy" className="text-dark/80 hover:text-gold transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
@@ -90,8 +100,18 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        <div className="mt-12 text-center text-dark/80">
-          <p>&copy; 2025 Vave. All rights reserved.</p>
+        <div className="mt-12 pt-8 border-t border-dark/10">
+          <div className="flex flex-col md:flex-row justify-between items-center text-dark/80">
+            <p>&copy; 2025 Vave. All rights reserved.</p>
+            <div className="flex space-x-6 mt-4 md:mt-0">
+              <Link href="/terms" className="text-dark/80 hover:text-gold transition-colors text-sm">
+                Terms of Service
+              </Link>
+              <Link href="/privacy" className="text-dark/80 hover:text-gold transition-colors text-sm">
+                Privacy Policy
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

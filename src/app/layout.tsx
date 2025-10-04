@@ -4,7 +4,9 @@ import { Playfair_Display, Montserrat } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "next-themes"
 import { UserProvider } from "@/src/contexts/UserContext"
+import { AuthProvider } from "@/src/contexts/AuthProvider"
 import { Toaster } from "@/components/ui/toaster"
+import Script from "next/script"
 
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat" })
@@ -27,12 +29,27 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
         <link rel="manifest" href="/favicon/site.webmanifest" />
         <link rel="shortcut icon" href="/favicon/favicon.ico" />
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-KFF48VFPD2"></Script>
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+        >
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-KFF48VFPD2');
+          `}
+        </Script>
       </head>
       <body className={`${playfair.variable} ${montserrat.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <UserProvider>
-            {children}
-          </UserProvider>
+          <AuthProvider>
+            <UserProvider>
+              {children}
+            </UserProvider>
+          </AuthProvider>
         </ThemeProvider>
         <Toaster />
       </body>
