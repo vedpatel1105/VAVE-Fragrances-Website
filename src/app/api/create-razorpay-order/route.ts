@@ -85,8 +85,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Verify stock and calculate total
-        let calculatedTotal = 0;
+        // Verify stock and calculate subtotal from trusted DB prices
+        let calculatedSubtotal = 0;
         for (const item of items) {
             const product = products.find(p => p.id === item.product_id);
             if (!product) {
@@ -114,11 +114,15 @@ export async function POST(request: NextRequest) {
                 );
             }
 
-            calculatedTotal += price * item.quantity;
+            calculatedSubtotal += price * item.quantity;
         }
 
-        // Verify total amount
-        if (calculatedTotal !== total) {
+        // Compute shipping charge: ₹30 for orders below ₹1000
+        const shippingCharge = calculatedSubtotal < 1000 ? 30 : 0;
+        const computedOrderTotal = calculatedSubtotal + shippingCharge;
+
+        // Validate client provided total matches server computed total
+        if (typeof total !== 'number' || total !== computedOrderTotal) {
             return NextResponse.json(
                 { error: 'Order total mismatch' },
                 { status: 400 }
@@ -127,11 +131,13 @@ export async function POST(request: NextRequest) {
 
         // Create Razorpay order
         const razorpayOrder = await razorpay.orders.create({
-            amount: total * 100, // Convert to paise
+            amount: computedOrderTotal * 100, // Convert to paise
             currency: 'INR',
             receipt: `order_${Date.now()}`,
             notes: {
                 user_id: user.id,
+                // Keep lightweight notes; sensitive validation remains server-side
+                shipping_inr: String(shippingCharge),
             },
         });
 
@@ -142,7 +148,9 @@ export async function POST(request: NextRequest) {
                 {
                     user_id: user.id,
                     items: items,
-                    total_amount: total,
+                    total_amount: computedOrderTotal,
+                    subtotal_amount: calculatedSubtotal,
+                    shipping_amount: shippingCharge,
                     shipping_address: JSON.stringify(parsedAddress),
                     payment_method: 'razorpay',
                     status: 'pending',
@@ -166,6 +174,10 @@ export async function POST(request: NextRequest) {
             amount: razorpayOrder.amount,
             currency: razorpayOrder.currency,
             orderId: newOrder.id,
+            // Prefill hints for checkout UX only
+            customerName: parsedAddress.name,
+            customerEmail: parsedAddress.email,
+            customerPhone: parsedAddress.phone,
         });
 
     } catch (error: any) {

@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { Package, Truck, CheckCircle, Clock, MapPin, Calendar, ArrowLeft, Share2, Loader2 } from "lucide-react"
-import dynamic from "next/dynamic"
 import Navbar from "@/src/app/components/Navbar"
 import Footer from "@/src/app/components/Footer"
 import { Button } from "@/components/ui/button"
@@ -16,15 +15,6 @@ import { useAuthStore } from "@/src/lib/auth"
 import { useToast } from "@/components/ui/use-toast"
 import SimpleNavbar from "../../components/SimpleNavbar"
 
-// Dynamically import the Map component to avoid SSR issues with Leaflet
-const MapWithNoSSR = dynamic(() => import("@/src/components/Map"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
-    </div>
-  ),
-})
 
 interface OrderItem {
   product_id: string;
@@ -39,6 +29,8 @@ interface Order {
   id: string;
   created_at: string;
   total_amount: number;
+  subtotal_amount?: number;
+  shipping_amount?: number;
   status: string;
   items: OrderItem[];
   shipping_address: string;
@@ -49,7 +41,6 @@ interface TrackingEvent {
   date: string;
   status: string;
   location: string;
-  coordinates?: [number, number];
 }
 
 interface TrackingInfo {
@@ -140,8 +131,7 @@ export default function TrackOrderPage() {
       {
         date: order.created_at,
         status: "Order Placed",
-        location: "Delhi",
-        coordinates: [28.7041, 77.1025]
+          location: getCityFromOrder(order)
       }
     ];
 
@@ -151,8 +141,7 @@ export default function TrackOrderPage() {
         baseEvents.push({
           date: new Date(new Date(order.created_at).getTime() + 2 * 60 * 60 * 1000).toISOString(),
           status: "Payment Confirmed",
-          location: "Delhi",
-          coordinates: [28.7041, 77.1025]
+          location: getCityFromOrder(order)
         });
         break;
       case 'shipped':
@@ -160,14 +149,12 @@ export default function TrackOrderPage() {
           {
             date: new Date(new Date(order.created_at).getTime() + 24 * 60 * 60 * 1000).toISOString(),
             status: "Payment Confirmed",
-            location: "Delhi",
-            coordinates: [28.7041, 77.1025]
+            location: getCityFromOrder(order)
           },
           {
             date: new Date(new Date(order.created_at).getTime() + 48 * 60 * 60 * 1000).toISOString(),
             status: "Shipped",
-            location: "Delhi",
-            coordinates: [28.7041, 77.1025]
+            location: getCityFromOrder(order)
           }
         );
         break;
@@ -176,26 +163,22 @@ export default function TrackOrderPage() {
           {
             date: new Date(new Date(order.created_at).getTime() + 24 * 60 * 60 * 1000).toISOString(),
             status: "Payment Confirmed",
-            location: "Delhi",
-            coordinates: [28.7041, 77.1025]
+            location: getCityFromOrder(order)
           },
           {
             date: new Date(new Date(order.created_at).getTime() + 48 * 60 * 60 * 1000).toISOString(),
             status: "Shipped",
-            location: "Delhi",
-            coordinates: [28.7041, 77.1025]
+            location: getCityFromOrder(order)
           },
           {
             date: new Date(new Date(order.created_at).getTime() + 72 * 60 * 60 * 1000).toISOString(),
             status: "Out for Delivery",
-            location: "Mumbai",
-            coordinates: [19.076, 72.8777]
+            location: getCityFromOrder(order)
           },
           {
             date: new Date(new Date(order.created_at).getTime() + 96 * 60 * 60 * 1000).toISOString(),
             status: "Delivered",
-            location: "Mumbai",
-            coordinates: [19.076, 72.8777]
+            location: getCityFromOrder(order)
           }
         );
         break;
@@ -207,6 +190,16 @@ export default function TrackOrderPage() {
       events: baseEvents.reverse() // Show most recent first
     };
   };
+
+  // Derive a display location (city) from the order shipping address
+  const getCityFromOrder = (order: Order): string => {
+    try {
+      const addr = typeof order.shipping_address === 'string' ? JSON.parse(order.shipping_address) : order.shipping_address as any;
+      return addr?.city || 'N/A';
+    } catch {
+      return 'N/A';
+    }
+  }
 
   // Get status color
   const getStatusColor = (status: string) => {
@@ -501,17 +494,11 @@ export default function TrackOrderPage() {
 
               <div>
                 <h3 className="text-lg font-bold mb-4">Current Location</h3>
-                <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
-                  {currentEvent && currentEvent.coordinates && (
-                    <MapWithNoSSR
-                      lat={currentEvent.coordinates[0]}
-                      lng={currentEvent.coordinates[1]}
-                    />
-                  )}
-                  {currentEvent && !currentEvent.coordinates && (
-                    <div className="flex items-center justify-center h-full text-gray-500">
-                      <p>Map not available</p>
-                    </div>
+                <div className="h-24 bg-gray-50 dark:bg-gray-700/30 rounded-lg flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
+                  {currentEvent ? (
+                    <span>{currentEvent.location}</span>
+                  ) : (
+                    <span>N/A</span>
                   )}
                 </div>
               </div>
@@ -553,11 +540,11 @@ export default function TrackOrderPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-gray-400">Subtotal:</span>
-                  <span>₹{order.total_amount - 99}</span>
+                  <span>₹{typeof order.subtotal_amount === 'number' ? order.subtotal_amount : (order.total_amount - (order.shipping_amount ?? 0))}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-gray-400">Shipping:</span>
-                  <span>₹99</span>
+                  <span>{typeof order.shipping_amount === 'number' ? `₹${order.shipping_amount}` : 'Included'}</span>
                 </div>
                 <div className="flex justify-between font-bold">
                   <span>Total:</span>

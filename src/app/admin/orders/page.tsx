@@ -26,9 +26,11 @@ export default function AdminOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
+  const [isFulfillmentDialogOpen, setIsFulfillmentDialogOpen] = useState(false)
   const [isUserInfoDialogOpen, setIsUserInfoDialogOpen] = useState(false)
   const [isLoadingUser, setIsLoadingUser] = useState(false)
   const [newStatus, setNewStatus] = useState<Order['status']>('pending')
+  const [newFulfillment, setNewFulfillment] = useState<'processing' | 'shipped' | 'delivered' | 'cancelled'>('processing')
   const [statusNotes, setStatusNotes] = useState("")
   const [isLoading, setIsLoading] = useState(true)
 
@@ -82,7 +84,7 @@ export default function AdminOrdersPage() {
 
     // Price filter
     if (priceFilter !== "all") {
-      const price = order.total
+      const price = order.total_amount
       switch (priceFilter) {
         case "under500":
           if (price >= 500) return false
@@ -121,7 +123,7 @@ export default function AdminOrdersPage() {
     if (!selectedOrder) return
 
     try {
-      await orderService.updateOrderStatus(selectedOrder.id, newStatus, statusNotes)
+      await orderService.updateOrderStatus(selectedOrder.id, newStatus as "pending" | "paid" | "failed", statusNotes)
       await loadOrders()
       setIsStatusDialogOpen(false)
       toast({
@@ -139,36 +141,43 @@ export default function AdminOrdersPage() {
   }
 
   // Get status badge
-  const getStatusBadge = (status: Order['status']) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case "delivered":
-        return <Badge className="bg-green-500">Delivered</Badge>
-      case "shipped":
-        return <Badge className="bg-blue-500">Shipped</Badge>
-      case "processing":
-        return <Badge className="bg-amber-500">Processing</Badge>
+      case "paid":
+        return <Badge className="bg-green-600">Paid</Badge>
       case "pending":
-        return <Badge className="bg-gray-500">Pending</Badge>
-      case "cancelled":
+        return <Badge className="bg-amber-500">Pending</Badge>
+      case "failed":
+        return <Badge className="bg-red-600">Failed</Badge>
+      default:
+        return <Badge className="bg-gray-500">{status}</Badge>
+    }
+  }
+
+  const getFulfillmentBadge = (status?: string | null) => {
+    switch (status) {
+      case 'processing':
+        return <Badge className="bg-blue-500">Processing</Badge>
+      case 'shipped':
+        return <Badge className="bg-indigo-500">Shipped</Badge>
+      case 'delivered':
+        return <Badge className="bg-green-500">Delivered</Badge>
+      case 'cancelled':
         return <Badge className="bg-red-500">Cancelled</Badge>
       default:
-        return <Badge>{status}</Badge>
+        return <Badge className="bg-gray-500">N/A</Badge>
     }
   }
 
   // Get status icon
-  const getStatusIcon = (status: Order['status']) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
-      case "delivered":
-        return <CheckCircle className="h-5 w-5 text-green-500" />
-      case "shipped":
-        return <Truck className="h-5 w-5 text-blue-500" />
-      case "processing":
-        return <Package className="h-5 w-5 text-amber-500" />
+      case "paid":
+        return <CheckCircle className="h-5 w-5 text-green-600" />
       case "pending":
-        return <Clock className="h-5 w-5 text-gray-500" />
-      case "cancelled":
-        return <AlertCircle className="h-5 w-5 text-red-500" />
+        return <Clock className="h-5 w-5 text-amber-500" />
+      case "failed":
+        return <AlertCircle className="h-5 w-5 text-red-600" />
       default:
         return <Package className="h-5 w-5 text-gray-500" />
     }
@@ -190,6 +199,14 @@ export default function AdminOrdersPage() {
       })
     } finally {
       setIsLoadingUser(false)
+    }
+  }
+
+  const handleShippingAddress = (address: string | object) => {
+    try {
+      return JSON.parse(address as string)
+    } catch (error) {
+      return address
     }
   }
 
@@ -236,10 +253,8 @@ export default function AdminOrdersPage() {
                 >
                   <option value="all">All Status</option>
                   <option value="pending">Pending</option>
-                  <option value="processing">Processing</option>
-                  <option value="shipped">Shipped</option>
-                  <option value="delivered">Delivered</option>
-                  <option value="cancelled">Cancelled</option>
+                  <option value="paid">Paid</option>
+                  <option value="failed">Failed</option>
                 </select>
 
                 <select
@@ -286,8 +301,11 @@ export default function AdminOrdersPage() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                      {getStatusBadge(order.status)}
-                      <span className="font-bold">{formatCurrency(order.total)}</span>
+                      <div className="flex items-center gap-2">
+                        {getStatusBadge(order.status)}
+                        {getFulfillmentBadge(order.fulfillment_status as any)}
+                      </div>
+                      <span className="font-bold">{formatCurrency(order.total_amount)}</span>
                       <Button
                         variant="outline"
                         onClick={() => {
@@ -301,6 +319,16 @@ export default function AdminOrdersPage() {
                       <Button
                         variant="outline"
                         onClick={() => {
+                          setSelectedOrder(order)
+                          setNewFulfillment((order.fulfillment_status as any) || 'processing')
+                          setIsFulfillmentDialogOpen(true)
+                        }}
+                      >
+                        Update Fulfillment
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
                           handleOpenUserInfo(order)
                         }}
                       >
@@ -310,26 +338,96 @@ export default function AdminOrdersPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h4 className="font-bold mb-2">Order Items</h4>
-                      <div className="space-y-2">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Items */}
+                    <div className="lg:col-span-2">
+                      <h4 className="font-bold mb-3">Order Items</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {order.items.map((item, index) => (
-                          <div key={index} className="flex justify-between">
-                            <span>{item.name} ({item.size}) × {item.quantity}</span>
-                            <span>{formatCurrency(item.price * item.quantity)}</span>
+                          <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-900">
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium">{item.name}</span>
+                              <span className="text-sm text-gray-500">{item.size}ml</span>
+                            </div>
+                            <div className="mt-2 flex items-center justify-between text-sm">
+                              <span className="text-gray-500">Quantity</span>
+                              <span className="font-medium">{item.quantity}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-500">Unit Price</span>
+                              <span className="font-medium">{formatCurrency(item.price)}</span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-500">Line Total</span>
+                              <span className="font-semibold">{formatCurrency(item.price * item.quantity)}</span>
+                            </div>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    <div>
-                      <h4 className="font-bold mb-2">Shipping Details</h4>
-                      <p className="text-gray-600 dark:text-gray-400">{order.shipping_address}</p>
-                      <p className="text-gray-600 dark:text-gray-400 mt-2">
-                        Payment Method: {order.payment_method}
-                      </p>
+                    {/* Pricing & Payment */}
+                    <div className="space-y-4">
+                      <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-900">
+                        <h4 className="font-bold mb-3">Pricing Summary</h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">Subtotal</span>
+                            <span className="font-medium">{formatCurrency((order as any).subtotal_amount ?? (order.total_amount - ((order as any).shipping_amount ?? 0)))}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">Shipping</span>
+                            <span className="font-medium">{typeof (order as any).shipping_amount === 'number' ? formatCurrency((order as any).shipping_amount) : 'Included'}</span>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-gray-200 dark:border-gray-700">
+                            <span className="font-semibold">Total</span>
+                            <span className="font-semibold">{formatCurrency(order.total_amount)}</span>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">GST is included in product prices</p>
+                        </div>
+                      </div>
+
+                      <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-900">
+                        <h4 className="font-bold mb-3">Payment Info</h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">Method</span>
+                            <span className="font-medium uppercase">{order.payment_method}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500">Status</span>
+                            <span className="font-medium">{order.status}</span>
+                          </div>
+                          {order.razorpay_order_id && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-gray-500">Razorpay Order ID</span>
+                              <span className="font-mono text-xs break-all ml-2">{order.razorpay_order_id}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
+                  </div>
+
+                  {/* Shipping Address KV layout */}
+                  <div className="mt-6">
+                    <h4 className="font-bold mb-3">Shipping Address</h4>
+                    {(() => {
+                      let addr: any = order.shipping_address
+                      try { addr = typeof addr === 'string' ? JSON.parse(addr) : addr } catch {}
+                      const entries = Object.entries(addr || {}) as Array<[string, any]>;
+                      if (!entries.length) return <p className="text-gray-600 dark:text-gray-400">No address</p>
+                      return (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {entries.map(([key, value]) => (
+                            <div key={key} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 bg-white dark:bg-gray-900">
+                              <p className="text-xs uppercase tracking-wider text-gray-500">{key.replace(/_/g, ' ')}</p>
+                              <p className="font-medium break-words mt-1">{String(value)}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    })()}
                   </div>
                 </div>
               </motion.div>
@@ -350,16 +448,14 @@ export default function AdminOrdersPage() {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">New Status</label>
-                <Select value={newStatus} onValueChange={(value: Order['status']) => setNewStatus(value)}>
+                <Select value={newStatus} onValueChange={(value: string) => setNewStatus(value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="processing">Processing</SelectItem>
-                    <SelectItem value="shipped">Shipped</SelectItem>
-                    <SelectItem value="delivered">Delivered</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -380,6 +476,55 @@ export default function AdminOrdersPage() {
               </Button>
               <Button onClick={handleStatusUpdate}>
                 Update Status
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Fulfillment Update Dialog */}
+        <Dialog open={isFulfillmentDialogOpen} onOpenChange={setIsFulfillmentDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Update Fulfillment Status</DialogTitle>
+              <DialogDescription>
+                Change the fulfillment status of order #{selectedOrder?.id}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">New Fulfillment Status</label>
+                <Select value={newFulfillment} onValueChange={(value: any) => setNewFulfillment(value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="processing">Processing</SelectItem>
+                    <SelectItem value="shipped">Shipped</SelectItem>
+                    <SelectItem value="delivered">Delivered</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsFulfillmentDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={async () => {
+                if (!selectedOrder) return
+                try {
+                  await orderService.updateFulfillmentStatus(selectedOrder.id, newFulfillment)
+                  await loadOrders()
+                  setIsFulfillmentDialogOpen(false)
+                  toast({ title: 'Success', description: 'Fulfillment status updated successfully' })
+                } catch (error) {
+                  console.error(error)
+                  toast({ title: 'Error', description: 'Failed to update fulfillment status', variant: 'destructive' })
+                }
+              }}>
+                Update Fulfillment
               </Button>
             </DialogFooter>
           </DialogContent>

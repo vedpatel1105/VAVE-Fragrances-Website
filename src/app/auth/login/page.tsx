@@ -13,8 +13,10 @@ import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/src/lib/supabaseClient"
 import { useRouter } from "next/navigation"
+import { useAuthStore } from "@/src/lib/auth"
 
 export default function LoginPage() {
+  const { login, loginWithGoogle } = useAuthStore()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [emailForm, setEmailForm] = useState({ email: "", password: "" })
@@ -30,10 +32,7 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailForm.email,
-        password: emailForm.password,
-      })
+      const { error, user } = await login(emailForm.email, emailForm.password)
 
       if (error) throw error
 
@@ -41,7 +40,7 @@ export default function LoginPage() {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', data.user.id)
+        .eq('id', user?.id)
         .single()
 
       if (profileError && profileError.code !== 'PGRST116') {
@@ -49,14 +48,14 @@ export default function LoginPage() {
       }
 
       // If profile doesn't exist, create one
-      if (!profile) {
+      if (!profile && user) {
         const { error: insertError } = await supabase
           .from('profiles')
           .insert([
             {
-              id: data.user.id,
-              email: data.user.email,
-              full_name: data.user.user_metadata?.full_name || "",
+              id: user?.id,
+              email: user?.email,
+              full_name: user?.user_metadata?.full_name || "",
             },
           ])
 
@@ -68,11 +67,11 @@ export default function LoginPage() {
         description: "Welcome back to Vave Fragrances!",
       })
 
-  // Get the redirect URL from the query parameters
-  const params = new URLSearchParams(window.location.search)
-  const redirectTo = params.get('redirect') || '/profile'
-  // Use window.location.replace for reliability
-  window.location.replace(redirectTo)
+      // Get the redirect URL from the query parameters
+      const params = new URLSearchParams(window.location.search)
+      const redirectTo = params.get('redirect') || '/profile'
+      // Use window.location.replace for reliability
+      window.location.replace(redirectTo)
     } catch (error: any) {
       toast({
         title: "Login Failed",
@@ -94,17 +93,7 @@ export default function LoginPage() {
       const redirectPath = params.get('redirect') || '/profile'
 
       // Always pass the redirect param to callback
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`,
-          queryParams: { access_type: "offline", prompt: "consent" },
-        }
-      })
-
-      if (error) {
-        throw new Error(error.message || 'Failed to sign in with Google')
-      }
+      await loginWithGoogle(redirectPath)
 
       // The user will be redirected to Google's login page
     } catch (error: any) {
@@ -224,7 +213,7 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-6">
-              <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={isLoading}>
+              <Button className="w-full" onClick={handleGoogleLogin} disabled={isLoading}>
                 <Image src="/google-logo.svg" alt="Google" width={20} height={20} className="mr-2" />
                 Google
               </Button>

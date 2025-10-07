@@ -6,16 +6,16 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
-import { CreditCard, Truck, Wallet, AlertCircle } from "lucide-react"
+import { CreditCard, Truck, Wallet, AlertCircle, BadgePercent } from "lucide-react"
 import Image from "next/image"
 import { useToast } from "@/components/ui/use-toast"
 import { useCartStore } from "@/src/lib/cartStore"
 import { createRazorpayOrder, initializeRazorpayCheckout } from "@/src/lib/razorpayService"
+import type { PaymentVerificationResult } from "@/src/types/orders"
 import { supabase } from "@/src/lib/supabaseClient"
 
 import type { ShippingAddress } from "@/src/types/orders";
 import { LoadingSpinner } from "@/src/components/ui/loading-spinner"
-import { useAuth } from "@/src/contexts/AuthProvider"
 import { useAuthStore } from "@/src/lib/auth"
 
 export default function Checkout() {
@@ -24,7 +24,7 @@ export default function Checkout() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [error, setError] = useState("")
   const { user, isAuthenticated, isLoading } = useAuthStore()
-  const { items: cartItems, getTotalPrice: getTotalAmount, clearCart } = useCartStore()
+  const { items: cartItems, getTotalPrice: getSubtotalAmount, clearCart } = useCartStore()
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     name: "",
     email: "",
@@ -35,8 +35,8 @@ export default function Checkout() {
     pincode: ""
   });
 
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'razorpay' | 'cod'>('razorpay');
   const [isLoadingAddress, setIsLoadingAddress] = useState(true);
+  const [shippingCharge, setShippingCharge] = useState<number>(0);
 
   // Protected route - redirect if not logged in (wait for loading)
   useEffect(() => {
@@ -120,6 +120,12 @@ export default function Checkout() {
     return true;
   };
 
+  // Compute shipping based on subtotal
+  useEffect(() => {
+    const subtotal = getSubtotalAmount();
+    setShippingCharge(subtotal < 1000 ? 30 : 0);
+  }, [cartItems, getSubtotalAmount]);
+
   const handleCheckout = async () => {
     try {
       setError("");
@@ -130,7 +136,7 @@ export default function Checkout() {
         return;
       }
 
-      // Create order object for Razorpay
+      // Create order object for Razorpay. Backend will recompute subtotal and shipping charge
       const order = {
         items: cartItems.map(item => ({
           product_id: item.id,
@@ -140,7 +146,7 @@ export default function Checkout() {
           size: item.size ?? "",
           image: item.image,
         })),
-        total: getTotalAmount(),
+        total: getSubtotalAmount() + shippingCharge,
         shipping_address: shippingAddress,
         payment_method: 'razorpay' as const,
       };
@@ -152,7 +158,7 @@ export default function Checkout() {
         razorpayOrder,
         shippingAddress,
         // Success callback
-        async (response) => {
+        async (verificationData: PaymentVerificationResult) => {
           // Clear cart
           clearCart();
           
@@ -179,7 +185,7 @@ export default function Checkout() {
           });
 
           // Redirect to order success page with the database order ID from verification response
-          router.push(`/order-success?orderId=${response.razorpay_order_id}`);
+          router.push(`/order-success?orderId=${verificationData.orderId}`);
         },
         // Error callback
         (error) => {
@@ -341,10 +347,22 @@ export default function Checkout() {
                       </div>
                     ))}
 
-                    <div className="border-t border-white/10 pt-4 mt-4">
+                    <div className="border-t border-white/10 pt-4 mt-4 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Subtotal</span>
+                        <span>₹{getSubtotalAmount()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Shipping</span>
+                        <span>{shippingCharge === 0 ? 'Free' : `₹${shippingCharge}`}</span>
+                      </div>
                       <div className="flex justify-between font-medium">
                         <span>Total</span>
-                        <span>₹{getTotalAmount()}</span>
+                        <span>₹{getSubtotalAmount() + shippingCharge}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-400">
+                        <BadgePercent className="h-3 w-3" />
+                        <span>GST is included in the displayed prices</span>
                       </div>
                     </div>
                   </div>
@@ -355,7 +373,7 @@ export default function Checkout() {
                   onClick={handleCheckout}
                   disabled={isProcessing}
                 >
-                  {isProcessing ? "Processing..." : `Pay ₹${getTotalAmount()}`}
+                  {isProcessing ? "Processing..." : `Pay ₹${getSubtotalAmount() + shippingCharge}`}
                 </Button>
               </div>
             </div>

@@ -5,7 +5,8 @@ import type {
     Transaction,
     RazorpayOrderResponse,
     RazorpayOptions,
-    RazorpayVerificationResponse
+    RazorpayVerificationResponse,
+    PaymentVerificationResult
 } from '@/src/types/orders';
 
 declare global {
@@ -117,7 +118,7 @@ export const createRazorpayOrder = async (order: {
 export const initializeRazorpayCheckout = async (
     orderData: RazorpayOrderResponse,
     shippingAddress: ShippingAddress,
-    onSuccess: (response: RazorpayVerificationResponse) => void,
+    onSuccess: (result: PaymentVerificationResult) => void,
     onError: (error: Error) => void
 ): Promise<void> => {
     try {
@@ -167,7 +168,7 @@ export const initializeRazorpayCheckout = async (
                     }
 
                     const verificationData = await verificationResponse.json();
-                    onSuccess(verificationData);
+                    onSuccess(verificationData as PaymentVerificationResult);
                 } catch (error) {
                     console.error('Payment verification error:', error);
                     onError(error instanceof Error ? error : new Error('Payment verification failed'));

@@ -224,8 +224,6 @@ export default function EnhancedProductCard({
       {/* Quick Actions - Wishlist */}
       <div className="absolute top-4 right-4">
         <Button
-          variant="ghost"
-          size="icon"
           className={`bg-white/90 hover:bg-white text-gray-900 rounded-full shadow-lg ${
             inWishlist ? "text-red-500" : ""
           }`}

@@ -16,9 +16,9 @@ export interface AuthState {
     isAuthenticated: boolean;
     isLoading: boolean;
     setUser: (user: User | null) => void;
-    login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-    loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
-    register: (email: string, password: string, full_name: string) => Promise<{ success: boolean; error?: string }>;
+    login: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
+    loginWithGoogle: (redirectPath: string) => Promise<{ success: boolean; error?: string }>;
+    register: (email: string, password: string, full_name: string, phone: string) => Promise<{ success: boolean; user?: User; error?: string }>;
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
     updateUserMetadata: (metadata: Partial<{ full_name: string; phone: string; role: string }>) => Promise<{ success: boolean; error?: string }>;
@@ -47,20 +47,22 @@ export const useAuthStore = create<AuthState>()(
                         throw new Error("Login failed - no user data received");
                     }
 
+                    const newUser: User = {
+                        id: authData.user.id,
+                        email: authData.user.email!,
+                        full_name: authData.user.user_metadata?.full_name || "",
+                        role: authData.user.user_metadata?.role,
+                        phone: authData.user.user_metadata?.phone,
+                        user_metadata: authData.user.user_metadata
+                    };
+
                     set({
-                        user: {
-                            id: authData.user.id,
-                            email: authData.user.email!,
-                            full_name: authData.user.user_metadata?.full_name || "",
-                            role: authData.user.user_metadata?.role,
-                            phone: authData.user.user_metadata?.phone,
-                            user_metadata: authData.user.user_metadata
-                        },
+                        user: newUser,
                         isAuthenticated: true,
                         isLoading: false,
                     });
 
-                    return { success: true };
+                    return { success: true, user: newUser };
                 } catch (error: any) {
                     console.error("Login error:", error);
                     set({
@@ -75,13 +77,13 @@ export const useAuthStore = create<AuthState>()(
                 }
             },
             
-            loginWithGoogle: async () => {
+            loginWithGoogle: async (redirectPath: string = '') => {
                 try {
                     set({ isLoading: true });
                     const { error } = await supabase.auth.signInWithOAuth({
                         provider: 'google',
                         options: {
-                            redirectTo: `${window.location.origin}/auth/callback`,
+                            redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`,
                             queryParams: {
                                 access_type: 'offline',
                                 prompt: 'consent',
@@ -101,7 +103,7 @@ export const useAuthStore = create<AuthState>()(
                 }
             },
 
-            register: async (email, password, full_name) => {
+            register: async (email, password, full_name, phone) => {
                 try {
                     set({ isLoading: true });
                     
@@ -111,27 +113,31 @@ export const useAuthStore = create<AuthState>()(
                         options: {
                             data: {
                                 full_name,
+                                phone
                             },
+                            emailRedirectTo: `${window.location.origin}/auth/callback?redirect=/profile`,
                         },
                     });
 
                     if (authError) throw authError;
 
                     if (authData.user) {
+                        const newUser: User = {
+                            id: authData.user.id,
+                            email: authData.user.email!,
+                            full_name,
+                            role: authData.user.user_metadata?.role,
+                            phone: authData.user.user_metadata?.phone,
+                            user_metadata: authData.user.user_metadata
+                        };
+
                         set({
-                            user: {
-                                id: authData.user.id,
-                                email: authData.user.email!,
-                                full_name,
-                                role: authData.user.user_metadata?.role,
-                                phone: authData.user.user_metadata?.phone,
-                                user_metadata: authData.user.user_metadata
-                            },
+                            user: newUser,
                             isAuthenticated: true,
                             isLoading: false,
                         });
 
-                        return { success: true };
+                        return { success: true, user: newUser };
                     } else {
                         throw new Error("Registration failed - no user data received");
                     }

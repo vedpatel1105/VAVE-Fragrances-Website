@@ -53,6 +53,11 @@ export interface RazorpayVerificationResponse {
   razorpay_signature: string;
 }
 
+export interface PaymentVerificationResult {
+  success?: boolean;
+  orderId: string;
+}
+
 export interface RazorpayOptions {
   key: string;
   amount: number;

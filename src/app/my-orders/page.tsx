@@ -31,6 +31,8 @@ interface Order {
   id: string;
   created_at: string;
   total_amount: number;
+  subtotal_amount?: number;
+  shipping_amount?: number;
   status: string;
   items: OrderItem[];
   shipping_address: string;
@@ -407,11 +409,11 @@ export default function MyOrdersPage() {
                                 <div className="space-y-1">
                                   <div className="flex justify-between">
                                     <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
-                                    <span>₹{order.total_amount - 99}</span>
+                                    <span>₹{typeof order.subtotal_amount === 'number' ? order.subtotal_amount : (order.total_amount - (order.shipping_amount ?? 0))}</span>
                                   </div>
                                   <div className="flex justify-between">
                                     <span className="text-gray-600 dark:text-gray-400">Shipping:</span>
-                                    <span>₹99</span>
+                                    <span>{typeof order.shipping_amount === 'number' ? `₹${order.shipping_amount}` : 'Included'}</span>
                                   </div>
                                   <div className="flex justify-between font-bold">
                                     <span>Total:</span>

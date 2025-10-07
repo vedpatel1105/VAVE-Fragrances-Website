@@ -13,8 +13,8 @@ export namespace ProductInfo {
             slug: "havoc",
             category: "Fresh",
             tagline: "Woody • Aromatic • Masculine",
-            price: 400, // Fixed price
-            priceXL: 500, // Fixed price
+            price: 399, // Fixed price
+            priceXL: 499, // Fixed price
             images: {
                 "30": [
                     `${baseUrl}/havoc/30/bottle.webp`,
@@ -53,8 +53,8 @@ export namespace ProductInfo {
                 "Glycerin",
             ],
             sizeOptions: [
-                { size: "30", price: 400 }, // Fixed price
-                { size: "50", price: 500 }, // Fixed price
+                { size: "30", price: 399 }, // Fixed price
+                { size: "50", price: 499 }, // Fixed price
             ],
             specifications: {
                 fragrance_family: "Woody Aromatic",
@@ -92,8 +92,8 @@ export namespace ProductInfo {
             slug: "lavior",
             category: "Oriental",
             tagline: "Herbal • Smoky • Unique",
-            price: 400,
-            priceXL: 500,
+            price: 399,
+            priceXL: 499,
             images: {
                 "30": [
                     `${baseUrl}/lavior/30/bottle.jpg`,
@@ -137,8 +137,8 @@ export namespace ProductInfo {
                 "Eugenol",
             ],
             sizeOptions: [
-                { size: "30", price: 400 },
-                { size: "50", price: 500 },
+                { size: "30", price: 399 },
+                { size: "50", price: 499 },
             ],
             specifications: {
                 fragrance_family: "Woody Aromatic",
@@ -176,8 +176,8 @@ export namespace ProductInfo {
             slug: "duskfall",
             category: "Woody",
             tagline: "Citrus • Amber • Sophisticated",
-            price: 400,
-            priceXL: 500,
+            price: 399,
+            priceXL: 499,
             images: {
                 "30": [
                     `${baseUrl}/duskfall/30/bottle.jpg`,
@@ -216,8 +216,8 @@ export namespace ProductInfo {
                 "Glycerin",
             ],
             sizeOptions: [
-                { size: "30", price: 400 },
-                { size: "50", price: 500 },
+                { size: "30", price: 399 },
+                { size: "50", price: 499 },
             ],
             specifications: {
                 fragrance_family: "Citrus Amber",
@@ -255,8 +255,8 @@ export namespace ProductInfo {
             slug: "euphoria",
             category: "Floral",
             tagline: "Floral • Romantic • Feminine",
-            price: 400,
-            priceXL: 500,
+            price: 399,
+            priceXL: 499,
             images: {
                 "30": [
                     `${baseUrl}/euphoria/30/bottle.webp`,
@@ -295,8 +295,8 @@ export namespace ProductInfo {
                 "Glycerin",
             ],
             sizeOptions: [
-                { size: "30", price: 400 },
-                { size: "50", price: 500 },
+                { size: "30", price: 399 },
+                { size: "50", price: 499 },
             ],
             specifications: {
                 fragrance_family: "Floral Fruity",
@@ -334,8 +334,8 @@ export namespace ProductInfo {
             slug: "oceane",
             category: "Aquatic",
             tagline: "Fresh • Aquatic • Sporty",
-            price: 400,
-            priceXL: 500,
+            price: 399,
+            priceXL: 499,
             images: {
                 "30": [
                     `${baseUrl}/oceane/30/bottle.jpg`,
@@ -374,8 +374,8 @@ export namespace ProductInfo {
                 "Glycerin",
             ],
             sizeOptions: [
-                { size: "30", price: 400 },
-                { size: "50", price: 500 },
+                { size: "30", price: 399 },
+                { size: "50", price: 499 },
             ],
             specifications: {
                 fragrance_family: "Fresh Aquatic",
@@ -414,8 +414,8 @@ export namespace ProductInfo {
             slug: "velora",
             category: "Woody",
             tagline: "Gourmand • Warm • Seductive",
-            price: 400,
-            priceXL: 500,
+            price: 399,
+            priceXL: 499,
             images: {
                 "30": [
                     `${baseUrl}/velora/30/bottle.jpg`,
@@ -454,8 +454,8 @@ export namespace ProductInfo {
                 "Glycerin",
             ],
             sizeOptions: [
-                { size: "30", price: 400 },
-                { size: "50", price: 500 },
+                { size: "30", price: 399 },
+                { size: "50", price: 499 },
             ],
             specifications: {
                 fragrance_family: "Gourmand",
@@ -493,8 +493,8 @@ export namespace ProductInfo {
             slug: "obsession",
             category: "Oriental",
             tagline: "Spicy • Intense • Addictive",
-            price: 400,
-            priceXL: 500,
+            price: 399,
+            priceXL: 499,
             images: {
                 "30": [
                     `${baseUrl}/obsession/30/bottle.webp`,
@@ -533,8 +533,8 @@ export namespace ProductInfo {
                 "Glycerin",
             ],
             sizeOptions: [
-                { size: "30", price: 400 },
-                { size: "50", price: 500 },
+                { size: "30", price: 399 },
+                { size: "50", price: 499 },
             ],
             specifications: {
                 fragrance_family: "Spicy Oriental",
@@ -573,8 +573,8 @@ export namespace ProductInfo {
             slug: "mehfil",
             category: "Spicy",
             tagline: "Amber • Sweet • Opulent",
-            price: 400,
-            priceXL: 500,
+            price: 399,
+            priceXL: 499,
             images: {
                 "30": [
                     `${baseUrl}/mehfil/30/bottle.jpg`,
@@ -613,8 +613,8 @@ export namespace ProductInfo {
                 "Glycerin",
             ],
             sizeOptions: [
-                { size: "30", price: 400 },
-                { size: "50", price: 500 },
+                { size: "30", price: 399 },
+                { size: "50", price: 499 },
             ],
             specifications: {
                 fragrance_family: "Amber",

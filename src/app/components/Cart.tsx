@@ -90,16 +90,25 @@ export default function Cart() {
         return
       }
 
-      // Format address for order
-      const formattedAddress = `${addresses.address}, ${addresses.city}, ${addresses.state} - ${addresses.pincode}`
+      // Build JSON shipping address per orders schema
+      const shippingAddress = {
+        name: user?.user_metadata?.full_name || '',
+        email: user?.email || '',
+        phone: user?.user_metadata?.phone || '',
+        address: addresses.address,
+        city: addresses.city,
+        state: addresses.state,
+        pincode: addresses.pincode,
+      }
 
-      // Place COD order
+      // Place COD order in orders table
       const order = await orderService.placeOrder({
         items,
-        total: grandTotal,
-        shipping_address: formattedAddress,
+        total_amount: grandTotal,
+        subtotal_amount: getTotalPrice(),
+        shipping_amount: shippingCost,
+        shipping_address: shippingAddress,
         payment_method: 'COD',
-        status: "pending"
       })
 
       // Set order details for success modal
@@ -139,7 +148,7 @@ export default function Cart() {
   }
 
   // Calculate shipping cost
-  const shippingCost = getTotalPrice() >= 1000 ? 0 : 99
+  const shippingCost = getTotalPrice() >= 1000 ? 0 : 30
 
   // Calculate grand total
   const grandTotal = getTotalPrice() + shippingCost
@@ -265,10 +274,11 @@ export default function Cart() {
                       <span>Total</span>
                       <span>₹{grandTotal}</span>
                     </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">GST is included in the displayed prices</p>
                   </div>
                   {/* Primary Checkout Button */}
                   <Button
-                    className="w-full h-12 text-base font-semibold bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200"
+                    className="w-full h-12 text-base font-semibold bg-black text-white hover:bg-gray-900 shadow-md hover:shadow-lg transition-all duration-200"
                     onClick={() => {
                       setIsOpen(false)
                       router.push('/checkout')

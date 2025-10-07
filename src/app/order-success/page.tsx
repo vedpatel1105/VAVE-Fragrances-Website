@@ -69,7 +69,7 @@ export default function OrderSuccess() {
         const { data, error } = await supabase
           .from("orders")
           .select("*")
-          .eq("razorpay_order_id", orderId)
+          .eq("id", orderId)
           .eq("user_id", user.id) // Security: Only allow access to user's own orders
           .single()
 
