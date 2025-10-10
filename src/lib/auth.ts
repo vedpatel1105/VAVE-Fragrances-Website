@@ -80,10 +80,11 @@ export const useAuthStore = create<AuthState>()(
             loginWithGoogle: async (redirectPath: string = '') => {
                 try {
                     set({ isLoading: true });
+                    const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://vavefragrances.com";
                     const { error } = await supabase.auth.signInWithOAuth({
                         provider: 'google',
                         options: {
-                            redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`,
+                            redirectTo: `${origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`,
                             queryParams: {
                                 access_type: 'offline',
                                 prompt: 'consent',
@@ -106,7 +107,7 @@ export const useAuthStore = create<AuthState>()(
             register: async (email, password, full_name, phone) => {
                 try {
                     set({ isLoading: true });
-                    
+                    const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://vavefragrances.com";
                     const { data: authData, error: authError } = await supabase.auth.signUp({
                         email,
                         password,
@@ -115,7 +116,7 @@ export const useAuthStore = create<AuthState>()(
                                 full_name,
                                 phone
                             },
-                            emailRedirectTo: `${window.location.origin}/auth/callback?redirect=/profile`,
+                            emailRedirectTo: `${origin}/auth/callback?redirect=/profile`,
                         },
                     });
 
