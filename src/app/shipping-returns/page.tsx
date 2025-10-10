@@ -267,7 +267,7 @@ export default function ShippingReturnsPage() {
           <section id="contact" className="mb-12">
             <h2 className="text-3xl font-bold mb-6">Need Help?</h2>
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-              <form action="https://formsubmit.co/vavefragrances@gmail.com" method="POST">
+              <form action="https://formsubmit.co/info@vavefragrances.com" method="POST">
                 <input type="hidden" name="_template" value="table" />
                 <input type="hidden" name="_subject" value="New Product Issue Report" />
                 

@@ -20,7 +20,7 @@ type Size = "30" | "50"
 
 export default function CollectionPage() {
   const { toast } = useToast()
-  const [selectedSizes, setSelectedSizes] = useState<{ [key: number]: Size }>({})
+  const [selectedSizes, setSelectedSizes] = useState<{ [key: string]: Size }>({})
   const { addItem, setIsOpen, getTotalItems } = useCartStore()
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore()
 
@@ -57,7 +57,7 @@ export default function CollectionPage() {
     }
   }
 
-  const handleSizeSelect = (productId: number, size: Size) => {
+  const handleSizeSelect = (productId: string | number, size: Size) => {
     setSelectedSizes(prev => ({
       ...prev,
       [productId]: size
@@ -100,7 +100,7 @@ export default function CollectionPage() {
       <SimpleNavbar />
       
       <main className="container mx-auto px-4 py-24">
-        <div className="flex items-center text-sm text-gray-500 mb-8">
+        <div className="flex items-center text-sm text-gray-500 mt-4 sm:mt-2 mb-8">
           <Link href="/" className="hover:text-accent">Home</Link>
           <ChevronRight className="h-4 w-4 mx-2" />
           <span className="text-gray-900 dark:text-white">Our Collection</span>

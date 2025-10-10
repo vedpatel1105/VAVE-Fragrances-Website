@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import SimpleNavbar from "@/src/app/components/SimpleNavbar"
+import SimpleInstagramFeed from "@/src/app/components/SimpleInstagramFeed"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -29,7 +30,7 @@ export default function Contact() {
 
     try {
       // Using formsubmit.co for form submission
-      const response = await fetch("https://formsubmit.co/Vavefragrances@gmail.com", {
+      const response = await fetch("https://formsubmit.co/Info@vavefragrances.com", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -162,7 +163,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <h3 className="font-medium">Email</h3>
-                    <p className="text-gray-600 dark:text-gray-300">Vavefragrances@gmail.com</p>
+                    <p className="text-gray-600 dark:text-gray-300">Info@vavefragrances.com</p>
                   </div>
                 </div>
                 <div className="flex items-start">
@@ -220,6 +221,11 @@ export default function Contact() {
               </div>
             </Card>
           </div>
+        </div>
+
+        {/* Instagram Feed Section */}
+        <div className="mt-24">
+          <SimpleInstagramFeed />
         </div>
       </div>
     </>

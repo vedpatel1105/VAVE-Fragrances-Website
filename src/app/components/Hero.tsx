@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
+import { Layers, Search, ArrowRight, BookOpen } from "lucide-react"
 
 export default function Hero() {
   return (
@@ -35,12 +35,46 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.8 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center items-center"
         >
-          <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 transition-colors">
+          {/* Quick Feature Previews */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-4 sm:mt-0">
             <Link href="/collection">
-              Explore Collection
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-white hover:bg-white/20 transition-all duration-300 cursor-pointer"
+              >
+                <BookOpen className="h-4 w-4" />
+                <span className="text-sm font-medium">Explore Collection</span>
+                <ArrowRight className="h-3 w-3" />
+              </motion.div>
             </Link>
-          </Button>
+
+            <Link href="/scent-finder">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-white hover:bg-white/20 transition-all duration-300 cursor-pointer"
+              >
+                <Search className="h-4 w-4" />
+                <span className="text-sm font-medium">Find Your Scent</span>
+                <ArrowRight className="h-3 w-3" />
+              </motion.div>
+            </Link>
+
+            <Link href="/layering">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-white hover:bg-white/20 transition-all duration-300 cursor-pointer"
+              >
+                <Layers className="h-4 w-4" />
+                <span className="text-sm font-medium">Try Layering</span>
+                <ArrowRight className="h-3 w-3" />
+              </motion.div>
+            </Link>
+          </div>
         </motion.div>
       </motion.div>
     </section>

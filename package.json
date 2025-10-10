@@ -1,5 +1,5 @@
 {
-  "name": "my-v0-project",
+  "name": "vavefragrances",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -62,6 +62,7 @@
     "react-dom": "^19",
     "react-hook-form": "^7.54.1",
     "react-resizable-panels": "^2.1.7",
+    "react-social-media-embed": "^2.5.18",
     "recharts": "latest",
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.5.5",

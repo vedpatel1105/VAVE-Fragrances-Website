@@ -111,7 +111,7 @@ export default function TermsPage() {
           <h2 className="text-2xl font-semibold mb-3">10. Contact Information</h2>
           <p className="mb-4">For questions about these Terms of Service, please contact us at:</p>
           <ul className="list-none space-y-1">
-            <li>Email: support@vavefragrances.com</li>
+            <li>Email: info@vavefragrances.com</li>
             <li>Phone: +91 93287 01508</li>
             <li></li>
           </ul>

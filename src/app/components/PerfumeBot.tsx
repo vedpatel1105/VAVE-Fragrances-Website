@@ -218,7 +218,7 @@ const generalResponses = {
       </a>
       <br />
       ✉️ Email:{" "}
-      <a href="mailto:Vavefragrances@gmail.com" className="text-blue-400 underline">
+      <a href="mailto:Info@vavefragrances.com" className="text-blue-400 underline">
         contact@Vave.com
       </a>
     </>

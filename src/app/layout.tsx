@@ -7,13 +7,15 @@ import { UserProvider } from "@/src/contexts/UserContext"
 import { AuthProvider } from "@/src/contexts/AuthProvider"
 import { Toaster } from "@/components/ui/toaster"
 import Script from "next/script"
+import { defaultMetadata } from "@/src/lib/metadata"
 
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
 const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat" })
 
 export const metadata: Metadata = {
-  title: "VAVE - Premium Fragrances",
-  description: "Discover our collection of luxurious and captivating perfumes.",
+  ...defaultMetadata,
+  title: "Home | VAVE - Premium Fragrances",
+  description: "Discover our curated selection of luxurious and captivating perfumes. Explore bestsellers, new arrivals, and unique layering combinations.",
 }
 
 export default function RootLayout({

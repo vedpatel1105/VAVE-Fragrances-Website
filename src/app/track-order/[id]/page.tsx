@@ -491,17 +491,6 @@ export default function TrackOrderPage() {
                   </div>
                 </div>
               </div>
-
-              <div>
-                <h3 className="text-lg font-bold mb-4">Current Location</h3>
-                <div className="h-24 bg-gray-50 dark:bg-gray-700/30 rounded-lg flex items-center justify-center text-sm text-gray-600 dark:text-gray-300">
-                  {currentEvent ? (
-                    <span>{currentEvent.location}</span>
-                  ) : (
-                    <span>N/A</span>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
 
@@ -582,7 +571,9 @@ export default function TrackOrderPage() {
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   If you have any questions about your order, please contact our customer support.
                 </p>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full"
+                  onClick={() => router.push("/contact")}
+                >
                   Contact Support
                 </Button>
               </div>

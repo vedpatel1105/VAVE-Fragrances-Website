@@ -365,7 +365,7 @@ export namespace ProductInfo {
             isNew: false,
             isBestseller: false,
             isLimited: true,
-            discount: 10,
+            discount: 0,
             ingredients: [
                 "Ethanol",
                 "Parfum (Fragrance)",

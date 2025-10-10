@@ -39,7 +39,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import Cart from "@/src/app/components/Cart"
 import { ProductInfo } from "@/src/data/product-info"
 import { useWishlistStore } from "@/src/store/wishlist"
-import { Button } from "@/components/ui/button"
 import { useCartStore } from "@/src/lib/cartStore"
 
 export default function ProductDetailPage() {
@@ -254,7 +253,7 @@ export default function ProductDetailPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="flex items-center text-sm text-gray-400 mb-6"
+          className="flex items-center text-sm text-gray-400  mt-8 sm:mt-2  mb-6"
         >
           <Link href="/" className="hover:text-white transition-colors">
             Home
@@ -414,8 +413,8 @@ export default function ProductDetailPage() {
                   <motion.button
                     key={`${selectedSize}-thumb-${index}`}
                     className={`relative aspect-square rounded-lg overflow-hidden transition-all duration-300 ${currentImage === index
-                        ? "ring-2 ring-white/80 scale-105 z-10"
-                        : "ring-1 ring-white/20 hover:ring-white/40"
+                      ? "ring-2 ring-white/80 scale-105 z-10"
+                      : "ring-1 ring-white/20 hover:ring-white/40"
                       }`}
                     onClick={() => setCurrentImage(index)}
                     whileHover={{ scale: 1.02 }}
@@ -515,8 +514,8 @@ export default function ProductDetailPage() {
                         setCurrentImage(0)
                       }}
                       className={`flex-1 py-3 rounded-xl border transition-all duration-300 text-base font-bold ${selectedSize === option.size
-                          ? "border-white bg-white/10 text-white"
-                          : "border-gray-600 text-gray-300 hover:border-gray-400"
+                        ? "border-white bg-white/10 text-white"
+                        : "border-gray-600 text-gray-300 hover:border-gray-400"
                         }`}
                       style={{ minWidth: 100 }}
                     >

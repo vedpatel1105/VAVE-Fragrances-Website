@@ -134,7 +134,7 @@ export default function PrivacyPage() {
           <h2 className="text-2xl font-semibold mb-3">10. Contact Us</h2>
           <p className="mb-2">For privacy-related inquiries, please contact us at:</p>
           <ul className="list-none space-y-1 mb-4">
-            <li>Email: support@vavefragrances.com</li>
+            <li>Email: info@vavefragrances.com</li>
             <li>Phone: +91 93287 01508</li>
             <li></li>
           </ul>
