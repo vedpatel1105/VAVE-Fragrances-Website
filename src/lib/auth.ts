@@ -3,19 +3,25 @@ import { persist } from "zustand/middleware";
 import { supabase } from "./supabaseClient";
 
 interface User {
+    user_metadata: any;
     id: string;
     email: string;
-    full_name: string;
+    full_name?: string;
+    phone?: string;
+    role?: string;
 }
 
-interface AuthState {
+export interface AuthState {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     setUser: (user: User | null) => void;
-    login: (email: string, password: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
+    loginWithGoogle: (redirectPath: string) => Promise<{ success: boolean; error?: string }>;
+    register: (email: string, password: string, full_name: string, phone: string) => Promise<{ success: boolean; user?: User; error?: string }>;
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
+    updateUserMetadata: (metadata: Partial<{ full_name: string; phone: string; role: string }>) => Promise<{ success: boolean; error?: string }>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -25,105 +31,234 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             isLoading: true,
             setUser: (user) => set({ user, isAuthenticated: !!user }),
+            
             login: async (email, password) => {
                 try {
-                    const { data, error } =
-                        await supabase.auth.signInWithPassword({
-                            email,
-                            password,
-                        });
-                    if (error) throw error;
-                    if (data.user) {
-                        const { data: profile } = await supabase
-                            .from("profiles")
-                            .select("*")
-                            .eq("id", data.user.id)
-                            .single();
-                        set({
-                            user: {
-                                id: data.user.id,
-                                email: data.user.email!,
-                                full_name: profile?.full_name || "",
+                    set({ isLoading: true });
+                    
+                    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+                        email,
+                        password,
+                    });
+                    
+                    if (authError) throw authError;
+                    
+                    if (!authData.user) {
+                        throw new Error("Login failed - no user data received");
+                    }
+
+                    const newUser: User = {
+                        id: authData.user.id,
+                        email: authData.user.email!,
+                        full_name: authData.user.user_metadata?.full_name || "",
+                        role: authData.user.user_metadata?.role,
+                        phone: authData.user.user_metadata?.phone,
+                        user_metadata: authData.user.user_metadata
+                    };
+
+                    set({
+                        user: newUser,
+                        isAuthenticated: true,
+                        isLoading: false,
+                    });
+
+                    return { success: true, user: newUser };
+                } catch (error: any) {
+                    console.error("Login error:", error);
+                    set({
+                        user: null,
+                        isAuthenticated: false,
+                        isLoading: false,
+                    });
+                    return { 
+                        success: false, 
+                        error: error.message || "An error occurred during login" 
+                    };
+                }
+            },
+            
+            loginWithGoogle: async (redirectPath: string = '') => {
+                try {
+                    set({ isLoading: true });
+                    const { error } = await supabase.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: {
+                            redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`,
+                            queryParams: {
+                                access_type: 'offline',
+                                prompt: 'consent',
                             },
+                        },
+                    });
+
+                    if (error) throw error;
+                    return { success: true };
+                } catch (error: any) {
+                    console.error("Google login error:", error);
+                    set({ isLoading: false });
+                    return { 
+                        success: false, 
+                        error: error.message || "Failed to login with Google" 
+                    };
+                }
+            },
+
+            register: async (email, password, full_name, phone) => {
+                try {
+                    set({ isLoading: true });
+                    
+                    const { data: authData, error: authError } = await supabase.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            data: {
+                                full_name,
+                                phone
+                            },
+                            emailRedirectTo: `${window.location.origin}/auth/callback?redirect=/profile`,
+                        },
+                    });
+
+                    if (authError) throw authError;
+
+                    if (authData.user) {
+                        const newUser: User = {
+                            id: authData.user.id,
+                            email: authData.user.email!,
+                            full_name,
+                            role: authData.user.user_metadata?.role,
+                            phone: authData.user.user_metadata?.phone,
+                            user_metadata: authData.user.user_metadata
+                        };
+
+                        set({
+                            user: newUser,
                             isAuthenticated: true,
                             isLoading: false,
                         });
+
+                        return { success: true, user: newUser };
+                    } else {
+                        throw new Error("Registration failed - no user data received");
                     }
-                } catch (error) {
-                    console.error("Login error:", error);
-                    throw error;
-                } finally {
-                    set({ isLoading: false });
+                } catch (error: any) {
+                    console.error("Registration error:", error);
+                    set({
+                        user: null,
+                        isAuthenticated: false,
+                        isLoading: false,
+                    });
+                    return {
+                        success: false,
+                        error: error.message || "An error occurred during registration"
+                    };
                 }
             },
+
+            updateUserMetadata: async (metadata) => {
+                try {
+                    set({ isLoading: true });
+                    
+                    const { data: { user }, error } = await supabase.auth.updateUser({
+                        data: metadata
+                    });
+
+                    if (error) throw error;
+
+                    if (user) {
+                        set((state) => ({
+                            user: {
+                                ...state.user!,
+                                ...metadata,
+                            },
+                            isLoading: false,
+                        }));
+                        return { success: true };
+                    } else {
+                        throw new Error("Failed to update user metadata");
+                    }
+                } catch (error: any) {
+                    console.error("Update metadata error:", error);
+                    set({ isLoading: false });
+                    return {
+                        success: false,
+                        error: error.message || "Failed to update user metadata"
+                    };
+                }
+            },
+
             logout: async () => {
                 try {
                     const { error } = await supabase.auth.signOut();
-                    // Ignore session_not_found error (406)
-                    if (error && (error as any).status !== 403) throw error;
-                    
+                    if (error) throw error;
                 } catch (error: any) {
-                    // Always clear state on logout, even if error
-                    set({
-                        user: null,
-                        isAuthenticated: false,
-                        isLoading: false,
-                    });
-                    if (!error || error.status !== 403) {
-                        console.error("Logout error:", error);
-                        throw error;
-                    }
+                    console.error("Logout error:", error);
                 } finally {
-                    set({ isLoading: false });
                     set({
                         user: null,
                         isAuthenticated: false,
                         isLoading: false,
                     });
-                    window.location.href = "/";
                 }
             },
-            checkAuth: async () => {
-                try {
-                    const {
-                        data: { session },
-                    } = await supabase.auth.getSession();
-                    if (session?.user) {
-                        const { data: profile } = await supabase
-                            .from("profiles")
-                            .select("*")
-                            .eq("id", session.user.id)
-                            .single();
-                        set({
-                            user: {
-                                id: session.user.id,
-                                email: session.user.email!,
-                                full_name: profile?.full_name || "",
-                            },
-                            isAuthenticated: true,
-                            isLoading: false,
-                        });
-                    } else {
-                        set({
-                            user: null,
-                            isAuthenticated: false,
-                            isLoading: false,
-                        });
+
+            checkAuth: (() => {
+                let lastCheck = 0;
+                let checkPromise: Promise<void> | null = null;
+                const minInterval = 1000; // Minimum 1 second between checks
+                
+                return async () => {
+                    const now = Date.now();
+                    if (now - lastCheck < minInterval && checkPromise) {
+                        await checkPromise; // Await existing promise if called too soon
+                        return;
                     }
-                } catch (error) {
-                    console.error("Auth check error:", error);
-                    set({
-                        user: null,
-                        isAuthenticated: false,
-                        isLoading: false,
-                    });
-                } finally {
-                    set({ isLoading: false });
-                }
-            },
+                    lastCheck = now;
+                    
+                    checkPromise = (async () => {
+                        try {
+                            const { data: { session } } = await supabase.auth.getSession();
+                            
+                            if (session?.user) {
+                                set({
+                                    user: {
+                                        id: session.user.id,
+                                        email: session.user.email!,
+                                        full_name: session.user.user_metadata?.full_name || "",
+                                        role: session.user.user_metadata?.role,
+                                        phone: session.user.user_metadata?.phone,
+                                        user_metadata: session.user.user_metadata
+                                    },
+                                    isAuthenticated: true,
+                                    isLoading: false,
+                                });
+                            } else {
+                                set({
+                                    user: null,
+                                    isAuthenticated: false,
+                                    isLoading: false,
+                                });
+                            }
+                        } catch (error) {
+                            console.error("Auth check error:", error);
+                            set({
+                                user: null,
+                                isAuthenticated: false,
+                                isLoading: false,
+                            });
+                        }
+                    })();
+                    
+                    await checkPromise;
+                };
+            })(),
         }),
         {
             name: "auth-storage",
+            partialize: (state) => ({
+                user: state.user,
+                isAuthenticated: state.isAuthenticated,
+            }),
         }
     )
 );

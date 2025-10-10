@@ -317,7 +317,7 @@ export default function Profile() {
                     </a>
                   </Button>
                   <Button variant="ghost" className="w-full justify-start" asChild>
-                    <a href="#orders">
+                    <a href="/my-orders">
                       <Package className="h-4 w-4 mr-2" />
                       Orders
                     </a>
@@ -399,7 +399,7 @@ export default function Profile() {
             <Tabs defaultValue="profile">
               <TabsList className="grid grid-cols-4 mb-8">
                 <TabsTrigger value="profile">Profile</TabsTrigger>
-                <TabsTrigger value="orders">Orders</TabsTrigger>
+                {/* <TabsTrigger value="orders">Orders</TabsTrigger> */}
                 <TabsTrigger value="wishlist">Wishlist</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
               </TabsList>

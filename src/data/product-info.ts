@@ -1,18 +1,20 @@
 "use client";
 
-export namespace ProductInfo {
-    export const baseUrl =
-        "https://tuqdytehmpzhlbxfvylv.supabase.co/storage/v1/object/public/vave-assets";
+import { productService } from "@/src/lib/productService";
 
-    export const allProductItems: Product[] = [
+export namespace ProductInfo {
+
+    export const baseUrl = "https://tuqdytehmpzhlbxfvylv.supabase.co/storage/v1/object/public/vave-assets";
+
+    const staticProducts: Product[] = [
         {
             id: 8,
             name: "Havoc",
             slug: "havoc",
             category: "Fresh",
             tagline: "Woody • Aromatic • Masculine",
-            price: 400, // Fixed price
-            priceXL: 500, // Fixed price
+            price: 399, // Fixed price
+            priceXL: 499, // Fixed price
             images: {
                 "30": [
                     `${baseUrl}/havoc/30/bottle.webp`,
@@ -51,8 +53,8 @@ export namespace ProductInfo {
                 "Glycerin",
             ],
             sizeOptions: [
-                { size: "30", price: 400 }, // Fixed price
-                { size: "50", price: 500 }, // Fixed price
+                { size: "30", price: 399 }, // Fixed price
+                { size: "50", price: 499 }, // Fixed price
             ],
             specifications: {
                 fragrance_family: "Woody Aromatic",
@@ -90,8 +92,8 @@ export namespace ProductInfo {
             slug: "lavior",
             category: "Oriental",
             tagline: "Herbal • Smoky • Unique",
-            price: 400,
-            priceXL: 500,
+            price: 399,
+            priceXL: 499,
             images: {
                 "30": [
                     `${baseUrl}/lavior/30/bottle.jpg`,
@@ -135,8 +137,8 @@ export namespace ProductInfo {
                 "Eugenol",
             ],
             sizeOptions: [
-                { size: "30", price: 400 },
-                { size: "50", price: 500 },
+                { size: "30", price: 399 },
+                { size: "50", price: 499 },
             ],
             specifications: {
                 fragrance_family: "Woody Aromatic",
@@ -174,8 +176,8 @@ export namespace ProductInfo {
             slug: "duskfall",
             category: "Woody",
             tagline: "Citrus • Amber • Sophisticated",
-            price: 400,
-            priceXL: 500,
+            price: 399,
+            priceXL: 499,
             images: {
                 "30": [
                     `${baseUrl}/duskfall/30/bottle.jpg`,
@@ -214,8 +216,8 @@ export namespace ProductInfo {
                 "Glycerin",
             ],
             sizeOptions: [
-                { size: "30", price: 400 },
-                { size: "50", price: 500 },
+                { size: "30", price: 399 },
+                { size: "50", price: 499 },
             ],
             specifications: {
                 fragrance_family: "Citrus Amber",
@@ -253,8 +255,8 @@ export namespace ProductInfo {
             slug: "euphoria",
             category: "Floral",
             tagline: "Floral • Romantic • Feminine",
-            price: 400,
-            priceXL: 500,
+            price: 399,
+            priceXL: 499,
             images: {
                 "30": [
                     `${baseUrl}/euphoria/30/bottle.webp`,
@@ -293,8 +295,8 @@ export namespace ProductInfo {
                 "Glycerin",
             ],
             sizeOptions: [
-                { size: "30", price: 400 },
-                { size: "50", price: 500 },
+                { size: "30", price: 399 },
+                { size: "50", price: 499 },
             ],
             specifications: {
                 fragrance_family: "Floral Fruity",
@@ -332,8 +334,8 @@ export namespace ProductInfo {
             slug: "oceane",
             category: "Aquatic",
             tagline: "Fresh • Aquatic • Sporty",
-            price: 400,
-            priceXL: 500,
+            price: 399,
+            priceXL: 499,
             images: {
                 "30": [
                     `${baseUrl}/oceane/30/bottle.jpg`,
@@ -363,7 +365,7 @@ export namespace ProductInfo {
             isNew: false,
             isBestseller: false,
             isLimited: true,
-            discount: 10,
+            discount: 0,
             ingredients: [
                 "Ethanol",
                 "Parfum (Fragrance)",
@@ -372,8 +374,8 @@ export namespace ProductInfo {
                 "Glycerin",
             ],
             sizeOptions: [
-                { size: "30", price: 400 },
-                { size: "50", price: 500 },
+                { size: "30", price: 399 },
+                { size: "50", price: 499 },
             ],
             specifications: {
                 fragrance_family: "Fresh Aquatic",
@@ -412,8 +414,8 @@ export namespace ProductInfo {
             slug: "velora",
             category: "Woody",
             tagline: "Gourmand • Warm • Seductive",
-            price: 400,
-            priceXL: 500,
+            price: 399,
+            priceXL: 499,
             images: {
                 "30": [
                     `${baseUrl}/velora/30/bottle.jpg`,
@@ -452,8 +454,8 @@ export namespace ProductInfo {
                 "Glycerin",
             ],
             sizeOptions: [
-                { size: "30", price: 400 },
-                { size: "50", price: 500 },
+                { size: "30", price: 399 },
+                { size: "50", price: 499 },
             ],
             specifications: {
                 fragrance_family: "Gourmand",
@@ -491,8 +493,8 @@ export namespace ProductInfo {
             slug: "obsession",
             category: "Oriental",
             tagline: "Spicy • Intense • Addictive",
-            price: 400,
-            priceXL: 500,
+            price: 399,
+            priceXL: 499,
             images: {
                 "30": [
                     `${baseUrl}/obsession/30/bottle.webp`,
@@ -531,8 +533,8 @@ export namespace ProductInfo {
                 "Glycerin",
             ],
             sizeOptions: [
-                { size: "30", price: 400 },
-                { size: "50", price: 500 },
+                { size: "30", price: 399 },
+                { size: "50", price: 499 },
             ],
             specifications: {
                 fragrance_family: "Spicy Oriental",
@@ -571,8 +573,8 @@ export namespace ProductInfo {
             slug: "mehfil",
             category: "Spicy",
             tagline: "Amber • Sweet • Opulent",
-            price: 400,
-            priceXL: 500,
+            price: 399,
+            priceXL: 499,
             images: {
                 "30": [
                     `${baseUrl}/mehfil/30/bottle.jpg`,
@@ -611,8 +613,8 @@ export namespace ProductInfo {
                 "Glycerin",
             ],
             sizeOptions: [
-                { size: "30", price: 400 },
-                { size: "50", price: 500 },
+                { size: "30", price: 399 },
+                { size: "50", price: 499 },
             ],
             specifications: {
                 fragrance_family: "Amber",
@@ -648,33 +650,138 @@ export namespace ProductInfo {
         },
     ];
 
-    export const getProductById = (id: number) => {
-        return allProductItems.find((product) => product.id === id);
+    // Product cache
+    let _productCache: Product[] | null = null;
+
+    // Load products from sessionStorage or Supabase
+    export async function loadProducts(): Promise<Product[]> {
+        if (typeof window !== "undefined") {
+            const cached = window.sessionStorage.getItem("allProductItems");
+            if (cached) {
+                try {
+                    _productCache = JSON.parse(cached);
+                    return _productCache || [];
+                } catch { }
+            }
+        }
+        const products = await productService.getAllProducts();
+        // take id and price related info fro db or priserve Product static info strcture  map the info 
+        // needed to merge static info with db info check through name 
+        _productCache = products.map(dbProd => {
+            const staticProd = staticProducts.find(sp => sp.slug === dbProd.slug);
+            return {
+                ...staticProd,
+                price: dbProd.price_30ml || staticProd?.price || 400,
+                priceXL: dbProd.price_50ml || staticProd?.priceXL || 500,
+                id: dbProd.id,
+            } as Product;
+        });
+        if (typeof window !== "undefined") {
+            window.sessionStorage.setItem("allProductItems", JSON.stringify(_productCache));
+        }
+
+        return _productCache || staticProducts;
+    }
+
+    // Synchronous getter for use in components
+    export function getAllProductItems(): Product[] {
+        if (_productCache) return _productCache;
+        if (typeof window !== "undefined") {
+            const cached = window.sessionStorage.getItem("allProductItems");
+            if (cached) {
+                try {
+                    _productCache = JSON.parse(cached);
+                    return _productCache || staticProducts;
+                } catch { }
+            }
+        }
+        return staticProducts;
+    }
+
+    // For legacy compatibility
+    export let allProductItems: Product[] = [];
+
+    // On app load, fetch and cache products (only once per tab)
+    if (typeof window !== "undefined") {
+        (async () => {
+            if (!window.sessionStorage.getItem("allProductItems")) {
+                try {
+                    const products = await loadProducts();
+                    window.sessionStorage.setItem("allProductItems", JSON.stringify(products));
+                    allProductItems = products;
+                    _productCache = products;
+                } catch (err) {
+                    console.error("Failed to load products:", err);
+                }
+            } else {
+                try {
+                    allProductItems = JSON.parse(window.sessionStorage.getItem("allProductItems")!);
+                    _productCache = allProductItems;
+                } catch { }
+            }
+        })();
+    }
+
+    export const getProductById = (id: string | number) => {
+        const items = getAllProductItems();
+        return items.find((product) => product.id === id);
     };
 
-    export const getProductSlugById = (id: number) => {
-        const product = allProductItems.find((product) => product.id === id);
+    export const getProductSlugById = (id: string | number) => {
+        const items = getAllProductItems();
+        const product = items.find((product) => product.id === id);
         return product ? product.slug : "xxx";
     };
 
     export const getProductsBySlug = (slug: string) => {
-        return allProductItems.filter((product) => product.slug === slug);
+        const items = getAllProductItems();
+        return items.filter((product) => product.slug === slug);
     };
 
     export const getProductsByName = (name: string) => {
-        return allProductItems.filter((product) =>
+        const items = getAllProductItems();
+        return items.filter((product) =>
             product.name.toLowerCase().includes(name.toLowerCase())
         );
     };
 
     export const getProductByName = (name: string) => {
-        return allProductItems.find(
+        const items = getAllProductItems();
+        return items.find(
             (product) => product.name.toLowerCase() === name.toLowerCase()
         );
     };
 
+    // Popular combinations (keep static)
+    export const popularCombinations = [
+        {
+            fragrance1: "Oceane",
+            fragrance2: "Euphoria",
+            name: "Ocean Bloom",
+            popularity: "95%",
+        },
+        {
+            fragrance1: "Duskfall",
+            fragrance2: "Obsession",
+            name: "Dark Mystery",
+            popularity: "92%",
+        },
+        {
+            fragrance1: "Lavior",
+            fragrance2: "Mehfil",
+            name: "Royal Spice",
+            popularity: "88%",
+        },
+        {
+            fragrance1: "Havoc",
+            fragrance2: "Velora",
+            name: "Fresh Woods",
+            popularity: "85%",
+        },
+    ];
+
     export interface Product {
-        id: number;
+        id: number | string;
         name: string;
         slug: string;
         category: string;
@@ -714,32 +821,4 @@ export namespace ProductInfo {
             description: string;
         }[];
     }
-
-    // Popular combinations
-    export const popularCombinations = [
-        {
-            fragrance1: "Oceane",
-            fragrance2: "Euphoria",
-            name: "Ocean Bloom",
-            popularity: "95%",
-        },
-        {
-            fragrance1: "Duskfall",
-            fragrance2: "Obsession",
-            name: "Dark Mystery",
-            popularity: "92%",
-        },
-        {
-            fragrance1: "Lavior",
-            fragrance2: "Mehfil",
-            name: "Royal Spice",
-            popularity: "88%",
-        },
-        {
-            fragrance1: "Havoc",
-            fragrance2: "Velora",
-            name: "Fresh Woods",
-            popularity: "85%",
-        },
-    ];
 }

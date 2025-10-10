@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Package, Truck, CheckCircle, Clock, Search, Filter, ChevronDown, ChevronRight, Eye } from "lucide-react"
+import { Package, Truck, CheckCircle, Clock, Search, Filter, ChevronDown, ChevronRight, Eye, Loader2 } from "lucide-react"
 import Navbar from "@/src/app/components/Navbar"
 import Footer from "@/src/app/components/Footer"
 import { Button } from "@/components/ui/button"
@@ -12,172 +12,106 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { supabase } from "@/src/lib/supabaseClient"
+import { useAuthStore } from "@/src/lib/auth"
+import { useToast } from "@/components/ui/use-toast"
+import Image from "next/image"
+import SimpleNavbar from "../components/SimpleNavbar"
 
-// Mock order data
-const orders = [
-  {
-    id: "OLY12345",
-    date: "2023-06-15",
-    total: 1050,
-    status: "delivered",
-    items: [
-      {
-        id: 1,
-        name: "Havoc",
-        price: 350,
-        quantity: 2,
-        size: "30ml",
-        image: "/img/havoc50.png",
-      },
-      {
-        id: 2,
-        name: "Lavior",
-        price: 350,
-        quantity: 1,
-        size: "30ml",
-        image: "/img/lavior50.png",
-      },
-    ],
-    tracking: {
-      number: "BD123456789",
-      carrier: "BlueDart",
-      events: [
-        { date: "2023-06-15 18:30", status: "Delivered", location: "Mumbai" },
-        { date: "2023-06-15 09:45", status: "Out for Delivery", location: "Mumbai" },
-        { date: "2023-06-14 20:15", status: "Arrived at Destination", location: "Mumbai" },
-        { date: "2023-06-13 14:20", status: "In Transit", location: "Delhi" },
-        { date: "2023-06-12 10:30", status: "Shipped", location: "Delhi" },
-        { date: "2023-06-11 16:45", status: "Order Processed", location: "Delhi" },
-      ],
-    },
-    delivery: {
-      address: "123 Main Street, Andheri West, Mumbai, Maharashtra 400053",
-      recipient: "John Doe",
-      phone: "+91 9876543210",
-    },
-    payment: {
-      method: "Credit Card",
-      last4: "4242",
-      status: "Paid",
-    },
-  },
-  {
-    id: "OLY12346",
-    date: "2023-05-28",
-    total: 550,
-    status: "delivered",
-    items: [
-      {
-        id: 3,
-        name: "Duskfall",
-        price: 550,
-        quantity: 1,
-        size: "50ml",
-        image: "/img/duskfall50.png",
-      },
-    ],
-    tracking: {
-      number: "BD987654321",
-      carrier: "BlueDart",
-      events: [
-        { date: "2023-06-01 17:15", status: "Delivered", location: "Mumbai" },
-        { date: "2023-06-01 08:30", status: "Out for Delivery", location: "Mumbai" },
-        { date: "2023-05-31 19:45", status: "Arrived at Destination", location: "Mumbai" },
-        { date: "2023-05-30 13:20", status: "In Transit", location: "Delhi" },
-        { date: "2023-05-29 09:30", status: "Shipped", location: "Delhi" },
-        { date: "2023-05-28 15:45", status: "Order Processed", location: "Delhi" },
-      ],
-    },
-    delivery: {
-      address: "123 Main Street, Andheri West, Mumbai, Maharashtra 400053",
-      recipient: "John Doe",
-      phone: "+91 9876543210",
-    },
-    payment: {
-      method: "UPI",
-      last4: "johndoe@upi",
-      status: "Paid",
-    },
-  },
-  {
-    id: "OLY12347",
-    date: "2023-07-02",
-    total: 350,
-    status: "in_transit",
-    items: [
-      {
-        id: 4,
-        name: "Euphoria",
-        price: 350,
-        quantity: 1,
-        size: "30ml",
-        image: "/img/euphoria50.png",
-      },
-    ],
-    tracking: {
-      number: "BD567891234",
-      carrier: "BlueDart",
-      events: [
-        { date: "2023-07-04 13:20", status: "In Transit", location: "Delhi" },
-        { date: "2023-07-03 09:30", status: "Shipped", location: "Delhi" },
-        { date: "2023-07-02 15:45", status: "Order Processed", location: "Delhi" },
-      ],
-    },
-    delivery: {
-      address: "123 Main Street, Andheri West, Mumbai, Maharashtra 400053",
-      recipient: "John Doe",
-      phone: "+91 9876543210",
-    },
-    payment: {
-      method: "Credit Card",
-      last4: "4242",
-      status: "Paid",
-    },
-  },
-  {
-    id: "OLY12348",
-    date: "2023-07-05",
-    total: 350,
-    status: "processing",
-    items: [
-      {
-        id: 5,
-        name: "Oceane",
-        price: 350,
-        quantity: 1,
-        size: "30ml",
-        image: "/img/oceane50.png",
-      },
-    ],
-    tracking: {
-      number: null,
-      carrier: null,
-      events: [{ date: "2023-07-05 15:45", status: "Order Processed", location: "Delhi" }],
-    },
-    delivery: {
-      address: "123 Main Street, Andheri West, Mumbai, Maharashtra 400053",
-      recipient: "John Doe",
-      phone: "+91 9876543210",
-    },
-    payment: {
-      method: "UPI",
-      last4: "johndoe@upi",
-      status: "Paid",
-    },
-  },
-]
+interface OrderItem {
+  product_id: string;
+  name: string;
+  quantity: number;
+  price: number;
+  size: string;
+  image: string;
+}
+
+interface Order {
+  id: string;
+  created_at: string;
+  total_amount: number;
+  subtotal_amount?: number;
+  shipping_amount?: number;
+  status: string;
+  items: OrderItem[];
+  shipping_address: string;
+  payment_method: string;
+}
+
+interface TrackingInfo {
+  number: string | null;
+  carrier: string | null;
+  events: Array<{
+    date: string;
+    status: string;
+    location: string;
+  }>;
+}
 
 export default function MyOrdersPage() {
   const router = useRouter()
+  const { user, isAuthenticated, isLoading } = useAuthStore()
+  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState("")
   const [activeTab, setActiveTab] = useState("all")
   const [sortBy, setSortBy] = useState("newest")
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Protected route - redirect if not authenticated
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || !user)) {
+      const currentPath = window.location.pathname;
+      router.push(`/auth/login?redirect=${encodeURIComponent(currentPath)}`);
+      return;
+    }
+  }, [isAuthenticated, isLoading, user, router]);
+
+  // Fetch user orders
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!user?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        setOrders(data || []);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load orders",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [user, toast]);
 
   // Filter orders based on active tab
   const filteredOrders = orders.filter((order) => {
     if (activeTab === "all") return true
-    return order.status === activeTab
+
+    // Map database statuses to UI statuses
+    const statusMap: { [key: string]: string[] } = {
+      'processing': ['pending', 'paid'],
+      'in_transit': ['shipped'],
+      'delivered': ['delivered'],
+      'cancelled': ['cancelled', 'failed']
+    };
+
+    return statusMap[activeTab]?.includes(order.status) || order.status === activeTab
   })
 
   // Filter orders based on search query
@@ -185,22 +119,23 @@ export default function MyOrdersPage() {
     if (!searchQuery) return true
 
     const query = searchQuery.toLowerCase()
-    return order.id.toLowerCase().includes(query) || order.items.some((item) => item.name.toLowerCase().includes(query))
+    return order.id.toLowerCase().includes(query) ||
+      order.items.some((item) => item.name.toLowerCase().includes(query))
   })
 
   // Sort orders
   const sortedOrders = [...searchedOrders].sort((a, b) => {
-    const dateA = new Date(a.date).getTime()
-    const dateB = new Date(b.date).getTime()
+    const dateA = new Date(a.created_at).getTime()
+    const dateB = new Date(b.created_at).getTime()
 
     if (sortBy === "newest") {
       return dateB - dateA
     } else if (sortBy === "oldest") {
       return dateA - dateB
     } else if (sortBy === "price-high") {
-      return b.total - a.total
+      return b.total_amount - a.total_amount
     } else if (sortBy === "price-low") {
-      return a.total - b.total
+      return a.total_amount - b.total_amount
     }
 
     return 0
@@ -211,14 +146,17 @@ export default function MyOrdersPage() {
     switch (status) {
       case "delivered":
         return <Badge className="bg-green-500">Delivered</Badge>
-      case "in_transit":
-        return <Badge className="bg-blue-500">In Transit</Badge>
-      case "processing":
-        return <Badge className="bg-amber-500">Processing</Badge>
+      case "shipped":
+        return <Badge className="bg-blue-500">Shipped</Badge>
+      case "paid":
+        return <Badge className="bg-amber-500">Paid</Badge>
+      case "pending":
+        return <Badge className="bg-yellow-500">Pending</Badge>
+      case "failed":
       case "cancelled":
         return <Badge className="bg-red-500">Cancelled</Badge>
       default:
-        return <Badge>{status}</Badge>
+        return <Badge className="bg-gray-500">{status}</Badge>
     }
   }
 
@@ -227,10 +165,12 @@ export default function MyOrdersPage() {
     switch (status) {
       case "delivered":
         return <CheckCircle className="h-5 w-5 text-green-500" />
-      case "in_transit":
+      case "shipped":
         return <Truck className="h-5 w-5 text-blue-500" />
-      case "processing":
+      case "paid":
+      case "pending":
         return <Package className="h-5 w-5 text-amber-500" />
+      case "failed":
       case "cancelled":
         return <Clock className="h-5 w-5 text-red-500" />
       default:
@@ -253,9 +193,51 @@ export default function MyOrdersPage() {
     return orders.find((order) => order.id === selectedOrder)
   }
 
+  // Mock tracking data for now (in a real app, this would come from a shipping service)
+  const getTrackingInfo = (order: Order): TrackingInfo => {
+    // For now, return mock tracking data
+    // In production, this would fetch from your shipping provider API
+    return {
+      number: order.status === 'shipped' ? `BD${order.id.slice(-9)}` : null,
+      carrier: order.status === 'shipped' ? 'BlueDart' : null,
+      events: [
+        {
+          date: new Date(order.created_at).toISOString(),
+          status: "Order Placed",
+          location: "Delhi"
+        },
+        ...(order.status === 'shipped' ? [
+          {
+            date: new Date(new Date(order.created_at).getTime() + 24 * 60 * 60 * 1000).toISOString(),
+            status: "Shipped",
+            location: "Delhi"
+          }
+        ] : []),
+        ...(order.status === 'delivered' ? [
+          {
+            date: new Date(new Date(order.created_at).getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+            status: "Delivered",
+            location: "Mumbai"
+          }
+        ] : [])
+      ]
+    };
+  };
+
+  if (isLoading || loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <h2 className="text-xl font-medium">Loading orders...</h2>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      <Navbar setIsCartOpen={() => {}} />
+      <SimpleNavbar />
       <main className="container mx-auto py-16 px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -323,18 +305,17 @@ export default function MyOrdersPage() {
                       key={order.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden ${
-                        selectedOrder === order.id ? "border-2 border-accent" : ""
-                      }`}
+                      className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden ${selectedOrder === order.id ? "border-2 border-accent" : ""
+                        }`}
                     >
                       <div className="p-6">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
                           <div className="flex items-center mb-2 md:mb-0">
                             {getStatusIcon(order.status)}
                             <div className="ml-3">
-                              <h3 className="font-bold">Order #{order.id}</h3>
+                              <h3 className="font-bold">Order #{order.id.slice(-8).toUpperCase()}</h3>
                               <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Placed on {new Date(order.date).toLocaleDateString()}
+                                Placed on {new Date(order.created_at).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
@@ -342,7 +323,7 @@ export default function MyOrdersPage() {
                           <div className="flex items-center">
                             {getStatusBadge(order.status)}
                             <span className="mx-4 text-gray-300 dark:text-gray-600">|</span>
-                            <span className="font-bold">₹{order.total}</span>
+                            <span className="font-bold">₹{order.total_amount}</span>
                           </div>
                         </div>
 
@@ -350,16 +331,18 @@ export default function MyOrdersPage() {
                           {order.items.slice(0, 4).map((item, index) => (
                             <div key={index} className="flex items-center">
                               <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-md overflow-hidden flex-shrink-0">
-                                <img
+                                <Image
                                   src={item.image || "/placeholder.svg"}
                                   alt={item.name}
+                                  width={64}
+                                  height={64}
                                   className="w-full h-full object-cover"
                                 />
                               </div>
                               <div className="ml-3">
                                 <p className="font-medium">{item.name}</p>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                                  {item.size} × {item.quantity}
+                                  {item.size}ml × {item.quantity}
                                 </p>
                               </div>
                             </div>
@@ -398,23 +381,27 @@ export default function MyOrdersPage() {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                               <div>
                                 <h4 className="font-bold mb-2">Shipping Address</h4>
-                                <p className="text-gray-700 dark:text-gray-300">{order.delivery.recipient}</p>
-                                <p className="text-gray-700 dark:text-gray-300">{order.delivery.address}</p>
-                                <p className="text-gray-700 dark:text-gray-300">{order.delivery.phone}</p>
+                                {(() => {
+                                  const shippingAddress = typeof order.shipping_address === 'string'
+                                    ? JSON.parse(order.shipping_address)
+                                    : order.shipping_address;
+                                  return (
+                                    <>
+                                      <p className="text-gray-700 dark:text-gray-300">{shippingAddress.name}</p>
+                                      <p className="text-gray-700 dark:text-gray-300">{shippingAddress.address}</p>
+                                      <p className="text-gray-700 dark:text-gray-300">
+                                        {shippingAddress.city}, {shippingAddress.state} {shippingAddress.pincode}
+                                      </p>
+                                      <p className="text-gray-700 dark:text-gray-300">{shippingAddress.phone}</p>
+                                    </>
+                                  );
+                                })()}
                               </div>
 
                               <div>
                                 <h4 className="font-bold mb-2">Payment Information</h4>
-                                <p className="text-gray-700 dark:text-gray-300">Method: {order.payment.method}</p>
-                                {order.payment.method === "Credit Card" && (
-                                  <p className="text-gray-700 dark:text-gray-300">
-                                    Card ending in {order.payment.last4}
-                                  </p>
-                                )}
-                                {order.payment.method === "UPI" && (
-                                  <p className="text-gray-700 dark:text-gray-300">UPI ID: {order.payment.last4}</p>
-                                )}
-                                <p className="text-gray-700 dark:text-gray-300">Status: {order.payment.status}</p>
+                                <p className="text-gray-700 dark:text-gray-300">Method: {order.payment_method}</p>
+                                <p className="text-gray-700 dark:text-gray-300">Status: {order.status === 'paid' ? 'Paid' : 'Pending'}</p>
                               </div>
 
                               <div>
@@ -422,15 +409,15 @@ export default function MyOrdersPage() {
                                 <div className="space-y-1">
                                   <div className="flex justify-between">
                                     <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
-                                    <span>₹{order.total - 99}</span>
+                                    <span>₹{typeof order.subtotal_amount === 'number' ? order.subtotal_amount : (order.total_amount - (order.shipping_amount ?? 0))}</span>
                                   </div>
                                   <div className="flex justify-between">
                                     <span className="text-gray-600 dark:text-gray-400">Shipping:</span>
-                                    <span>₹99</span>
+                                    <span>{typeof order.shipping_amount === 'number' ? `₹${order.shipping_amount}` : 'Included'}</span>
                                   </div>
                                   <div className="flex justify-between font-bold">
                                     <span>Total:</span>
-                                    <span>₹{order.total}</span>
+                                    <span>₹{order.total_amount}</span>
                                   </div>
                                 </div>
                               </div>
@@ -439,62 +426,64 @@ export default function MyOrdersPage() {
                             <Separator className="my-6" />
 
                             <h4 className="font-bold mb-4">Tracking Information</h4>
-                            {order.tracking.number ? (
-                              <div>
-                                <div className="flex justify-between items-center mb-4">
-                                  <div>
-                                    <p className="text-gray-600 dark:text-gray-400">Tracking Number:</p>
-                                    <p className="font-medium">{order.tracking.number}</p>
+                            {(() => {
+                              const tracking = getTrackingInfo(order);
+                              return tracking.number ? (
+                                <div>
+                                  <div className="flex justify-between items-center mb-4">
+                                    <div>
+                                      <p className="text-gray-600 dark:text-gray-400">Tracking Number:</p>
+                                      <p className="font-medium">{tracking.number}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-gray-600 dark:text-gray-400">Carrier:</p>
+                                      <p className="font-medium">{tracking.carrier}</p>
+                                    </div>
+                                    <Button variant="outline" onClick={() => trackOrder(order.id)}>
+                                      View Detailed Tracking
+                                    </Button>
                                   </div>
-                                  <div>
-                                    <p className="text-gray-600 dark:text-gray-400">Carrier:</p>
-                                    <p className="font-medium">{order.tracking.carrier}</p>
-                                  </div>
-                                  <Button variant="outline" onClick={() => trackOrder(order.id)}>
-                                    View Detailed Tracking
-                                  </Button>
-                                </div>
 
-                                <div className="relative">
-                                  <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700" />
+                                  <div className="relative">
+                                    <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700" />
 
-                                  <div className="space-y-6">
-                                    {order.tracking.events.slice(0, 3).map((event, index) => (
-                                      <div key={index} className="flex">
-                                        <div
-                                          className={`relative z-10 flex items-center justify-center w-6 h-6 rounded-full ${
-                                            index === 0 ? "bg-accent text-white" : "bg-gray-200 dark:bg-gray-700"
-                                          } mr-4`}
-                                        >
-                                          {index === 0 ? (
-                                            <CheckCircle className="h-4 w-4" />
-                                          ) : (
-                                            <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full" />
-                                          )}
+                                    <div className="space-y-6">
+                                      {tracking.events.slice(0, 3).map((event, index) => (
+                                        <div key={index} className="flex">
+                                          <div
+                                            className={`relative z-10 flex items-center justify-center w-6 h-6 rounded-full ${index === 0 ? "bg-accent text-white" : "bg-gray-200 dark:bg-gray-700"
+                                              } mr-4`}
+                                          >
+                                            {index === 0 ? (
+                                              <CheckCircle className="h-4 w-4" />
+                                            ) : (
+                                              <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full" />
+                                            )}
+                                          </div>
+                                          <div>
+                                            <p className="font-medium">{event.status}</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                              {new Date(event.date).toLocaleString()} • {event.location}
+                                            </p>
+                                          </div>
                                         </div>
-                                        <div>
-                                          <p className="font-medium">{event.status}</p>
-                                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                                            {new Date(event.date).toLocaleString()} • {event.location}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    ))}
+                                      ))}
+                                    </div>
                                   </div>
-                                </div>
 
-                                {order.tracking.events.length > 3 && (
-                                  <Button variant="link" className="mt-4" onClick={() => trackOrder(order.id)}>
-                                    View All {order.tracking.events.length} Updates
-                                    <ChevronRight className="h-4 w-4 ml-1" />
-                                  </Button>
-                                )}
-                              </div>
-                            ) : (
-                              <p className="text-gray-600 dark:text-gray-400">
-                                Tracking information will be available once your order ships.
-                              </p>
-                            )}
+                                  {tracking.events.length > 3 && (
+                                    <Button variant="link" className="mt-4" onClick={() => trackOrder(order.id)}>
+                                      View All {tracking.events.length} Updates
+                                      <ChevronRight className="h-4 w-4 ml-1" />
+                                    </Button>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-gray-600 dark:text-gray-400">
+                                  Tracking information will be available once your order ships.
+                                </p>
+                              );
+                            })()}
                           </div>
                         </motion.div>
                       )}

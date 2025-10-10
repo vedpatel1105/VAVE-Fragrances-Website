@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ProductInfo } from "@/src/data/product-info"
 
+
 interface EnhancedProductCardProps {
   product: ProductInfo.Product
   onAddToCart: (product: ProductInfo.Product, quantity: number) => void
@@ -114,10 +115,9 @@ export default function EnhancedProductCard({
             : "bg-white/80 hover:bg-white text-gray-600 hover:text-red-500"
         }`}
         onClick={handleAddToWishlist}
-        aria-label={inWishlist ? "Remove from wishlist" : "Add to wishlist"}
       >
         <Heart
-          className={`h-5 w-5 transform transition-transform duration-300 ${
+          className={`h-5 w-5 transition-all duration-300 ${
             inWishlist ? "fill-red-500 text-red-500" : ""
           }`}
         />
@@ -221,12 +221,12 @@ export default function EnhancedProductCard({
         </div>
       </div>
 
-      {/* Quick Actions - Only Wishlist */}
+      {/* Quick Actions - Wishlist */}
       <div className="absolute top-4 right-4">
         <Button
-          variant="ghost"
-          size="icon"
-          className="bg-white/90 hover:bg-white text-gray-900 rounded-full shadow-lg"
+          className={`bg-white/90 hover:bg-white text-gray-900 rounded-full shadow-lg ${
+            inWishlist ? "text-red-500" : ""
+          }`}
           onClick={handleAddToWishlist}
         >
           <Heart className={`h-5 w-5 ${inWishlist ? "fill-red-500 text-red-500" : ""}`} />

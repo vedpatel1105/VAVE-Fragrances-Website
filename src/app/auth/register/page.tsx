@@ -21,8 +21,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/src/lib/supabaseClient";
+import { useAuthStore } from "@/src/lib/auth";
 
 export default function RegisterPage() {
+  const { loginWithGoogle, register } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -58,24 +60,17 @@ export default function RegisterPage() {
 
     try {
       // 1. First create auth user
-      const { data: { user }, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            full_name: formData.name,
-            phone: formData.phone,
-          },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
+      const { error: signUpError, user } = await register(
+        formData.email,
+        formData.password,
+        formData.name,
+        formData.phone
+      );
 
       if (signUpError) {
         console.error('Auth signup error:', signUpError);
         throw signUpError;
       }
-
-      // const {data: { user }} = await supabase.auth.getUser();
 
       if (!user) {
         throw new Error('No user returned from signup');
@@ -104,12 +99,7 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
+      const { error } = await loginWithGoogle("/profile");
 
       if (error) throw error;
 
@@ -292,7 +282,7 @@ export default function RegisterPage() {
                 <Image
                   src="/google-logo.svg"
                   alt="Google"
-                  width={20} 
+                  width={20}
                   height={20}
                   className="mr-2"
                 />

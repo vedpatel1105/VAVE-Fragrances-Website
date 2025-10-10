@@ -11,6 +11,9 @@ const products = [
     price: 350,
     image: "/perfume1.jpg",
     description: "A fresh and invigorating scent with notes of citrus and ocean breeze.",
+    notes: "Citrus, Ocean Breeze",
+    sillage: "Moderate",
+    longevity: "6-8 hours",
   },
   {
     id: 2,
@@ -18,6 +21,9 @@ const products = [
     price: 350,
     image: "/perfume2.jpg",
     description: "A luxurious floral fragrance with hints of lavender and vanilla.",
+    notes: "Lavender, Vanilla, Floral",
+    sillage: "Strong",
+    longevity: "8-10 hours",
   },
   {
     id: 3,
@@ -25,6 +31,9 @@ const products = [
     price: 350,
     image: "/perfume3.jpg",
     description: "A mysterious and alluring scent perfect for evening wear.",
+    notes: "Amber, Musk, Spices",
+    sillage: "Heavy",
+    longevity: "10+ hours",
   },
   {
     id: 4,
@@ -32,6 +41,9 @@ const products = [
     price: 350,
     image: "/perfume4.jpg",
     description: "An exhilarating blend of fruity and floral notes that lifts your spirits.",
+    notes: "Fruity, Floral",
+    sillage: "Moderate",
+    longevity: "6-8 hours",
   },
   {
     id: 5,
@@ -39,6 +51,9 @@ const products = [
     price: 350,
     image: "/perfume5.jpg",
     description: "A deep, aquatic fragrance that evokes the mystery of the ocean.",
+    notes: "Aquatic, Marine",
+    sillage: "Soft",
+    longevity: "4-6 hours",
   },
 ]
 
@@ -71,7 +86,7 @@ export default function FeaturedProducts() {
                 <p className="text-sm text-muted-foreground mb-4">{product.description}</p>
                 <div className="space-y-2">
                   <p className="text-sm">
-                    <span className="font-semibold">Notes:</span> {product.notes}
+                    <span className="font-semibold">Notes:</span> {/* Data should come from /data/product-info */}
                   </p>
                   <p className="text-sm">
                     <span className="font-semibold">Sillage:</span> {product.sillage}

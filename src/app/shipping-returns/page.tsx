@@ -8,6 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { useRef } from "react"
+import SimpleNavbar from "../components/SimpleNavbar"
 
 export default function ShippingReturnsPage() {
   const shippingRef = useRef<HTMLDivElement>(null) as React.RefObject<HTMLDivElement>
@@ -19,7 +20,7 @@ export default function ShippingReturnsPage() {
 
   return (
     <>
-      <Navbar setIsCartOpen={() => {}} />
+      <SimpleNavbar />
       <main className="container mx-auto py-16 px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -266,7 +267,7 @@ export default function ShippingReturnsPage() {
           <section id="contact" className="mb-12">
             <h2 className="text-3xl font-bold mb-6">Need Help?</h2>
             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm">
-              <form action="https://formsubmit.co/vavefragrances@gmail.com" method="POST">
+              <form action="https://formsubmit.co/info@vavefragrances.com" method="POST">
                 <input type="hidden" name="_template" value="table" />
                 <input type="hidden" name="_subject" value="New Product Issue Report" />
                 

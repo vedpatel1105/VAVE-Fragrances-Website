@@ -68,6 +68,8 @@ export default function SimpleNavbar() {
     // { href: "/find-store", label: "Find a Store" },
     // { href: "/gallery", label: "Inspiration" },
     { href: "/about", label: "About" },
+    { href: "/business", label: "Business" },
+    { href: "/influencer-collaboration", label: "Collaborate" },
     { href: "/contact", label: "Contact" }
   ]
 

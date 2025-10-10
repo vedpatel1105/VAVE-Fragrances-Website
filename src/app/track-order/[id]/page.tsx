@@ -4,228 +4,202 @@ import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import { motion } from "framer-motion"
-import { Package, Truck, CheckCircle, Clock, MapPin, Calendar, ArrowLeft, Share2 } from "lucide-react"
-import dynamic from "next/dynamic"
+import { Package, Truck, CheckCircle, Clock, MapPin, Calendar, ArrowLeft, Share2, Loader2 } from "lucide-react"
 import Navbar from "@/src/app/components/Navbar"
 import Footer from "@/src/app/components/Footer"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { formatCurrency } from "@/lib/utils"
+import { supabase } from "@/src/lib/supabaseClient"
+import { useAuthStore } from "@/src/lib/auth"
+import { useToast } from "@/components/ui/use-toast"
+import SimpleNavbar from "../../components/SimpleNavbar"
 
-// Dynamically import the Map component to avoid SSR issues with Leaflet
-const MapWithNoSSR = dynamic(() => import("@/src/components/Map"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
-    </div>
-  ),
-})
 
-// Mock order data - in a real app, this would come from an API
-const orders = {
-  OLY12345: {
-    id: "OLY12345",
-    date: "2023-06-15",
-    total: 1050,
-    status: "delivered",
-    items: [
-      {
-        id: 1,
-        name: "Havoc",
-        price: 350,
-        quantity: 2,
-        size: "30ml",
-        image: "/img/havoc50.png",
-      },
-      {
-        id: 2,
-        name: "Lavior",
-        price: 350,
-        quantity: 1,
-        size: "30ml",
-        image: "/img/lavior50.png",
-      },
-    ],
-    tracking: {
-      number: "BD123456789",
-      carrier: "BlueDart",
-      events: [
-        { date: "2023-06-15 18:30", status: "Delivered", location: "Mumbai", coordinates: [19.076, 72.8777] },
-        { date: "2023-06-15 09:45", status: "Out for Delivery", location: "Mumbai", coordinates: [19.076, 72.8777] },
-        {
-          date: "2023-06-14 20:15",
-          status: "Arrived at Destination",
-          location: "Mumbai",
-          coordinates: [19.076, 72.8777],
-        },
-        { date: "2023-06-13 14:20", status: "In Transit", location: "Delhi", coordinates: [28.7041, 77.1025] },
-        { date: "2023-06-12 10:30", status: "Shipped", location: "Delhi", coordinates: [28.7041, 77.1025] },
-        { date: "2023-06-11 16:45", status: "Order Processed", location: "Delhi", coordinates: [28.7041, 77.1025] },
-      ],
-    },
-    delivery: {
-      address: "123 Main Street, Andheri West, Mumbai, Maharashtra 400053",
-      recipient: "John Doe",
-      phone: "+91 9876543210",
-    },
-    payment: {
-      method: "Credit Card",
-      last4: "4242",
-      status: "Paid",
-    },
-    estimatedDelivery: "2023-06-15",
-  },
-  OLY12346: {
-    id: "OLY12346",
-    date: "2023-05-28",
-    total: 550,
-    status: "delivered",
-    items: [
-      {
-        id: 3,
-        name: "Duskfall",
-        price: 550,
-        quantity: 1,
-        size: "50ml",
-        image: "/img/duskfall50.png",
-      },
-    ],
-    tracking: {
-      number: "BD987654321",
-      carrier: "BlueDart",
-      events: [
-        { date: "2023-06-01 17:15", status: "Delivered", location: "Mumbai", coordinates: [19.076, 72.8777] },
-        { date: "2023-06-01 08:30", status: "Out for Delivery", location: "Mumbai", coordinates: [19.076, 72.8777] },
-        {
-          date: "2023-05-31 19:45",
-          status: "Arrived at Destination",
-          location: "Mumbai",
-          coordinates: [19.076, 72.8777],
-        },
-        { date: "2023-05-30 13:20", status: "In Transit", location: "Delhi", coordinates: [28.7041, 77.1025] },
-        { date: "2023-05-29 09:30", status: "Shipped", location: "Delhi", coordinates: [28.7041, 77.1025] },
-        { date: "2023-05-28 15:45", status: "Order Processed", location: "Delhi", coordinates: [28.7041, 77.1025] },
-      ],
-    },
-    delivery: {
-      address: "123 Main Street, Andheri West, Mumbai, Maharashtra 400053",
-      recipient: "John Doe",
-      phone: "+91 9876543210",
-    },
-    payment: {
-      method: "UPI",
-      last4: "johndoe@upi",
-      status: "Paid",
-    },
-    estimatedDelivery: "2023-06-01",
-  },
-  OLY12347: {
-    id: "OLY12347",
-    date: "2023-07-02",
-    total: 350,
-    status: "in_transit",
-    items: [
-      {
-        id: 4,
-        name: "Euphoria",
-        price: 350,
-        quantity: 1,
-        size: "30ml",
-        image: "/img/euphoria50.png",
-      },
-    ],
-    tracking: {
-      number: "BD567891234",
-      carrier: "BlueDart",
-      events: [
-        { date: "2023-07-04 13:20", status: "In Transit", location: "Delhi", coordinates: [28.7041, 77.1025] },
-        { date: "2023-07-03 09:30", status: "Shipped", location: "Delhi", coordinates: [28.7041, 77.1025] },
-        { date: "2023-07-02 15:45", status: "Order Processed", location: "Delhi", coordinates: [28.7041, 77.1025] },
-      ],
-    },
-    delivery: {
-      address: "123 Main Street, Andheri West, Mumbai, Maharashtra 400053",
-      recipient: "John Doe",
-      phone: "+91 9876543210",
-    },
-    payment: {
-      method: "Credit Card",
-      last4: "4242",
-      status: "Paid",
-    },
-    estimatedDelivery: "2023-07-07",
-  },
-  OLY12348: {
-    id: "OLY12348",
-    date: "2023-07-05",
-    total: 350,
-    status: "processing",
-    items: [
-      {
-        id: 5,
-        name: "Oceane",
-        price: 350,
-        quantity: 1,
-        size: "30ml",
-        image: "/img/oceane50.png",
-      },
-    ],
-    tracking: {
-      number: null,
-      carrier: null,
-      events: [
-        { date: "2023-07-05 15:45", status: "Order Processed", location: "Delhi", coordinates: [28.7041, 77.1025] },
-      ],
-    },
-    delivery: {
-      address: "123 Main Street, Andheri West, Mumbai, Maharashtra 400053",
-      recipient: "John Doe",
-      phone: "+91 9876543210",
-    },
-    payment: {
-      method: "UPI",
-      last4: "johndoe@upi",
-      status: "Paid",
-    },
-    estimatedDelivery: "2023-07-10",
-  },
+interface OrderItem {
+  product_id: string;
+  name: string;
+  quantity: number;
+  price: number;
+  size: string;
+  image: string;
+}
+
+interface Order {
+  id: string;
+  created_at: string;
+  total_amount: number;
+  subtotal_amount?: number;
+  shipping_amount?: number;
+  status: string;
+  items: OrderItem[];
+  shipping_address: string;
+  payment_method: string;
+}
+
+interface TrackingEvent {
+  date: string;
+  status: string;
+  location: string;
+}
+
+interface TrackingInfo {
+  number: string | null;
+  carrier: string | null;
+  events: TrackingEvent[];
 }
 
 export default function TrackOrderPage() {
   const params = useParams()
   const router = useRouter()
-  const [order, setOrder] = useState<any>(null)
+  const { user, isAuthenticated, isLoading } = useAuthStore()
+  const { toast } = useToast()
+  const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
-  const [currentEvent, setCurrentEvent] = useState<any>(null)
+  const [currentEvent, setCurrentEvent] = useState<TrackingEvent | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Protected route - redirect if not authenticated
   useEffect(() => {
-    // Simulate API call to fetch order details
-    const fetchOrder = async () => {
-      setLoading(true)
-      try {
-        // In a real app, this would be an API call
-        setTimeout(() => {
-          const orderId = params.id as string
-          const orderData = orders[orderId]
+    if (!isLoading && (!isAuthenticated || !user)) {
+      const currentPath = window.location.pathname;
+      router.push(`/auth/login?redirect=${encodeURIComponent(currentPath)}`);
+      return;
+    }
+  }, [isAuthenticated, isLoading, user, router]);
 
-          if (orderData) {
-            setOrder(orderData)
-            setCurrentEvent(orderData.tracking.events[0])
-          } else {
-            setError("Order not found. Please check the order ID and try again.")
-          }
-          setLoading(false)
-        }, 1000)
-      } catch (err) {
-        setError("Failed to load order details. Please try again later.")
-        setLoading(false)
+  useEffect(() => {
+    const fetchOrder = async () => {
+      // Wait for authentication to complete
+      if (isLoading) return;
+      
+      if (!isAuthenticated || !user) {
+        setLoading(false);
+        return;
       }
+
+      setLoading(true);
+      try {
+        const orderId = params.id as string;
+        
+        if (!orderId) {
+          setError("Order ID not found");
+          setLoading(false);
+          return;
+        }
+
+        // Fetch order with security check - ensure user can only access their own orders
+        const { data, error } = await supabase
+          .from("orders")
+          .select("*")
+          .eq("id", orderId)
+          .eq("user_id", user.id) // Security: Only allow access to user's own orders
+          .single();
+
+        if (error) {
+          if (error.code === 'PGRST116') {
+            // No rows returned - order not found or user doesn't have access
+            setError("Order not found or you don't have permission to view this order");
+          } else {
+            throw error;
+          }
+          setLoading(false);
+          return;
+        }
+
+        setOrder(data);
+        
+        // Set current event to the first tracking event
+        const trackingInfo = getTrackingInfo(data);
+        if (trackingInfo.events.length > 0) {
+          setCurrentEvent(trackingInfo.events[0]);
+        }
+      } catch (err) {
+        console.error('Error fetching order:', err);
+        setError("Failed to load order details. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrder();
+  }, [params.id, user, isAuthenticated, isLoading, router]);
+
+  // Generate tracking information based on order status
+  const getTrackingInfo = (order: Order): TrackingInfo => {
+    const baseEvents: TrackingEvent[] = [
+      {
+        date: order.created_at,
+        status: "Order Placed",
+          location: getCityFromOrder(order)
+      }
+    ];
+
+    // Add events based on order status
+    switch (order.status) {
+      case 'paid':
+        baseEvents.push({
+          date: new Date(new Date(order.created_at).getTime() + 2 * 60 * 60 * 1000).toISOString(),
+          status: "Payment Confirmed",
+          location: getCityFromOrder(order)
+        });
+        break;
+      case 'shipped':
+        baseEvents.push(
+          {
+            date: new Date(new Date(order.created_at).getTime() + 24 * 60 * 60 * 1000).toISOString(),
+            status: "Payment Confirmed",
+            location: getCityFromOrder(order)
+          },
+          {
+            date: new Date(new Date(order.created_at).getTime() + 48 * 60 * 60 * 1000).toISOString(),
+            status: "Shipped",
+            location: getCityFromOrder(order)
+          }
+        );
+        break;
+      case 'delivered':
+        baseEvents.push(
+          {
+            date: new Date(new Date(order.created_at).getTime() + 24 * 60 * 60 * 1000).toISOString(),
+            status: "Payment Confirmed",
+            location: getCityFromOrder(order)
+          },
+          {
+            date: new Date(new Date(order.created_at).getTime() + 48 * 60 * 60 * 1000).toISOString(),
+            status: "Shipped",
+            location: getCityFromOrder(order)
+          },
+          {
+            date: new Date(new Date(order.created_at).getTime() + 72 * 60 * 60 * 1000).toISOString(),
+            status: "Out for Delivery",
+            location: getCityFromOrder(order)
+          },
+          {
+            date: new Date(new Date(order.created_at).getTime() + 96 * 60 * 60 * 1000).toISOString(),
+            status: "Delivered",
+            location: getCityFromOrder(order)
+          }
+        );
+        break;
     }
 
-    fetchOrder()
-  }, [params.id])
+    return {
+      number: order.status === 'shipped' || order.status === 'delivered' ? `BD${order.id.slice(-9)}` : null,
+      carrier: order.status === 'shipped' || order.status === 'delivered' ? 'BlueDart' : null,
+      events: baseEvents.reverse() // Show most recent first
+    };
+  };
+
+  // Derive a display location (city) from the order shipping address
+  const getCityFromOrder = (order: Order): string => {
+    try {
+      const addr = typeof order.shipping_address === 'string' ? JSON.parse(order.shipping_address) : order.shipping_address as any;
+      return addr?.city || 'N/A';
+    } catch {
+      return 'N/A';
+    }
+  }
 
   // Get status color
   const getStatusColor = (status: string) => {
@@ -234,11 +208,11 @@ export default function TrackOrderPage() {
         return "text-green-500"
       case "out for delivery":
         return "text-blue-500"
-      case "in transit":
-        return "text-amber-500"
       case "shipped":
         return "text-purple-500"
-      case "order processed":
+      case "payment confirmed":
+        return "text-green-600"
+      case "order placed":
         return "text-gray-500"
       default:
         return "text-gray-500"
@@ -252,11 +226,11 @@ export default function TrackOrderPage() {
         return <CheckCircle className="h-6 w-6 text-green-500" />
       case "out for delivery":
         return <Truck className="h-6 w-6 text-blue-500" />
-      case "in transit":
-        return <Truck className="h-6 w-6 text-amber-500" />
       case "shipped":
         return <Package className="h-6 w-6 text-purple-500" />
-      case "order processed":
+      case "payment confirmed":
+        return <CheckCircle className="h-6 w-6 text-green-600" />
+      case "order placed":
         return <Package className="h-6 w-6 text-gray-500" />
       default:
         return <Clock className="h-6 w-6 text-gray-500" />
@@ -267,14 +241,24 @@ export default function TrackOrderPage() {
   const calculateProgress = () => {
     if (!order) return 0
 
-    const totalEvents = order.tracking.events.length
-    const completedEvents = order.tracking.events.findIndex((e) => e.status.toLowerCase() === "delivered")
+    const trackingInfo = getTrackingInfo(order);
+    const totalEvents = trackingInfo.events.length;
+    const completedEvents = trackingInfo.events.findIndex((e) => e.status.toLowerCase() === "delivered");
 
     if (completedEvents >= 0) {
-      return 100
+      return 100;
     } else {
-      // Calculate based on number of events completed
-      return Math.min(Math.round(((totalEvents - 1) / 5) * 100), 80)
+      // Calculate based on order status
+      switch (order.status) {
+        case 'paid':
+          return 25;
+        case 'shipped':
+          return 75;
+        case 'delivered':
+          return 100;
+        default:
+          return 10;
+      }
     }
   }
 
@@ -301,13 +285,13 @@ export default function TrackOrderPage() {
     }
   }
 
-  if (loading) {
+  if (isLoading || loading) {
     return (
       <>
         <Navbar setIsCartOpen={() => {}} />
         <div className="container mx-auto py-16 px-4">
           <div className="max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[50vh]">
-            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent mb-4"></div>
+            <Loader2 className="h-16 w-16 animate-spin mb-4" />
             <p className="text-lg">Loading order details...</p>
           </div>
         </div>
@@ -344,7 +328,7 @@ export default function TrackOrderPage() {
 
   return (
     <>
-      <Navbar setIsCartOpen={() => {}} />
+      <SimpleNavbar />
       <div className="container mx-auto py-16 px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -375,23 +359,35 @@ export default function TrackOrderPage() {
               className={`p-6 ${
                 order.status === "delivered"
                   ? "bg-green-50 dark:bg-green-900/20"
-                  : order.status === "in_transit"
+                  : order.status === "shipped"
                     ? "bg-blue-50 dark:bg-blue-900/20"
                     : "bg-amber-50 dark:bg-amber-900/20"
               }`}
             >
               <div className="flex items-center">
-                {getStatusIcon(order.tracking.events[0].status)}
+                {(() => {
+                  const trackingInfo = getTrackingInfo(order);
+                  const latestEvent = trackingInfo.events[0];
+                  return getStatusIcon(latestEvent.status);
+                })()}
                 <div className="ml-4">
                   <h2 className="text-xl font-bold">
                     {order.status === "delivered"
                       ? "Your order has been delivered"
-                      : order.status === "in_transit"
+                      : order.status === "shipped"
                         ? "Your order is on the way"
                         : "Your order is being processed"}
                   </h2>
-                  <p className={`${getStatusColor(order.tracking.events[0].status)}`}>
-                    {order.tracking.events[0].status} • {new Date(order.tracking.events[0].date).toLocaleString()}
+                  <p className={`${(() => {
+                    const trackingInfo = getTrackingInfo(order);
+                    const latestEvent = trackingInfo.events[0];
+                    return getStatusColor(latestEvent.status);
+                  })()}`}>
+                    {(() => {
+                      const trackingInfo = getTrackingInfo(order);
+                      const latestEvent = trackingInfo.events[0];
+                      return `${latestEvent.status} • ${new Date(latestEvent.date).toLocaleString()}`;
+                    })()}
                   </p>
                 </div>
               </div>
@@ -413,15 +409,19 @@ export default function TrackOrderPage() {
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
                   <Calendar className="h-5 w-5 text-gray-500 mr-2" />
-                  <span>Order Date: {new Date(order.date).toLocaleDateString()}</span>
+                  <span>Order Date: {new Date(order.created_at).toLocaleDateString()}</span>
                 </div>
 
                 <div className="flex items-center">
                   <Calendar className="h-5 w-5 text-gray-500 mr-2" />
                   <span>
                     {order.status === "delivered"
-                      ? `Delivered on: ${new Date(order.tracking.events[0].date).toLocaleDateString()}`
-                      : `Estimated Delivery: ${new Date(order.estimatedDelivery).toLocaleDateString()}`}
+                      ? `Delivered on: ${(() => {
+                          const trackingInfo = getTrackingInfo(order);
+                          const deliveredEvent = trackingInfo.events.find(e => e.status === "Delivered");
+                          return deliveredEvent ? new Date(deliveredEvent.date).toLocaleDateString() : "N/A";
+                        })()}`
+                      : `Estimated Delivery: ${new Date(new Date(order.created_at).getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}`}
                   </span>
                 </div>
               </div>
@@ -432,69 +432,63 @@ export default function TrackOrderPage() {
               <div className="md:col-span-2">
                 <h3 className="text-lg font-bold mb-4">Tracking Details</h3>
 
-                {order.tracking.number ? (
-                  <div className="mb-4 flex flex-wrap gap-y-2">
-                    <div className="w-full sm:w-1/2">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Tracking Number:</p>
-                      <p className="font-medium">{order.tracking.number}</p>
+                {(() => {
+                  const trackingInfo = getTrackingInfo(order);
+                  return trackingInfo.number ? (
+                    <div className="mb-4 flex flex-wrap gap-y-2">
+                      <div className="w-full sm:w-1/2">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Tracking Number:</p>
+                        <p className="font-medium">{trackingInfo.number}</p>
+                      </div>
+                      <div className="w-full sm:w-1/2">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Carrier:</p>
+                        <p className="font-medium">{trackingInfo.carrier}</p>
+                      </div>
                     </div>
-                    <div className="w-full sm:w-1/2">
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Carrier:</p>
-                      <p className="font-medium">{order.tracking.carrier}</p>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="mb-4 text-gray-500 dark:text-gray-400">
-                    Tracking information will be available once your order ships.
-                  </p>
-                )}
+                  ) : (
+                    <p className="mb-4 text-gray-500 dark:text-gray-400">
+                      Tracking information will be available once your order ships.
+                    </p>
+                  );
+                })()}
 
                 <div className="relative">
                   <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700"></div>
 
                   <div className="space-y-8">
-                    {order.tracking.events.map((event, index) => (
-                      <div key={index} className="flex" onClick={() => setCurrentEvent(event)}>
-                        <div
-                          className={`relative z-10 flex items-center justify-center w-6 h-6 rounded-full ${
-                            index === 0 ? "bg-accent text-white" : "bg-gray-200 dark:bg-gray-700"
-                          } mr-4 cursor-pointer`}
-                        >
-                          {index === 0 ? (
-                            <div className="w-2 h-2 bg-white rounded-full" />
-                          ) : (
-                            <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full" />
-                          )}
+                    {(() => {
+                      const trackingInfo = getTrackingInfo(order);
+                      return trackingInfo.events.map((event, index) => (
+                        <div key={index} className="flex" onClick={() => setCurrentEvent(event)}>
+                          <div
+                            className={`relative z-10 flex items-center justify-center w-6 h-6 rounded-full ${
+                              index === 0 ? "bg-accent text-white" : "bg-gray-200 dark:bg-gray-700"
+                            } mr-4 cursor-pointer`}
+                          >
+                            {index === 0 ? (
+                              <div className="w-2 h-2 bg-white rounded-full" />
+                            ) : (
+                              <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full" />
+                            )}
+                          </div>
+                          <div
+                            className={`${
+                              currentEvent === event ? "bg-gray-50 dark:bg-gray-700/50 -mx-4 px-4 py-2 rounded-lg" : ""
+                            } flex-grow cursor-pointer transition-colors duration-200`}
+                          >
+                            <p className={`font-medium ${getStatusColor(event.status)}`}>{event.status}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {new Date(event.date).toLocaleString()}
+                            </p>
+                            <p className="text-sm flex items-center">
+                              <MapPin className="h-4 w-4 mr-1 text-gray-400" />
+                              {event.location}
+                            </p>
+                          </div>
                         </div>
-                        <div
-                          className={`${
-                            currentEvent === event ? "bg-gray-50 dark:bg-gray-700/50 -mx-4 px-4 py-2 rounded-lg" : ""
-                          } flex-grow cursor-pointer transition-colors duration-200`}
-                        >
-                          <p className={`font-medium ${getStatusColor(event.status)}`}>{event.status}</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {new Date(event.date).toLocaleString()}
-                          </p>
-                          <p className="text-sm flex items-center">
-                            <MapPin className="h-4 w-4 mr-1 text-gray-400" />
-                            {event.location}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      ));
+                    })()}
                   </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-bold mb-4">Current Location</h3>
-                <div className="h-64 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
-                  {currentEvent && (
-                    <MapWithNoSSR
-                      location={`${currentEvent.status} - ${currentEvent.location}`}
-                      coordinates={currentEvent.coordinates}
-                    />
-                  )}
                 </div>
               </div>
             </div>
@@ -520,11 +514,11 @@ export default function TrackOrderPage() {
                     <div className="ml-4 flex-grow">
                       <p className="font-medium">{item.name}</p>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {item.size} × {item.quantity}
+                        {item.size}ml × {item.quantity}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium">{formatCurrency(item.price * item.quantity)}</p>
+                      <p className="font-medium">₹{item.price * item.quantity}</p>
                     </div>
                   </div>
                 ))}
@@ -535,15 +529,15 @@ export default function TrackOrderPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-gray-400">Subtotal:</span>
-                  <span>{formatCurrency(order.total - 99)}</span>
+                  <span>₹{typeof order.subtotal_amount === 'number' ? order.subtotal_amount : (order.total_amount - (order.shipping_amount ?? 0))}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500 dark:text-gray-400">Shipping:</span>
-                  <span>{formatCurrency(99)}</span>
+                  <span>{typeof order.shipping_amount === 'number' ? `₹${order.shipping_amount}` : 'Included'}</span>
                 </div>
                 <div className="flex justify-between font-bold">
                   <span>Total:</span>
-                  <span>{formatCurrency(order.total)}</span>
+                  <span>₹{order.total_amount}</span>
                 </div>
               </div>
             </div>
@@ -551,17 +545,25 @@ export default function TrackOrderPage() {
             <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <h4 className="font-bold mb-2">Shipping Address</h4>
-                <p>{order.delivery.recipient}</p>
-                <p>{order.delivery.address}</p>
-                <p>{order.delivery.phone}</p>
+                {(() => {
+                  const shippingAddress = typeof order.shipping_address === 'string' 
+                    ? JSON.parse(order.shipping_address) 
+                    : order.shipping_address;
+                  return (
+                    <>
+                      <p>{shippingAddress.name}</p>
+                      <p>{shippingAddress.address}</p>
+                      <p>{shippingAddress.city}, {shippingAddress.state} {shippingAddress.pincode}</p>
+                      <p>{shippingAddress.phone}</p>
+                    </>
+                  );
+                })()}
               </div>
 
               <div>
                 <h4 className="font-bold mb-2">Payment Method</h4>
-                <p>{order.payment.method}</p>
-                {order.payment.method === "Credit Card" && <p>Card ending in {order.payment.last4}</p>}
-                {order.payment.method === "UPI" && <p>UPI ID: {order.payment.last4}</p>}
-                <p>Status: {order.payment.status}</p>
+                <p>{order.payment_method}</p>
+                <p>Status: {order.status === 'paid' ? 'Paid' : 'Pending'}</p>
               </div>
 
               <div>
@@ -569,7 +571,9 @@ export default function TrackOrderPage() {
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   If you have any questions about your order, please contact our customer support.
                 </p>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full"
+                  onClick={() => router.push("/contact")}
+                >
                   Contact Support
                 </Button>
               </div>

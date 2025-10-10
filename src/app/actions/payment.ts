@@ -12,7 +12,7 @@ interface OrderData {
 
 export async function createRazorpayOrder(orderData: OrderData) {
   try {
-    const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || ""
+    const RAZORPAY_KEY_ID = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || ""
     const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || ""
 
     const response = await fetch("https://api.razorpay.com/v1/orders", {
