@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Layers, Search, ArrowRight, BookOpen } from "lucide-react"
+import { Layers, Search, ArrowRight, BookOpen, Sparkles } from "lucide-react"
 
 export default function Hero() {
   return (
@@ -35,27 +35,28 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.8 }}
-          className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+          className="flex flex-col gap-6 justify-center items-center"
         >
-          {/* Quick Feature Previews */}
-          <div className="flex flex-col sm:flex-row gap-3 mt-4 sm:mt-0">
-            <Link href="/collection">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-white hover:bg-white/20 transition-all duration-300 cursor-pointer"
-              >
-                <BookOpen className="h-4 w-4" />
-                <span className="text-sm font-medium">Explore Collection</span>
-                <ArrowRight className="h-3 w-3" />
-              </motion.div>
-            </Link>
+          {/* Primary CTA */}
+          <Link href="/collection">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-3 bg-white text-black hover:bg-gray-200 transition-all duration-300 cursor-pointer px-8 py-4 rounded-full text-lg font-semibold"
+            >
+              <BookOpen className="h-5 w-5" />
+              <span>Explore Our Collection</span>
+              <ArrowRight className="h-4 w-4" />
+            </motion.div>
+          </Link>
 
+          {/* Secondary Features */}
+          <div className="hidden sm:flex sm:flex-row gap-4">
             <Link href="/scent-finder">
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-white hover:bg-white/20 transition-all duration-300 cursor-pointer"
+                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 text-white hover:bg-white/20 transition-all duration-300 cursor-pointer"
               >
                 <Search className="h-4 w-4" />
                 <span className="text-sm font-medium">Find Your Scent</span>
@@ -67,13 +68,25 @@ export default function Hero() {
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-white hover:bg-white/20 transition-all duration-300 cursor-pointer"
+                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 text-white hover:bg-white/20 transition-all duration-300 cursor-pointer"
               >
                 <Layers className="h-4 w-4" />
                 <span className="text-sm font-medium">Try Layering</span>
                 <ArrowRight className="h-3 w-3" />
               </motion.div>
             </Link>
+
+            <a href="#featured">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 text-white hover:bg-white/20 transition-all duration-300 cursor-pointer"
+              >
+                <Sparkles className="h-4 w-4" />
+                <span className="text-sm font-medium">Featured Fragrances</span>
+                <ArrowRight className="h-3 w-3" />
+              </motion.div>
+            </a>
           </div>
         </motion.div>
       </motion.div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Star, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -15,8 +15,8 @@ import { ProductInfo } from "@/src/data/product-info"
 import { useWishlistStore } from "@/src/store/wishlist"
 import { useCartStore } from "../lib/cartStore"
 import SimpleInstagramFeed from "./components/SimpleInstagramFeed"
-import LayeringAwareness from "./components/LayeringAwareness"
-import ScentFinderAwareness from "./components/ScentFinderAwareness"
+import CompactLayeringAwareness from "./components/CompactLayeringAwareness"
+import CompactScentFinderAwareness from "./components/CompactScentFinderAwareness"
 
 const SimpleNavbar = dynamic(() => import("@/src/app/components/SimpleNavbar"), { ssr: false })
 const Cart = dynamic(() => import("@/src/app/components/Cart"), { ssr: false })
@@ -49,8 +49,43 @@ export default function Home() {
   const [selectedProduct, setSelectedProduct] = useState<any>(null)
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
   const [selectedSizes, setSelectedSizes] = useState<{ [key: number | string]: string }>({})
+  const [products, setProducts] = useState<ProductInfo.Product[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const { addItem, setIsOpen, getTotalItems } = useCartStore()
   const { items: wishlistItems, addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore()
+
+  // Load products on component mount
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setIsLoading(true)
+        
+        // Always start with static products as fallback
+        let loadedProducts = ProductInfo.allProductItems
+        
+        // Try to get products from cache
+        try {
+          const cachedProducts = ProductInfo.getAllProductItems()
+          if (cachedProducts && cachedProducts.length > 0) {
+            loadedProducts = cachedProducts
+          }
+        } catch (cacheError) {
+          console.log("Using static products as fallback")
+        }
+        
+        setProducts(loadedProducts)
+      } catch (error) {
+        console.error("Error loading products:", error)
+        // Final fallback to static products
+        setProducts(ProductInfo.allProductItems)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    // Load products immediately
+    loadProducts()
+  }, [])
 
   
 
@@ -156,32 +191,66 @@ export default function Home() {
             {/* Enhanced Product Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative">
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent blur-3xl -z-10" />
-              {ProductInfo.allProductItems.map((product) => (
-                <div key={product.id} className="transform transition-transform duration-300 hover:-translate-y-2">
-                  <EnhancedProductCard
-                    product={{
-                      ...product,
-                      images: {
-                        ...product.images,
-                        label: product.images.label || ""
+              {isLoading ? (
+                // Loading skeleton
+                Array.from({ length: 6 }).map((_, index) => (
+                  <div key={index} className="bg-gray-800/50 rounded-lg p-6 animate-pulse">
+                    <div className="aspect-square bg-gray-700 rounded-lg mb-4"></div>
+                    <div className="h-4 bg-gray-700 rounded mb-2"></div>
+                    <div className="h-3 bg-gray-700 rounded mb-4"></div>
+                    <div className="h-8 bg-gray-700 rounded"></div>
+                  </div>
+                ))
+              ) : products.length > 0 ? (
+                products.map((product) => (
+                  <div key={product.id} className="transform transition-transform duration-300 hover:-translate-y-2">
+                    <EnhancedProductCard
+                      product={{
+                        ...product,
+                        images: {
+                          ...product.images,
+                          label: product.images.label || ""
+                        }
+                      }}
+                      onAddToCart={(product, quantity) =>
+                        addToCart(product, quantity, selectedSizes[product.id] || product.sizeOptions[0].size)
                       }
-                    }}
-                    onAddToCart={(product, quantity) =>
-                      addToCart(product, quantity, selectedSizes[product.id] || product.sizeOptions[0].size)
-                    }
-                    onAddToWishlist={() => handleAddToWishlist(product)}
-                    inWishlist={isInWishlist(product.id.toString())}
-                    selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size}
-                    onSizeSelect={(size: string) => handleSizeSelect(product.id, size)}
-                  />
-                </div>
-              ))}
+                      onAddToWishlist={() => handleAddToWishlist(product)}
+                      inWishlist={isInWishlist(product.id.toString())}
+                      selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size}
+                      onSizeSelect={(size: string) => handleSizeSelect(product.id, size)}
+                    />
+                  </div>
+                ))
+              ) : (
+                // Fallback to static products if loading fails
+                ProductInfo.allProductItems.map((product) => (
+                  <div key={product.id} className="transform transition-transform duration-300 hover:-translate-y-2">
+                    <EnhancedProductCard
+                      product={{
+                        ...product,
+                        images: {
+                          ...product.images,
+                          label: product.images.label || ""
+                        }
+                      }}
+                      onAddToCart={(product, quantity) =>
+                        addToCart(product, quantity, selectedSizes[product.id] || product.sizeOptions[0].size)
+                      }
+                      onAddToWishlist={() => handleAddToWishlist(product)}
+                      inWishlist={isInWishlist(product.id.toString())}
+                      selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size}
+                      onSizeSelect={(size: string) => handleSizeSelect(product.id, size)}
+                    />
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </section>
       </div>
-      <LayeringAwareness />
-      <ScentFinderAwareness />
+      <CompactLayeringAwareness />
+      <CompactScentFinderAwareness />
 
       {/* Instagram Feed Section */}
       <div className="mt-24">
