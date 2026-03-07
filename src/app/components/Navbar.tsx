@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Menu, X, ShoppingBag, Heart, Instagram, MessageCircle, User, LogOut } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import { useUser } from "@/src/contexts/UserContext"
+import { useAuthStore } from "@/src/lib/auth"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +25,7 @@ interface NavbarProps {
 export default function Navbar({ setIsCartOpen, cartItemsCount = 0 }: NavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const { user, logout } = useUser()
+  const { user, isAuthenticated, logout } = useAuthStore()
   const router = useRouter()
 
   useEffect(() => {
@@ -79,8 +79,8 @@ export default function Navbar({ setIsCartOpen, cartItemsCount = 0 }: NavbarProp
     { href: "/contact", label: "Contact" },
   ]
 
-  const handleLogout = () => {
-    logout()
+  const handleLogout = async () => {
+    await logout()
     router.push("/")
   }
 
@@ -162,7 +162,7 @@ export default function Navbar({ setIsCartOpen, cartItemsCount = 0 }: NavbarProp
               </Link>
             </motion.div>
 
-            {user ? (
+            {isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <motion.button
@@ -171,7 +171,7 @@ export default function Navbar({ setIsCartOpen, cartItemsCount = 0 }: NavbarProp
                     className="p-1 rounded-full transition-colors bg-white/10 hover:bg-white/20"
                   >
                     <Avatar className="h-7 w-7">
-                      <AvatarFallback className="bg-accent text-white text-xs">{getInitials(user.name)}</AvatarFallback>
+                      <AvatarFallback className="bg-accent text-white text-xs">{getInitials(user.full_name || user.email || "U")}</AvatarFallback>
                     </Avatar>
                   </motion.button>
                 </DropdownMenuTrigger>

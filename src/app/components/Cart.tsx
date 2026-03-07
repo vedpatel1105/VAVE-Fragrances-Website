@@ -207,7 +207,7 @@ export default function Cart() {
                   <div className="space-y-4">
                     {items.map((item) => (
                       <div
-                        key={item.id}
+                        key={`${item.id}-${item.size}-${item.color}`}
                         className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
                       >
                         <div className="relative h-20 w-20 flex-shrink-0">
@@ -248,7 +248,7 @@ export default function Cart() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            onClick={() => removeItem(item.id)}
+                            onClick={() => removeItem(item.id, item.size, item.color)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -362,7 +362,7 @@ export default function Cart() {
                 </Button>
                 <Button onClick={() => {
                   setShowAuthModal(false)
-                  router.push('/auth/login')
+                  router.push('/auth/login?redirect=/checkout')
                 }}>
                   Login
                 </Button>

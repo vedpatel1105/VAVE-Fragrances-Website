@@ -1,109 +1,132 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { motion } from "framer-motion"
-import { Mail, Phone, Lock, Eye, EyeOff, ArrowRight } from "lucide-react"
+import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/components/ui/use-toast"
-import { supabase } from "@/src/lib/supabaseClient"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useAuthStore } from "@/src/lib/auth"
 
 export default function LoginPage() {
-  const { login, loginWithGoogle } = useAuthStore()
+  const { login, loginWithGoogle, isAuthenticated } = useAuthStore()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [emailForm, setEmailForm] = useState({ email: "", password: "" })
-  const [phoneForm, setPhoneForm] = useState({ phone: "", otp: "" })
-  const [otpSent, setOtpSent] = useState(false)
-  const [countdown, setCountdown] = useState(0)
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
+  const [loginError, setLoginError] = useState("")
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
 
-  // Handle email login
+  // Get redirect URL from query params
+  const redirectTo = searchParams.get('redirect') || '/profile'
+
+  // If already authenticated, redirect
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace(redirectTo)
+    }
+  }, [isAuthenticated, redirectTo, router])
+
+  // Show error from OAuth redirect if present
+  useEffect(() => {
+    const error = searchParams.get('error')
+    if (error) {
+      const details = searchParams.get('details')
+      setLoginError(details || `Authentication error: ${error}`)
+    }
+  }, [searchParams])
+
+  const validateForm = (): boolean => {
+    const errors: { email?: string; password?: string } = {}
+
+    if (!emailForm.email.trim()) {
+      errors.email = "Email address is required"
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailForm.email)) {
+      errors.email = "Please enter a valid email address"
+    }
+
+    if (!emailForm.password) {
+      errors.password = "Password is required"
+    } else if (emailForm.password.length < 6) {
+      errors.password = "Password must be at least 6 characters"
+    }
+
+    setFieldErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  // Map Supabase error messages to user-friendly text
+  const getUserFriendlyError = (errorMessage: string): string => {
+    if (errorMessage.includes("Invalid login credentials")) {
+      return "Incorrect email or password. Please try again."
+    }
+    if (errorMessage.includes("Email not confirmed")) {
+      return "Please verify your email address. Check your inbox for a confirmation link."
+    }
+    if (errorMessage.includes("Too many requests")) {
+      return "Too many login attempts. Please wait a moment and try again."
+    }
+    if (errorMessage.includes("User not found")) {
+      return "No account found with this email. Would you like to sign up?"
+    }
+    return errorMessage || "An unexpected error occurred. Please try again."
+  }
+
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLoginError("")
+
+    if (!validateForm()) return
+
     setIsLoading(true)
 
     try {
-      const { error, user } = await login(emailForm.email, emailForm.password)
+      const result = await login(emailForm.email, emailForm.password)
 
-      if (error) throw error
-
-      // Get user profile from profiles table
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single()
-
-      if (profileError && profileError.code !== 'PGRST116') {
-        throw profileError
-      }
-
-      // If profile doesn't exist, create one
-      if (!profile && user) {
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert([
-            {
-              id: user?.id,
-              email: user?.email,
-              full_name: user?.user_metadata?.full_name || "",
-            },
-          ])
-
-        if (insertError) throw insertError
+      if (!result.success) {
+        setLoginError(getUserFriendlyError(result.error || ""))
+        return
       }
 
       toast({
-        title: "Login Successful",
-        description: "Welcome back to Vave Fragrances!",
+        title: "Welcome back!",
+        description: "You've been signed in successfully.",
       })
 
-      // Get the redirect URL from the query parameters
-      const params = new URLSearchParams(window.location.search)
-      const redirectTo = params.get('redirect') || '/profile'
-      // Use window.location.replace for reliability
+      // Use replace for reliable redirect
       window.location.replace(redirectTo)
     } catch (error: any) {
-      toast({
-        title: "Login Failed",
-        description: error.message || "Invalid email or password. Please try again.",
-        variant: "destructive",
-      })
+      setLoginError(getUserFriendlyError(error.message || ""))
     } finally {
       setIsLoading(false)
     }
   }
 
-  // Handle Google login
   const handleGoogleLogin = async () => {
     try {
       setIsLoading(true)
-
-      // Get the redirect URL from the query parameters
-      const params = new URLSearchParams(window.location.search)
-      const redirectPath = params.get('redirect') || '/profile'
-
-      // Always pass the redirect param to callback
-      await loginWithGoogle(redirectPath)
-
-      // The user will be redirected to Google's login page
+      setLoginError("")
+      await loginWithGoogle(redirectTo)
     } catch (error: any) {
-      toast({
-        title: "Login Failed",
-        description: error.message || "Failed to login with Google. Please try again.",
-        variant: "destructive",
-      })
+      setLoginError(getUserFriendlyError(error.message || ""))
       setIsLoading(false)
     }
+  }
+
+  // Clear field error when user starts typing
+  const handleFieldChange = (field: 'email' | 'password', value: string) => {
+    setEmailForm(prev => ({ ...prev, [field]: value }))
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => ({ ...prev, [field]: undefined }))
+    }
+    if (loginError) setLoginError("")
   }
 
   return (
@@ -120,85 +143,104 @@ export default function LoginPage() {
             <p className="text-gray-600 dark:text-gray-400">Sign in to your account</p>
           </div>
 
-          <Tabs defaultValue="email">
+          {/* Global login error */}
+          {loginError && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-start gap-2"
+            >
+              <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
+              <p className="text-sm text-red-700 dark:text-red-300">{loginError}</p>
+            </motion.div>
+          )}
 
-            <TabsContent value="email">
-              <form onSubmit={handleEmailLogin} className="space-y-4">
-                <div>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <Input
-                      type="email"
-                      placeholder="Email address"
-                      className="pl-10"
-                      value={emailForm.email}
-                      onChange={(e) => setEmailForm({ ...emailForm, email: e.target.value })}
-                      required
-                    />
-                  </div>
-                </div>
+          <form onSubmit={handleEmailLogin} className="space-y-4">
+            <div>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Input
+                  type="email"
+                  placeholder="Email address"
+                  className={`pl-10 ${fieldErrors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  value={emailForm.email}
+                  onChange={(e) => handleFieldChange('email', e.target.value)}
+                  autoComplete="email"
+                  aria-invalid={!!fieldErrors.email}
+                />
+                {emailForm.email && !fieldErrors.email && (
+                  <CheckCircle2 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" size={16} />
+                )}
+              </div>
+              {fieldErrors.email && (
+                <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>
+              )}
+            </div>
 
-                <div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <Input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Password"
-                      className="pl-10 pr-10"
-                      value={emailForm.password}
-                      onChange={(e) => setEmailForm({ ...emailForm, password: e.target.value })}
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                  <div className="flex justify-end mt-1">
-                    <Link href="/auth/forgot-password" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-                      Forgot password?
-                    </Link>
-                  </div>
-                </div>
+            <div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  className={`pl-10 pr-10 ${fieldErrors.password ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  value={emailForm.password}
+                  onChange={(e) => handleFieldChange('password', e.target.value)}
+                  autoComplete="current-password"
+                  aria-invalid={!!fieldErrors.password}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {fieldErrors.password && (
+                <p className="mt-1 text-xs text-red-500">{fieldErrors.password}</p>
+              )}
+              <div className="flex justify-end mt-1">
+                <Link href="/forgot-password" className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                  Forgot password?
+                </Link>
+              </div>
+            </div>
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <span className="flex items-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Signing in...
-                    </span>
-                  ) : (
-                    <span className="flex items-center">
-                      Sign in
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </span>
-                  )}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? (
+                <span className="flex items-center">
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Signing in...
+                </span>
+              ) : (
+                <span className="flex items-center">
+                  Sign in
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </span>
+              )}
+            </Button>
+          </form>
 
           <div className="mt-6">
             <div className="relative">
@@ -213,7 +255,7 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-6">
-              <Button className="w-full" onClick={handleGoogleLogin} disabled={isLoading}>
+              <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={isLoading}>
                 <Image src="/google-logo.svg" alt="Google" width={20} height={20} className="mr-2" />
                 Google
               </Button>

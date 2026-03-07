@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Get products from database to verify prices
-        const { data: products, error: productsError } = await supabase
+        const { data: products, error: productsError } = await supabaseAuth
             .from('products')
             .select('id, price_30ml, price_50ml, stock_30ml, stock_50ml')
             .in(
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
         });
 
         // Start a database transaction
-        const { data: newOrder, error: orderError } = await supabase
+        const { data: newOrder, error: orderError } = await supabaseAuth
             .from('orders')
             .insert([
                 {

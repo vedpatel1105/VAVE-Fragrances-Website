@@ -15,7 +15,7 @@ interface CartState {
   items: CartItem[]
   isOpen: boolean
   addItem: (item: CartItem) => void
-  removeItem: (id: string) => void
+  removeItem: (id: string, size?: string, color?: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
   setIsOpen: (isOpen: boolean) => void
@@ -46,8 +46,12 @@ export const useCartStore = create<CartState>()(
           set({ items: [...currentItems, item] })
         }
       },
-      removeItem: (id) => {
-        set({ items: get().items.filter((item) => item.id !== id) })
+      removeItem: (id, size, color) => {
+        set({
+          items: get().items.filter(
+            (item) => !(item.id === id && item.size === size && item.color === color)
+          ),
+        })
       },
       updateQuantity: (id, quantity) => {
         set({

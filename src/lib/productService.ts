@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { adminService } from './adminService';
 
 export interface DBProduct {
     price: number | undefined;
@@ -22,6 +23,7 @@ export interface DBProduct {
     is_new: boolean;
     is_bestseller: boolean;
     is_limited: boolean;
+    is_hidden: boolean;
     discount: number | null;
     ingredients: string[];
     notes: {
@@ -33,11 +35,21 @@ export interface DBProduct {
     stock_50ml: number;
 }
 
+export type ProductCreateInput = Omit<DBProduct, 'id' | 'price' | 'priceXL' | 'rating' | 'reviews_count'> & {
+    rating?: number | null;
+    reviews_count?: number;
+};
+
+export type ProductUpdateInput = Partial<Omit<DBProduct, 'id' | 'price' | 'priceXL'>>;
+
 export const productService = {
+    // ─── Public Queries (filter hidden products) ─────────────────────
+
     async getAllProducts(): Promise<DBProduct[]> {
         const { data, error } = await supabase
             .from('products')
             .select('*')
+            .eq('is_hidden', false)
             .order('name');
 
         if (error) throw error;
@@ -49,6 +61,7 @@ export const productService = {
             .from('products')
             .select('*')
             .eq('slug', slug)
+            .eq('is_hidden', false)
             .single();
 
         if (error) throw error;
@@ -71,6 +84,7 @@ export const productService = {
             .from('products')
             .select('*')
             .eq('is_bestseller', true)
+            .eq('is_hidden', false)
             .order('name');
 
         if (error) throw error;
@@ -82,6 +96,7 @@ export const productService = {
             .from('products')
             .select('*')
             .eq('is_new', true)
+            .eq('is_hidden', false)
             .order('name');
 
         if (error) throw error;
@@ -93,6 +108,7 @@ export const productService = {
             .from('products')
             .select('*')
             .eq('category', category)
+            .eq('is_hidden', false)
             .order('name');
 
         if (error) throw error;
@@ -100,8 +116,6 @@ export const productService = {
     },
 
     async updateStock(productId: string, size: '30' | '50', quantity: number): Promise<void> {
-        const stockField = size === '30' ? 'stock_30ml' : 'stock_50ml';
-
         const { error } = await supabase.rpc('update_product_stock', {
             p_product_id: productId,
             p_size: size,
@@ -123,11 +137,87 @@ export const productService = {
         if (error) throw error;
         if (!data) return false;
 
-        // Explicitly type the data object
         const stock = size === '30'
             ? (data as { stock_30ml: number }).stock_30ml
             : (data as { stock_50ml: number }).stock_50ml;
 
         return typeof stock === 'number' && stock >= quantity;
-    }
+    },
+
+    // ─── Admin Queries (include hidden products) ─────────────────────
+
+    async getAllProductsAdmin(): Promise<DBProduct[]> {
+        const isAdmin = await adminService.isAdmin();
+        if (!isAdmin) throw new Error('Not authorized');
+
+        const { data, error } = await supabase
+            .from('products')
+            .select('*')
+            .order('name');
+
+        if (error) throw error;
+        return data || [];
+    },
+
+    // ─── Admin CRUD ──────────────────────────────────────────────────
+
+    async createProduct(product: ProductCreateInput): Promise<DBProduct> {
+        const isAdmin = await adminService.isAdmin();
+        if (!isAdmin) throw new Error('Not authorized');
+
+        const { data, error } = await supabase
+            .from('products')
+            .insert({
+                ...product,
+                rating: product.rating ?? null,
+                reviews_count: product.reviews_count ?? 0,
+            })
+            .select('*')
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    async updateProduct(id: string, updates: ProductUpdateInput): Promise<DBProduct> {
+        const isAdmin = await adminService.isAdmin();
+        if (!isAdmin) throw new Error('Not authorized');
+
+        const { data, error } = await supabase
+            .from('products')
+            .update(updates)
+            .eq('id', id)
+            .select('*')
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    async deleteProduct(id: string): Promise<void> {
+        const isAdmin = await adminService.isAdmin();
+        if (!isAdmin) throw new Error('Not authorized');
+
+        const { error } = await supabase
+            .from('products')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
+    async toggleProductVisibility(id: string, isHidden: boolean): Promise<DBProduct> {
+        const isAdmin = await adminService.isAdmin();
+        if (!isAdmin) throw new Error('Not authorized');
+
+        const { data, error } = await supabase
+            .from('products')
+            .update({ is_hidden: isHidden })
+            .eq('id', id)
+            .select('*')
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
 };

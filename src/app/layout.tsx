@@ -3,7 +3,6 @@ import type { Metadata } from "next"
 import { Playfair_Display, Montserrat } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "next-themes"
-import { UserProvider } from "@/src/contexts/UserContext"
 import { AuthProvider } from "@/src/contexts/AuthProvider"
 import { Toaster } from "@/components/ui/toaster"
 import Script from "next/script"
@@ -48,9 +47,7 @@ export default function RootLayout({
       <body className={`${playfair.variable} ${montserrat.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
-            <UserProvider>
               {children}
-            </UserProvider>
           </AuthProvider>
         </ThemeProvider>
         <Toaster />

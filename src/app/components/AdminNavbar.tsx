@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Menu, X, Package, Users, LogOut } from "lucide-react"
+import { Menu, X, Package, ShoppingBag, Users, LogOut } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useToast } from "@/components/ui/use-toast"
 import { adminService } from "@/src/lib/adminService"
@@ -35,6 +35,7 @@ export default function AdminNavbar() {
 
   const navItems = [
     { href: "/admin/orders", label: "Orders", icon: Package },
+    { href: "/admin/products", label: "Products", icon: ShoppingBag },
     { href: "/admin/users", label: "Users", icon: Users },
   ]
 
