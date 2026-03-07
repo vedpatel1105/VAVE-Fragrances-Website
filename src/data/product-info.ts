@@ -8,7 +8,7 @@ export namespace ProductInfo {
 
     const staticProducts: Product[] = [
         {
-            id: 8,
+            id: "fcbba672-0980-4de5-9675-930632135864",
             name: "Havoc",
             slug: "havoc",
             category: "Fresh",
@@ -70,24 +70,24 @@ export namespace ProductInfo {
             },
             layeringOptions: [
                 {
-                    id: 1,
+                    id: "aaf23ce0-6511-486d-9a51-8d45cf500742",
                     name: "Oceane",
                     description: "Creates a refreshing aquatic blend",
                 },
                 {
-                    id: 2,
+                    id: "158184a5-4507-461b-92a2-d2b87917bb58",
                     name: "Euphoria",
                     description: "Adds a floral dimension to the freshness",
                 },
                 {
-                    id: 5,
+                    id: "40d541c6-b55d-453d-8065-c82b040bf31b",
                     name: "Mehfil",
                     description: "Creates a sophisticated spicy-fresh blend",
                 },
             ],
         },
         {
-            id: 4,
+            id: "d5715b7f-a6b7-4d58-a768-1204198ebd0b",
             name: "Lavior",
             slug: "lavior",
             category: "Oriental",
@@ -154,24 +154,24 @@ export namespace ProductInfo {
             },
             layeringOptions: [
                 {
-                    id: 7,
+                    id: "c69464e7-34ed-4d69-bec9-62c0cb5a2f18",
                     name: "Velora",
                     description: "Creates a rich, luxurious oriental blend",
                 },
                 {
-                    id: 6,
+                    id: "d60cc1c5-3f1f-496e-ae60-948576fe9e08",
                     name: "Obsession",
                     description: "Intensifies the oriental character",
                 },
                 {
-                    id: 3,
+                    id: "f0fff746-3451-4139-84f0-004be84dd603",
                     name: "Duskfall",
                     description: "Adds mystery and depth",
                 },
             ],
         },
         {
-            id: 3,
+            id: "f0fff746-3451-4139-84f0-004be84dd603",
             name: "Duskfall",
             slug: "duskfall",
             category: "Woody",
@@ -233,24 +233,24 @@ export namespace ProductInfo {
             },
             layeringOptions: [
                 {
-                    id: 6,
+                    id: "d60cc1c5-3f1f-496e-ae60-948576fe9e08",
                     name: "Obsession",
                     description: "Creates an intense, bold evening scent",
                 },
                 {
-                    id: 2,
+                    id: "158184a5-4507-461b-92a2-d2b87917bb58",
                     name: "Euphoria",
                     description: "Adds a floral brightness to the mystery",
                 },
                 {
-                    id: 4,
+                    id: "d5715b7f-a6b7-4d58-a768-1204198ebd0b",
                     name: "lavior",
                     description: "Enhances the oriental character",
                 },
             ],
         },
         {
-            id: 2,
+            id: "158184a5-4507-461b-92a2-d2b87917bb58",
             name: "Euphoria",
             slug: "euphoria",
             category: "Floral",
@@ -312,24 +312,24 @@ export namespace ProductInfo {
             },
             layeringOptions: [
                 {
-                    id: 1,
+                    id: "aaf23ce0-6511-486d-9a51-8d45cf500742",
                     name: "Oceane",
                     description: "Creates a fresh, uplifting blend",
                 },
                 {
-                    id: 3,
+                    id: "f0fff746-3451-4139-84f0-004be84dd603",
                     name: "Duskfall",
                     description: "Adds mystery to the floral character",
                 },
                 {
-                    id: 7,
+                    id: "c69464e7-34ed-4d69-bec9-62c0cb5a2f18",
                     name: "Velora",
                     description: "Enhances the richness of the florals",
                 },
             ],
         },
         {
-            id: 1,
+            id: "aaf23ce0-6511-486d-9a51-8d45cf500742",
             name: "Oceane",
             slug: "oceane",
             category: "Aquatic",
@@ -391,17 +391,17 @@ export namespace ProductInfo {
             },
             layeringOptions: [
                 {
-                    id: 8,
+                    id: "fcbba672-0980-4de5-9675-930632135864",
                     name: "Havoc",
                     description: "Creates a fresh, masculine blend",
                 },
                 {
-                    id: 2,
+                    id: "158184a5-4507-461b-92a2-d2b87917bb58",
                     name: "Euphoria",
                     description: "Adds floral brightness to the aquatic base",
                 },
                 {
-                    id: 7,
+                    id: "c69464e7-34ed-4d69-bec9-62c0cb5a2f18",
                     name: "Velora",
                     description:
                         "Creates an interesting contrast of fresh and warm",
@@ -409,7 +409,7 @@ export namespace ProductInfo {
             ],
         },
         {
-            id: 7,
+            id: "c69464e7-34ed-4d69-bec9-62c0cb5a2f18",
             name: "Velora",
             slug: "velora",
             category: "Woody",
@@ -471,24 +471,24 @@ export namespace ProductInfo {
             },
             layeringOptions: [
                 {
-                    id: 4,
+                    id: "d5715b7f-a6b7-4d58-a768-1204198ebd0b",
                     name: "lavior",
                     description: "Creates a rich, complex oriental blend",
                 },
                 {
-                    id: 6,
+                    id: "d60cc1c5-3f1f-496e-ae60-948576fe9e08",
                     name: "Obsession",
                     description: "Intensifies the warm, spicy character",
                 },
                 {
-                    id: 2,
+                    id: "158184a5-4507-461b-92a2-d2b87917bb58",
                     name: "Euphoria",
                     description: "Adds a floral brightness to the warmth",
                 },
             ],
         },
         {
-            id: 6,
+            id: "d60cc1c5-3f1f-496e-ae60-948576fe9e08",
             name: "Obsession",
             slug: "obsession",
             category: "Oriental",
@@ -550,17 +550,17 @@ export namespace ProductInfo {
             },
             layeringOptions: [
                 {
-                    id: 3,
+                    id: "f0fff746-3451-4139-84f0-004be84dd603",
                     name: "Duskfall",
                     description: "Creates a mysterious, intense evening scent",
                 },
                 {
-                    id: 7,
+                    id: "c69464e7-34ed-4d69-bec9-62c0cb5a2f18",
                     name: "Velora",
                     description: "Enhances the rich, warm character",
                 },
                 {
-                    id: 5,
+                    id: "40d541c6-b55d-453d-8065-c82b040bf31b",
                     name: "Mehfil",
                     description:
                         "Creates a complex, spicy oriental masterpiece",
@@ -568,7 +568,7 @@ export namespace ProductInfo {
             ],
         },
         {
-            id: 5,
+            id: "40d541c6-b55d-453d-8065-c82b040bf31b",
             name: "Mehfil",
             slug: "mehfil",
             category: "Spicy",
@@ -630,18 +630,18 @@ export namespace ProductInfo {
             },
             layeringOptions: [
                 {
-                    id: 6,
+                    id: "d60cc1c5-3f1f-496e-ae60-948576fe9e08",
                     name: "Obsession",
                     description:
                         "Creates an intense, rich oriental masterpiece",
                 },
                 {
-                    id: 8,
+                    id: "fcbba672-0980-4de5-9675-930632135864",
                     name: "Havoc",
                     description: "Adds freshness to the rich spicy character",
                 },
                 {
-                    id: 4,
+                    id: "d5715b7f-a6b7-4d58-a768-1204198ebd0b",
                     name: "lavior",
                     description:
                         "Enhances the oriental character with herbal notes",
@@ -653,20 +653,29 @@ export namespace ProductInfo {
     // Product cache
     let _productCache: Product[] | null = null;
 
-    // Load products from sessionStorage or Supabase
+    const CACHE_KEY = "allProductItems";
+    const CACHE_TIMESTAMP_KEY = "allProductItems_timestamp";
+    const CACHE_EXPIRATION_MS = 48 * 60 * 60 * 1000; // 48 hours
+
+    // Load products from localStorage or Supabase
     export async function loadProducts(): Promise<Product[]> {
         if (typeof window !== "undefined") {
-            const cached = window.sessionStorage.getItem("allProductItems");
-            if (cached) {
-                try {
-                    _productCache = JSON.parse(cached);
-                    return _productCache || [];
-                } catch { }
+            const cached = window.localStorage.getItem(CACHE_KEY);
+            const timestamp = window.localStorage.getItem(CACHE_TIMESTAMP_KEY);
+
+            if (cached && timestamp) {
+                const now = Date.now();
+                if (now - parseInt(timestamp) < CACHE_EXPIRATION_MS) {
+                    try {
+                        _productCache = JSON.parse(cached);
+                        return _productCache || [];
+                    } catch { }
+                }
             }
         }
+
         const products = await productService.getAllProducts();
-        // take id and price related info fro db or priserve Product static info strcture  map the info 
-        // needed to merge static info with db info check through name 
+
         _productCache = products.map(dbProd => {
             const staticProd = staticProducts.find(sp => sp.slug === dbProd.slug);
             return {
@@ -676,8 +685,10 @@ export namespace ProductInfo {
                 id: dbProd.id,
             } as Product;
         });
+
         if (typeof window !== "undefined") {
-            window.sessionStorage.setItem("allProductItems", JSON.stringify(_productCache));
+            window.localStorage.setItem(CACHE_KEY, JSON.stringify(_productCache));
+            window.localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
         }
 
         return _productCache || staticProducts;
@@ -687,7 +698,7 @@ export namespace ProductInfo {
     export function getAllProductItems(): Product[] {
         if (_productCache) return _productCache;
         if (typeof window !== "undefined") {
-            const cached = window.sessionStorage.getItem("allProductItems");
+            const cached = window.localStorage.getItem(CACHE_KEY);
             if (cached) {
                 try {
                     _productCache = JSON.parse(cached);
@@ -704,10 +715,20 @@ export namespace ProductInfo {
     // On app load, fetch and cache products (only once per tab)
     if (typeof window !== "undefined") {
         (async () => {
-            if (!window.sessionStorage.getItem("allProductItems")) {
+            const cached = window.localStorage.getItem(CACHE_KEY);
+            const timestamp = window.localStorage.getItem(CACHE_TIMESTAMP_KEY);
+            let needsFetch = !cached || !timestamp;
+
+            if (cached && timestamp) {
+                const now = Date.now();
+                if (now - parseInt(timestamp) >= CACHE_EXPIRATION_MS) {
+                    needsFetch = true;
+                }
+            }
+
+            if (needsFetch) {
                 try {
                     const products = await loadProducts();
-                    window.sessionStorage.setItem("allProductItems", JSON.stringify(products));
                     allProductItems = products;
                     _productCache = products;
                 } catch (err) {
@@ -715,7 +736,7 @@ export namespace ProductInfo {
                 }
             } else {
                 try {
-                    allProductItems = JSON.parse(window.sessionStorage.getItem("allProductItems")!);
+                    allProductItems = JSON.parse(cached!);
                     _productCache = allProductItems;
                 } catch { }
             }
@@ -816,7 +837,7 @@ export namespace ProductInfo {
             base: string[];
         };
         layeringOptions: {
-            id: number;
+            id: number | string;
             name: string;
             description: string;
         }[];

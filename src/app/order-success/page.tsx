@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import { motion } from "framer-motion"
@@ -26,7 +26,7 @@ interface OrderDetails {
   created_at: string
 }
 
-export default function OrderSuccess() {
+function OrderSuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { toast } = useToast()
@@ -48,7 +48,7 @@ export default function OrderSuccess() {
     const fetchOrder = async () => {
       // Wait for authentication to complete
       if (isLoading) return;
-      
+
       if (!isAuthenticated || !user) {
         setLoading(false);
         return;
@@ -236,5 +236,20 @@ export default function OrderSuccess() {
         </motion.div>
       </div>
     </div>
+  )
+}
+
+export default function OrderSuccess() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <h2 className="text-xl font-medium">Loading details...</h2>
+        </div>
+      </div>
+    }>
+      <OrderSuccessContent />
+    </Suspense>
   )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,6 +17,54 @@ import { supabase } from "@/src/lib/supabaseClient"
 import type { ShippingAddress } from "@/src/types/orders";
 import { LoadingSpinner } from "@/src/components/ui/loading-spinner"
 import { useAuthStore } from "@/src/lib/auth"
+
+// Field helper component - Defined outside to prevent focus loss on re-render
+const FormField = ({
+  label,
+  name,
+  value,
+  onChange,
+  error,
+  type = "text",
+  placeholder = "",
+  colSpan = 1,
+}: {
+  label: string;
+  name: keyof ShippingAddress;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  error?: string;
+  type?: string;
+  placeholder?: string;
+  colSpan?: number;
+}) => (
+  <div className={`space-y-2 ${colSpan === 2 ? 'col-span-2' : ''}`}>
+    <Label htmlFor={name as string}>{label}</Label>
+    <div className="relative">
+      <Input
+        id={name as string}
+        name={name as string}
+        type={type}
+        value={value}
+        onChange={onChange}
+        className={`bg-white/5 ${error
+            ? 'border-red-500 focus:ring-red-500'
+            : value
+              ? 'border-green-500/50'
+              : ''
+          }`}
+        placeholder={placeholder}
+        autoComplete={name === 'pincode' ? 'postal-code' : name as string}
+      />
+      {value && !error && (
+        <CheckCircle2 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" size={14} />
+      )}
+    </div>
+    {error && (
+      <p className="text-xs text-red-400">{error}</p>
+    )}
+  </div>
+);
 
 export default function Checkout() {
   const router = useRouter()
@@ -53,10 +101,13 @@ export default function Checkout() {
 
   // Load user's default address if available
   useEffect(() => {
+    if (!user?.id) {
+      setIsLoadingAddress(false);
+      return;
+    }
+
     const loadUserAddress = async () => {
       try {
-        if (!user?.id) return;
-
         const { data: addresses, error } = await supabase
           .from('user_addresses')
           .select('*')
@@ -88,31 +139,29 @@ export default function Checkout() {
         }
       } catch (error) {
         console.error('Error loading address:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load saved address. Please enter manually.",
-          variant: "destructive"
-        });
       } finally {
         setIsLoadingAddress(false);
       }
     };
 
     loadUserAddress();
-  }, [user, toast]);
+  }, [user?.id]); // Only run when user ID changes
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setShippingAddress(prev => ({
       ...prev,
       [name]: value
     }));
     // Clear field error on change
-    if (fieldErrors[name as keyof ShippingAddress]) {
-      setFieldErrors(prev => ({ ...prev, [name]: undefined }));
-    }
+    setFieldErrors(prev => {
+      if (prev[name as keyof ShippingAddress]) {
+        return { ...prev, [name]: undefined };
+      }
+      return prev;
+    });
     if (error) setError("");
-  };
+  }, [error]);
 
   const validateForm = (): boolean => {
     const errors: Partial<Record<keyof ShippingAddress, string>> = {};
@@ -251,48 +300,6 @@ export default function Checkout() {
     return null;
   }
 
-  // Field helper component
-  const FormField = ({
-    label,
-    name,
-    type = "text",
-    placeholder = "",
-    colSpan = 1,
-  }: {
-    label: string;
-    name: keyof ShippingAddress;
-    type?: string;
-    placeholder?: string;
-    colSpan?: number;
-  }) => (
-    <div className={`space-y-2 ${colSpan === 2 ? 'col-span-2' : ''}`}>
-      <Label htmlFor={name as string}>{label}</Label>
-      <div className="relative">
-        <Input
-          id={name as string}
-          name={name as string}
-          type={type}
-          value={shippingAddress[name]}
-          onChange={handleInputChange}
-          className={`bg-white/5 ${
-            fieldErrors[name]
-              ? 'border-red-500 focus:ring-red-500'
-              : shippingAddress[name]
-              ? 'border-green-500/50'
-              : ''
-          }`}
-          placeholder={placeholder}
-          autoComplete={name === 'pincode' ? 'postal-code' : name as string}
-        />
-        {shippingAddress[name] && !fieldErrors[name] && (
-          <CheckCircle2 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" size={14} />
-        )}
-      </div>
-      {fieldErrors[name] && (
-        <p className="text-xs text-red-400">{fieldErrors[name]}</p>
-      )}
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white py-12">
@@ -361,19 +368,69 @@ export default function Checkout() {
                   </h2>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <FormField label="Full Name" name="name" placeholder="Your full name" />
-                    <FormField label="Email" name="email" type="email" placeholder="name@example.com" />
+                    <FormField
+                      label="Full Name"
+                      name="name"
+                      placeholder="Your full name"
+                      value={shippingAddress.name}
+                      onChange={handleInputChange}
+                      error={fieldErrors.name}
+                    />
+                    <FormField
+                      label="Email"
+                      name="email"
+                      type="email"
+                      placeholder="name@example.com"
+                      value={shippingAddress.email}
+                      onChange={handleInputChange}
+                      error={fieldErrors.email}
+                    />
                   </div>
 
-                  <FormField label="Phone Number" name="phone" placeholder="10-digit phone number" />
-                  <FormField label="Address" name="address" placeholder="Street address, apartment, etc." />
+                  <FormField
+                    label="Phone Number"
+                    name="phone"
+                    placeholder="10-digit phone number"
+                    value={shippingAddress.phone}
+                    onChange={handleInputChange}
+                    error={fieldErrors.phone}
+                  />
+                  <FormField
+                    label="Address"
+                    name="address"
+                    placeholder="Street address, apartment, etc."
+                    value={shippingAddress.address}
+                    onChange={handleInputChange}
+                    error={fieldErrors.address}
+                  />
 
                   <div className="grid grid-cols-2 gap-4">
-                    <FormField label="City" name="city" placeholder="City" />
-                    <FormField label="State" name="state" placeholder="State" />
+                    <FormField
+                      label="City"
+                      name="city"
+                      placeholder="City"
+                      value={shippingAddress.city}
+                      onChange={handleInputChange}
+                      error={fieldErrors.city}
+                    />
+                    <FormField
+                      label="State"
+                      name="state"
+                      placeholder="State"
+                      value={shippingAddress.state}
+                      onChange={handleInputChange}
+                      error={fieldErrors.state}
+                    />
                   </div>
 
-                  <FormField label="PIN Code" name="pincode" placeholder="6-digit PIN code" />
+                  <FormField
+                    label="PIN Code"
+                    name="pincode"
+                    placeholder="6-digit PIN code"
+                    value={shippingAddress.pincode}
+                    onChange={handleInputChange}
+                    error={fieldErrors.pincode}
+                  />
                 </div>
               </div>
 
