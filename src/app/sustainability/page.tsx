@@ -9,27 +9,25 @@ import Image from "next/image"
 
 export default function SustainabilityPage() {
   return (
-    <div className="min-h-screen bg-black text-white">
+    <main className="flex flex-col min-h-screen bg-zinc-950 text-white selection:bg-white/20">
       <SimpleNavbar />
-      
-      <main className="container mx-auto px-4 py-24">
-        <div className="flex items-center text-sm text-gray-400 mb-8">
-          <Link href="/" className="hover:text-accent">Home</Link>
-          <ChevronRight className="h-4 w-4 mx-2" />
-          <span>Sustainability</span>
-        </div>
-
+      <div className="flex-grow pt-32 pb-24 relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-white/20 to-transparent" />
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-4xl mx-auto"
+           initial={{ opacity: 0 }}
+           animate={{ opacity: 1 }}
+           transition={{ duration: 0.5 }}
+           className="container mx-auto px-4 md:px-6 relative z-10 max-w-4xl"
         >
-          <h1 className="text-4xl font-bold text-center mb-8">Our Commitment to Sustainability</h1>
+          <div className="text-center mb-16">
+            <h2 className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-4">Our Commitment</h2>
+            <h1 className="text-4xl md:text-5xl font-serif text-white mb-8 tracking-wide">Sustainability</h1>
+          </div>
           
-          <div className="space-y-12">
-            <section className="prose prose-invert max-w-none">
-              <h2 className="text-2xl font-semibold mb-4">Eco-Friendly Packaging</h2>
-              <ul className="list-disc pl-6 space-y-4">
+          <div className="space-y-12 text-white/60 font-light leading-relaxed">
+            <section>
+              <h2 className="text-2xl font-serif text-white tracking-wide mb-4">Eco-Friendly Packaging</h2>
+              <ul className="list-disc marker:text-white/30 pl-6 space-y-4">
                 <li>
                   Our premium glass bottles are both luxurious and fully recyclable, designed to minimize 
                   environmental impact while maintaining aesthetic appeal.
@@ -41,9 +39,9 @@ export default function SustainabilityPage() {
               </ul>
             </section>
 
-            <section className="prose prose-invert max-w-none">
-              <h2 className="text-2xl font-semibold mb-4">Artisanal Production</h2>
-              <ul className="list-disc pl-6 space-y-4">
+            <section>
+              <h2 className="text-2xl font-serif text-white tracking-wide mb-4">Artisanal Production</h2>
+              <ul className="list-disc marker:text-white/30 pl-6 space-y-4">
                 <li>
                   Our fragrances are hand-crafted by skilled artisans, maintaining traditional perfumery 
                   methods that preserve quality while reducing energy consumption.
@@ -55,9 +53,9 @@ export default function SustainabilityPage() {
               </ul>
             </section>
 
-            <section className="prose prose-invert max-w-none">
-              <h2 className="text-2xl font-semibold mb-4">Quality Ingredients</h2>
-              <ul className="list-disc pl-6 space-y-4">
+            <section>
+              <h2 className="text-2xl font-serif text-white tracking-wide mb-4">Quality Ingredients</h2>
+              <ul className="list-disc marker:text-white/30 pl-6 space-y-4">
                 <li>
                   We source high-quality, pure ingredients from responsible suppliers who share our 
                   commitment to sustainability.
@@ -82,9 +80,8 @@ export default function SustainabilityPage() {
             </div>
           </div>
         </motion.div>
-      </main>
-
+      </div>
       <Footer />
-    </div>
+    </main>
   )
 }

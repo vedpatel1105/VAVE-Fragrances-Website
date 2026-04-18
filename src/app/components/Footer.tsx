@@ -32,7 +32,7 @@ export default function Footer() {
             <ul className="space-y-4">
               <li>
                 <Link href="/about" className="text-white/40 hover:text-white text-sm font-light transition-colors duration-300">
-                  Maison VAVE
+                   VAVE
                 </Link>
               </li>
               <li>
@@ -113,7 +113,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-white/30 text-xs font-light">
-          <p>&copy; {new Date().getFullYear()} MAISON VAVE. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()}  VAVE. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <Link href="/terms" className="hover:text-white transition-colors duration-300">
               Terms

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import SimpleNavbar from "@/src/app/components/SimpleNavbar"
 import SimpleInstagramFeed from "@/src/app/components/SimpleInstagramFeed"
+import Footer from "@/src/app/components/Footer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -61,38 +62,42 @@ export default function Contact() {
   }
 
   return (
-    <>
+    <main className="flex flex-col min-h-screen bg-zinc-950 text-white selection:bg-white/20">
       <SimpleNavbar />
-      <div className="container mx-auto px-4 py-16 md:py-24">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Contact Us</h1>
-          <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Have questions about our fragrances or need assistance? We're here to help. Reach out to us using the form
-            below or through our contact information.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card className="p-6">
-            <h2 className="text-xl font-semibold mb-6">Send Us a Message</h2>
+      <div className="flex-grow pt-32 pb-24 relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-white/20 to-transparent" />
+        <div className="container mx-auto px-4 md:px-6 relative z-10">
+          <div className="text-center mb-20">
+            <h2 className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-4">Get In Touch</h2>
+            <h1 className="text-4xl md:text-5xl font-serif text-white mb-8 tracking-wide">Contact Us</h1>
+            <p className="text-white/40 max-w-2xl mx-auto font-light leading-relaxed text-sm">
+              Have questions about our fragrances or need assistance? We're here to help. Reach out to us using the form below or through our contact information.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+            <Card className="bg-zinc-900/40 backdrop-blur-sm border-white/5 p-8 lg:p-12">
+              <h2 className="text-3xl font-serif text-white tracking-wide mb-8">Send Us a Message</h2>
             {isSubmitted ? (
-              <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-lg text-center">
-                <div className="mx-auto w-12 h-12 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center mb-4">
-                  <Check className="h-6 w-6 text-green-600 dark:text-green-300" />
+              <div className="bg-white/5 border border-white/10 p-12 rounded-lg text-center">
+                <div className="mx-auto w-16 h-16 bg-white/10 border border-white/20 rounded-full flex items-center justify-center mb-6">
+                  <Check className="h-8 w-8 text-white" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-lg font-medium text-green-800 dark:text-green-300 mb-2">Message Sent!</h3>
-                <p className="text-green-700 dark:text-green-400">
+                <h3 className="text-2xl font-serif text-white tracking-wide mb-4">Message Sent</h3>
+                <p className="text-white/50 text-sm font-light leading-relaxed mb-8">
                   Thank you for reaching out. We'll get back to you as soon as possible.
                 </p>
-                <Button className="mt-4" onClick={() => setIsSubmitted(false)}>
+                <Button 
+                  className="h-12 px-8 bg-transparent border border-white/20 text-white hover:bg-white/5 hover:border-white/40 rounded-full text-[11px] uppercase tracking-widest font-bold transition-all duration-300"
+                  onClick={() => setIsSubmitted(false)}
+                >
                   Send Another Message
                 </Button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-4">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium mb-1">
+              <form onSubmit={handleSubmit} className="space-y-8">
+                  <div className="space-y-2">
+                    <label htmlFor="name" className="block text-[11px] uppercase tracking-widest text-white/50">
                       Your Name
                     </label>
                     <Input
@@ -102,10 +107,11 @@ export default function Contact() {
                       onChange={handleChange}
                       required
                       placeholder="Enter your name"
+                      className="h-12 bg-zinc-950/50 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/30 rounded-none"
                     />
                   </div>
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium mb-1">
+                  <div className="space-y-2">
+                    <label htmlFor="email" className="block text-[11px] uppercase tracking-widest text-white/50">
                       Email Address
                     </label>
                     <Input
@@ -116,10 +122,11 @@ export default function Contact() {
                       onChange={handleChange}
                       required
                       placeholder="Enter your mail"
+                      className="h-12 bg-zinc-950/50 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/30 rounded-none"
                     />
                   </div>
-                  <div>
-                    <label htmlFor="subject" className="block text-sm font-medium mb-1">
+                  <div className="space-y-2">
+                    <label htmlFor="subject" className="block text-[11px] uppercase tracking-widest text-white/50">
                       Subject
                     </label>
                     <Input
@@ -129,10 +136,11 @@ export default function Contact() {
                       onChange={handleChange}
                       required
                       placeholder="Product Inquiry"
+                      className="h-12 bg-zinc-950/50 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/30 rounded-none"
                     />
                   </div>
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium mb-1">
+                  <div className="space-y-2">
+                    <label htmlFor="message" className="block text-[11px] uppercase tracking-widest text-white/50">
                       Message
                     </label>
                     <Textarea
@@ -143,55 +151,59 @@ export default function Contact() {
                       required
                       placeholder="Your message here..."
                       rows={5}
+                      className="bg-zinc-950/50 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/30 rounded-none resize-none pt-4"
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Sending..." : "Send Message"}
-                  </Button>
-                </div>
+                  <div className="pt-4">
+                    <Button type="submit" className="w-full h-14 bg-white text-black hover:bg-gray-200 rounded-full text-[11px] uppercase tracking-widest font-bold transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]" disabled={isSubmitting}>
+                      {isSubmitting ? "Sending..." : "Send Message"}
+                    </Button>
+                  </div>
               </form>
             )}
           </Card>
 
-          <div>
-            <Card className="p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-6">Contact Information</h2>
-              <div className="space-y-4">
+          <div className="space-y-8">
+            <Card className="bg-transparent border-none shadow-none">
+              <h2 className="text-2xl font-serif text-white tracking-wide mb-8">Contact Information</h2>
+              <div className="space-y-8">
                 <div className="flex items-start">
-                  <div className="p-2 bg-accent/10 rounded-full mr-4">
-                    <Mail className="h-5 w-5 text-accent" />
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-full mr-5">
+                    <Mail className="h-5 w-5 text-white/70" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <h3 className="font-medium">Email</h3>
-                    <p className="text-gray-600 dark:text-gray-300">Info@vavefragrances.com</p>
+                    <h3 className="font-serif text-lg text-white mb-2 tracking-wide">Email</h3>
+                    <p className="text-white/40 text-sm font-light leading-relaxed">Info@vavefragrances.com</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="p-2 bg-accent/10 rounded-full mr-4">
-                    <Phone className="h-5 w-5 text-accent" />
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-full mr-5">
+                    <Phone className="h-5 w-5 text-white/70" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <h3 className="font-medium">Phone</h3>
-                    <p className="text-gray-600 dark:text-gray-300">+91 9328701508, +91 9265851446</p>
+                    <h3 className="font-serif text-lg text-white mb-2 tracking-wide">Phone</h3>
+                    <p className="text-white/40 text-sm font-light leading-relaxed">+91 9328701508<br/>+91 9265851446</p>
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="p-2 bg-accent/10 rounded-full mr-4">
-                    <Clock className="h-5 w-5 text-accent" />
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-full mr-5">
+                    <Clock className="h-5 w-5 text-white/70" strokeWidth={1.5} />
                   </div>
                   <div>
-                    <h3 className="font-medium">Business Hours</h3>
-                    <p className="text-gray-600 dark:text-gray-300">Monday - Friday: 9:00 AM - 6:00 PM</p>
-                    <p className="text-gray-600 dark:text-gray-300">Saturday: 10:00 AM - 4:00 PM</p>
-                    <p className="text-gray-600 dark:text-gray-300">Sunday: Closed</p>
+                    <h3 className="font-serif text-lg text-white mb-2 tracking-wide">Business Hours</h3>
+                    <p className="text-white/40 text-sm font-light leading-relaxed">Monday - Friday: 9:00 AM - 6:00 PM</p>
+                    <p className="text-white/40 text-sm font-light leading-relaxed">Saturday: 10:00 AM - 4:00 PM</p>
+                    <p className="text-white/40 text-sm font-light leading-relaxed">Sunday: Closed</p>
                   </div>
                 </div>
               </div>
             </Card>
 
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold mb-6">Connect With Us</h2>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
+            <div className="w-full h-px bg-white/5 my-8"></div>
+
+            <Card className="bg-transparent border-none shadow-none">
+              <h2 className="text-2xl font-serif text-white tracking-wide mb-8">Connect With Us</h2>
+              <p className="text-white/40 text-sm font-light leading-relaxed mb-6">
                 Follow us on social media for the latest updates, promotions, and fragrance inspiration.
               </p>
               <div className="flex space-x-4">
@@ -199,7 +211,7 @@ export default function Contact() {
                   href="https://instagram.com/vavefragrances"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-3 bg-pink-500 text-white rounded-full hover:bg-pink-600 transition-colors"
+                  className="p-4 bg-white/5 border border-white/10 rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -208,7 +220,7 @@ export default function Contact() {
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    strokeWidth="2"
+                    strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     className="h-5 w-5"
@@ -224,10 +236,12 @@ export default function Contact() {
         </div>
 
         {/* Instagram Feed Section */}
-        <div className="mt-24">
+        <div className="mt-32">
           <SimpleInstagramFeed />
         </div>
       </div>
-    </>
+      </div>
+      <Footer />
+    </main>
   )
 }

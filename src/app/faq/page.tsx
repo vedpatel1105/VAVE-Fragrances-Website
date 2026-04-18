@@ -195,16 +195,20 @@ export default function FAQPage() {
   const displayFAQs = searchQuery && searchResults.length > 0 ? searchResults : getActiveFAQs()
 
   return (
-    <>
+    <main className="flex flex-col min-h-screen bg-zinc-950 text-white selection:bg-white/20">
       <SimpleNavbar />
-      <main className="container mx-auto py-16 px-4">
+      <div className="flex-grow pt-32 pb-24 relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-white/20 to-transparent" />
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-4xl mx-auto"
+           initial={{ opacity: 0 }}
+           animate={{ opacity: 1 }}
+           transition={{ duration: 0.5 }}
+           className="container mx-auto px-4 md:px-6 relative z-10 max-w-4xl"
         >
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-center mb-8">Frequently Asked Questions</h1>
+          <div className="text-center mb-16">
+            <h2 className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-4">Support</h2>
+            <h1 className="text-4xl md:text-5xl font-serif text-white mb-8 tracking-wide">Frequently Asked Questions</h1>
+          </div>
 
           {/* Search Bar */}
           <div className="mb-12">
@@ -214,10 +218,10 @@ export default function FAQPage() {
                 placeholder="Search for answers..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 py-6 text-lg"
+                className="pl-12 py-8 text-lg rounded-none bg-zinc-900/40 backdrop-blur-sm border border-white/10 text-white placeholder:text-white/30 focus:ring-1 focus:ring-white/30 h-16 w-full"
               />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Button type="submit" className="absolute right-1 top-1/2 transform -translate-y-1/2">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/40 h-6 w-6" />
+              <Button type="submit" variant="outline" className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white text-black hover:bg-gray-200 border-none rounded-none h-12 px-8">
                 Search
               </Button>
             </form>
@@ -226,22 +230,22 @@ export default function FAQPage() {
           {/* Search Results */}
           {searchQuery && searchResults.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-2xl font-bold mb-4">Search Results</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
+              <h2 className="text-2xl font-serif text-white tracking-wide mb-4">Search Results</h2>
+              <p className="text-white/50 font-light mb-6">
                 Found {searchResults.length} results for "{searchQuery}"
               </p>
 
-              <Accordion type="single" collapsible className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+              <Accordion type="single" collapsible className="bg-zinc-900/40 backdrop-blur-sm border border-white/5 rounded-lg shadow-sm">
                 {searchResults.map((result, index) => (
                   <AccordionItem key={index} value={`search-${index}`}>
                     <AccordionTrigger className="px-6">
                       <div className="text-left">
-                        <div className="text-sm text-accent mb-1 capitalize">{result.category}</div>
+                        <div className="text-sm text-white/40 tracking-widest mb-1 capitalize">{result.category}</div>
                         {result.question}
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="px-6 pb-4">
-                      <p className="text-gray-700 dark:text-gray-300">{result.answer}</p>
+                      <p className="text-white/70 font-light leading-relaxed">{result.answer}</p>
                     </AccordionContent>
                   </AccordionItem>
                 ))}
@@ -262,9 +266,9 @@ export default function FAQPage() {
 
           {/* No Search Results */}
           {searchQuery && searchResults.length === 0 && (
-            <div className="text-center mb-12 p-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <h2 className="text-2xl font-bold mb-2">No Results Found</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <div className="text-center mb-12 p-8 bg-zinc-900/30 border border-white/5 rounded-lg">
+              <h2 className="text-2xl font-serif text-white tracking-wide mb-2">No Results Found</h2>
+              <p className="text-white/50 font-light mb-6">
                 We couldn't find any results for "{searchQuery}". Please try a different search term or browse our FAQ
                 categories below.
               </p>
@@ -293,20 +297,20 @@ export default function FAQPage() {
               </TabsList>
 
               <TabsContent value={activeTab} className="mt-6">
-                <Accordion type="single" collapsible className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                <Accordion type="single" collapsible className="bg-zinc-900/40 backdrop-blur-sm border border-white/5 rounded-lg shadow-sm">
                   {displayFAQs.map((faq, index) => (
                     <AccordionItem key={index} value={`item-${index}`}>
                       <AccordionTrigger className="px-6">
                         {activeTab === "all" && (
                           <div className="text-left">
-                            <div className="text-sm text-accent mb-1 capitalize">{faq.category}</div>
+                            <div className="text-sm text-white/40 tracking-widest mb-1 capitalize">{faq.category}</div>
                             {faq.question}
                           </div>
                         )}
                         {activeTab !== "all" && faq.question}
                       </AccordionTrigger>
                       <AccordionContent className="px-6 pb-4">
-                        <p className="text-gray-700 dark:text-gray-300">{faq.answer}</p>
+                        <p className="text-white/70 font-light leading-relaxed">{faq.answer}</p>
                       </AccordionContent>
                     </AccordionItem>
                   ))}
@@ -318,8 +322,8 @@ export default function FAQPage() {
           {/* Still Need Help */}
          
         </motion.div>
-      </main>
+      </div>
       <Footer />
-    </>
+    </main>
   )
 }

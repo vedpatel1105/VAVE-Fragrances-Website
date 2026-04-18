@@ -242,7 +242,7 @@ export default function ProductDetailPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-black"
+      className="min-h-screen bg-zinc-950 selection:bg-white/20"
     >
       <SimpleNavbar />
 
@@ -253,17 +253,17 @@ export default function ProductDetailPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="flex items-center text-sm text-gray-400  mt-8 sm:mt-2  mb-6"
+          className="flex items-center text-[10px] uppercase tracking-[0.2em] text-white/40 mt-8 sm:mt-2 mb-6"
         >
           <Link href="/" className="hover:text-white transition-colors">
             Home
           </Link>
-          <ChevronRight className="h-4 w-4 mx-2" />
+          <ChevronRight className="h-4 w-4 mx-2 text-white/20" />
           <Link href="/collection" className="hover:text-white transition-colors">
             Collection
           </Link>
-          <ChevronRight className="h-4 w-4 mx-2" />
-          <span className="text-white">{product.name}</span>
+          <ChevronRight className="h-4 w-4 mx-2 text-white/20" />
+          <span className="text-white/80">{product.name}</span>
         </motion.div>
 
         {/* Main Product Section - Update grid columns */}
@@ -449,7 +449,7 @@ export default function ProductDetailPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="text-4xl md:text-5xl font-bold text-white mb-2"
+                  className="text-4xl md:text-5xl font-serif text-white mb-2 tracking-wide"
                 >
                   {product.name}
                 </motion.h1>
@@ -457,7 +457,7 @@ export default function ProductDetailPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 }}
-                  className="text-lg text-gray-300"
+                  className="text-lg font-light text-white/60"
                 >
                   {product.tagline}
                 </motion.p>
@@ -478,7 +478,7 @@ export default function ProductDetailPage() {
                         initial={{ opacity: 0, scale: 0 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: 0.8 + star * 0.1 }}
-                        className={`h-5 w-5 ${star <= Math.round(product.rating) ? "text-white fill-white" : "text-gray-600"
+                        className={`h-5 w-5 ${star <= Math.round(product.rating) ? "text-white fill-white" : "text-white/20"
                           }`}
                         viewBox="0 0 20 20"
                         fill="currentColor"
@@ -491,18 +491,18 @@ export default function ProductDetailPage() {
                       </motion.svg>
                     ))}
                   </div>
-                  <span className="ml-2 text-sm text-gray-300">
+                  <span className="ml-3 text-[10px] uppercase tracking-widest text-white/50">
                     {product.rating} ({product.reviews} reviews)
                   </span>
                 </div>
-                <div className="text-3xl font-bold mb-2 text-white">
+                <div className="text-3xl font-serif text-white tracking-wide mb-2">
                   ₹{product.sizeOptions.find((s) => s.size === selectedSize)?.price || product.price}
                 </div>
               </motion.div>
 
               {/* Size Selection - Always Buttons, Responsive */}
               <div className="mb-8">
-                <h3 className="text-sm font-medium mb-3 text-gray-200 uppercase tracking-wider">
+                <h3 className="text-[10px] tracking-[0.2em] font-medium mb-4 text-white/50 uppercase">
                   Select Size
                 </h3>
                 <div className="flex gap-4 flex-col xs:flex-row sm:flex-row">
@@ -513,14 +513,14 @@ export default function ProductDetailPage() {
                         setSelectedSize(option.size)
                         setCurrentImage(0)
                       }}
-                      className={`flex-1 py-3 rounded-xl border transition-all duration-300 text-base font-bold ${selectedSize === option.size
-                        ? "border-white bg-white/10 text-white"
-                        : "border-gray-600 text-gray-300 hover:border-gray-400"
+                      className={`flex-1 py-4 rounded-none border transition-all duration-500 font-serif text-lg tracking-wide ${selectedSize === option.size
+                        ? "border-white/50 bg-white/10 text-white"
+                        : "border-white/10 text-white/60 hover:border-white/30"
                         }`}
                       style={{ minWidth: 100 }}
                     >
                       <div>{option.size}</div>
-                      <div className="text-sm font-normal">₹{option.price}</div>
+                      <div className="text-[10px] uppercase font-sans tracking-widest mt-1 opacity-70 border-t border-white/10 pt-2 mx-8">₹{option.price}</div>
                     </button>
                   ))}
                 </div>
@@ -533,7 +533,7 @@ export default function ProductDetailPage() {
                 transition={{ delay: 1 }}
                 className="mb-8"
               >
-                <h3 className="text-sm font-medium mb-4 text-gray-200 uppercase tracking-wider">Fragrance Notes</h3>
+                <h3 className="text-[10px] uppercase tracking-widest mb-4 text-white/50">Fragrance Notes</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {["top", "heart", "base"].map((noteType, index) => (
                     <motion.div
@@ -541,9 +541,9 @@ export default function ProductDetailPage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 1.1 + index * 0.1 }}
-                      className="rounded-xl p-4 text-white bg-white/10 backdrop-blur-md border border-white/20"
+                      className="rounded-none p-4 text-white bg-white/5 border border-white/5"
                     >
-                      <h4 className="text-xs uppercase mb-2 opacity-80 font-medium">
+                      <h4 className="text-[10px] uppercase tracking-widest mb-3 opacity-80 text-white/50">
                         {noteType === "top" ? "Top Notes" : noteType === "heart" ? "Heart Notes" : "Base Notes"}
                       </h4>
                       <ul className="space-y-1">
@@ -554,7 +554,7 @@ export default function ProductDetailPage() {
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ delay: 1.2 + index * 0.1 + noteIndex * 0.05 }}
-                              className="text-sm font-medium"
+                              className="text-sm font-light text-white/70"
                             >
                               {note}
                             </motion.li>
@@ -575,26 +575,26 @@ export default function ProductDetailPage() {
               >
                 <motion.div
                   whileHover={{ scale: 1.02 }}
-                  className="flex items-center p-6 rounded-xl bg-white/5 backdrop-blur-md border border-white/10"
+                  className="flex items-center p-6 rounded-none bg-white/5 backdrop-blur-md border border-white/5"
                 >
-                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mr-4 flex-shrink-0">
-                    <Droplets className="h-6 w-6 text-white" />
+                  <div className="w-12 h-12 rounded-none bg-white/5 border border-white/10 flex items-center justify-center mr-4 flex-shrink-0">
+                    <Droplets className="h-6 w-6 text-white/70" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-white text-lg">High Concentration</h4>
-                    <p className="text-sm text-gray-300">25% Perfume Oil</p>
+                    <h4 className="font-serif tracking-wide text-white text-lg">High Concentration</h4>
+                    <p className="text-sm text-white/50 font-light">25% Perfume Oil</p>
                   </div>
                 </motion.div>
                 <motion.div
                   whileHover={{ scale: 1.02 }}
-                  className="flex items-center p-6 rounded-xl bg-white/5 backdrop-blur-md border border-white/10"
+                  className="flex items-center p-6 rounded-none bg-white/5 backdrop-blur-md border border-white/5"
                 >
-                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mr-4 flex-shrink-0">
-                    <Clock className="h-6 w-6 text-white" />
+                  <div className="w-12 h-12 rounded-none bg-white/5 border border-white/10 flex items-center justify-center mr-4 flex-shrink-0">
+                    <Clock className="h-6 w-6 text-white/70" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-white text-lg">Long Lasting</h4>
-                    <p className="text-sm text-gray-300">8+ hours longevity</p>
+                    <h4 className="font-serif tracking-wide text-white text-lg">Long Lasting</h4>
+                    <p className="text-sm text-white/50 font-light">8+ hours longevity</p>
                   </div>
                 </motion.div>
               </motion.div>
@@ -606,8 +606,8 @@ export default function ProductDetailPage() {
                 transition={{ delay: 1.3 }}
                 className="mb-8"
               >
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <p className="text-gray-300">{product.description}</p>
+                <div className="prose prose-sm dark:prose-invert max-w-none text-white/60 font-light leading-relaxed">
+                  <p>{product.description}</p>
                   <AnimatePresence>
                     {showFullDescription && (
                       <motion.div
@@ -644,12 +644,12 @@ export default function ProductDetailPage() {
                 className="flex flex-col sm:flex-row gap-4 mb-8"
               >
                 <div className="flex-shrink-0 w-full sm:w-auto">
-                  <div className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden flex justify-between items-center">
+                  <div className="bg-zinc-900 border border-white/10 rounded-none overflow-hidden flex justify-between items-center text-white h-full">
                     <motion.button
-                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                      whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => quantity > 1 && setQuantity(quantity - 1)}
-                      className="p-4 w-20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center"
+                      className="p-4 w-16 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center"
                       disabled={quantity <= 1}
                     >
                       <Minus className="h-6 w-6 text-white" />
@@ -658,10 +658,10 @@ export default function ProductDetailPage() {
                       {quantity}
                     </div>
                     <motion.button
-                      whileHover={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+                      whileHover={{ backgroundColor: "rgba(255,255,255,0.05)" }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setQuantity(quantity + 1)}
-                      className="p-4 w-20 transition-colors flex justify-center"
+                      className="p-4 w-16 transition-colors flex justify-center"
                     >
                       <Plus className="h-6 w-6 text-white" />
                     </motion.button>
@@ -669,10 +669,10 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Updated Cart and Buy Now Buttons */}
-                <div className="flex flex-col sm:flex-row gap-4 mb-8 px-4">
+                <div className="flex flex-col sm:flex-row gap-4 mb-8 px-4 flex-1">
                   <motion.button
                     onClick={handleAddToCart}
-                    className="flex-1 py-4 px-6 rounded-xl flex items-center justify-center font-medium text-black bg-white hover:bg-gray-200 relative overflow-hidden transition-colors"
+                    className="flex-1 py-4 px-6 rounded-none flex items-center justify-center font-medium text-white bg-zinc-900 border border-white/10 hover:border-white/30 text-[10px] tracking-widest uppercase relative overflow-hidden transition-all"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     disabled={isAnimating}
@@ -717,7 +717,7 @@ export default function ProductDetailPage() {
 
                   <motion.button
                     onClick={handleBuyNow}
-                    className="flex-1 py-4 px-6 rounded-xl flex items-center justify-center font-medium text-white bg-gray-800 hover:bg-gray-700 transition-colors"
+                    className="flex-1 py-4 px-6 rounded-none flex items-center justify-center font-medium text-black bg-white hover:bg-gray-200 text-[10px] tracking-widest uppercase transition-all"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >

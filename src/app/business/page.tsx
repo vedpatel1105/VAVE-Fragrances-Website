@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import SimpleNavbar from "@/src/app/components/SimpleNavbar"
+import Footer from "@/src/app/components/Footer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -179,16 +180,18 @@ export default function BusinessInquiry() {
   const selectedCategoryData = businessCategories.find(cat => cat.id === selectedCategory)
 
   return (
-    <>
+    <main className="flex flex-col min-h-screen bg-zinc-950 text-white selection:bg-white/20">
       <SimpleNavbar />
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white pt-20">
-        <div className="container mx-auto px-4 py-16">
+      <div className="flex-grow pt-32 pb-24 relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-white/20 to-transparent" />
+        <div className="container mx-auto px-4 md:px-6 relative z-10">
           {/* Header Section */}
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 font-serif">
-              Business Partnership Opportunities
+          <div className="text-center mb-20">
+            <h2 className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-4">Partner With Us</h2>
+            <h1 className="text-4xl md:text-5xl font-serif text-white mb-8 tracking-wide">
+              Business Opportunities
             </h1>
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+            <p className="text-white/40 max-w-2xl mx-auto font-light leading-relaxed text-sm">
               Join the VAVE family and explore exciting business opportunities in the fragrance industry. 
               From white labeling to distribution partnerships, we offer comprehensive solutions for your business needs.
             </p>
@@ -196,23 +199,25 @@ export default function BusinessInquiry() {
 
           {!selectedCategory ? (
             /* Category Selection */
-            <div className="max-w-6xl mx-auto">
+            <div className="max-w-6xl mx-auto relative">
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent blur-3xl -z-10" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {businessCategories.map((category) => (
                   <Card 
                     key={category.id}
-                    className="bg-black/40 backdrop-blur-md border-white/10 hover:border-white/20 transition-all duration-300 cursor-pointer group"
+                    className="bg-zinc-900/40 backdrop-blur-sm border-white/5 hover:border-white/20 transition-all duration-300 cursor-pointer group hover:-translate-y-1 relative overflow-hidden"
                     onClick={() => handleCategorySelect(category.id)}
                   >
-                    <CardContent className="p-8">
-                      <div className={`w-16 h-16 rounded-xl bg-gradient-to-r ${category.color} flex items-center justify-center text-white mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <CardContent className="p-10 relative z-10">
+                      <div className={`w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white mb-8 group-hover:scale-110 group-hover:bg-white/10 transition-all duration-500`}>
                         {category.icon}
                       </div>
-                      <h3 className="text-2xl font-bold mb-4">{category.title}</h3>
-                      <p className="text-gray-300 mb-6 leading-relaxed">{category.description}</p>
-                      <div className="flex items-center text-white group-hover:text-yellow-400 transition-colors">
-                        <span className="font-medium">Get Started</span>
-                        <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      <h3 className="text-2xl font-serif tracking-wide text-white mb-4">{category.title}</h3>
+                      <p className="text-white/50 text-sm font-light leading-relaxed mb-8">{category.description}</p>
+                      <div className="flex items-center text-[10px] uppercase tracking-[0.2em] font-medium text-white/50 group-hover:text-white transition-colors duration-300">
+                        <span>Get Started</span>
+                        <ArrowRight className="h-3 w-3 ml-3 group-hover:translate-x-2 transition-transform duration-300" />
                       </div>
                     </CardContent>
                   </Card>
@@ -220,29 +225,33 @@ export default function BusinessInquiry() {
               </div>
 
               {/* Why Choose VAVE Section */}
-              <div className="mt-24">
-                <h2 className="text-3xl font-bold text-center mb-12">Why Partner with VAVE?</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Building2 className="h-8 w-8 text-white" />
+              <div className="mt-32 relative">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-16 bg-gradient-to-b from-white/20 to-transparent" />
+                <div className="pt-24 text-center">
+                  <h2 className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-4">The Advantage</h2>
+                  <h3 className="text-3xl md:text-4xl font-serif text-white mb-16 tracking-wide">Why Partner with VAVE</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+                    <div className="group">
+                      <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-white/10 transition-colors duration-300">
+                        <Building2 className="h-6 w-6 text-white/70" />
+                      </div>
+                      <h4 className="text-lg font-serif mb-3 tracking-wide">Premium Quality</h4>
+                      <p className="text-white/40 text-sm font-light leading-relaxed">High-quality fragrances with unique formulations and sophisticated packaging design.</p>
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">Premium Quality</h3>
-                    <p className="text-gray-300">High-quality fragrances with unique formulations and premium packaging</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Users className="h-8 w-8 text-white" />
+                    <div className="group">
+                      <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-white/10 transition-colors duration-300">
+                        <Users className="h-6 w-6 text-white/70" />
+                      </div>
+                      <h4 className="text-lg font-serif mb-3 tracking-wide">Expert Support</h4>
+                      <p className="text-white/40 text-sm font-light leading-relaxed">A dedicated support team committed to helping your business venture succeed at every step.</p>
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">Expert Support</h3>
-                    <p className="text-gray-300">Dedicated support team to help you succeed in your business venture</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Handshake className="h-8 w-8 text-white" />
+                    <div className="group">
+                      <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-white/10 transition-colors duration-300">
+                        <Handshake className="h-6 w-6 text-white/70" />
+                      </div>
+                      <h4 className="text-lg font-serif mb-3 tracking-wide">Flexible Partnership</h4>
+                      <p className="text-white/40 text-sm font-light leading-relaxed">Customized partnership terms designed to align seamlessly with your operational model.</p>
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">Flexible Partnership</h3>
-                    <p className="text-gray-300">Customized partnership terms that work for your business model</p>
                   </div>
                 </div>
               </div>
@@ -251,29 +260,29 @@ export default function BusinessInquiry() {
             /* Form Section */
             <div className="max-w-4xl mx-auto">
               {isSubmitted ? (
-                <Card className="bg-black/40 backdrop-blur-md border-white/10">
-                  <CardContent className="p-12 text-center">
-                    <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <Check className="h-10 w-10 text-white" />
+                <Card className="bg-zinc-900/40 backdrop-blur-sm border-white/5 text-center p-16">
+                  <CardContent className="p-0">
+                    <div className="w-20 h-20 bg-white/5 border border-white/10 rounded-full flex items-center justify-center mx-auto mb-8">
+                      <Check className="h-8 w-8 text-white" strokeWidth={1.5} />
                     </div>
-                    <h2 className="text-3xl font-bold mb-4">Inquiry Submitted Successfully!</h2>
-                    <p className="text-gray-300 mb-8 text-lg">
+                    <h2 className="text-3xl font-serif tracking-wide text-white mb-6">Inquiry Submitted Successfully</h2>
+                    <p className="text-white/50 text-sm font-light leading-relaxed mb-10 max-w-xl mx-auto">
                       Thank you for your interest in partnering with VAVE. Our business development team will review your inquiry and contact you within 24 hours.
                     </p>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                       <Button 
                         onClick={() => {
                           setIsSubmitted(false)
                           setSelectedCategory("")
                           setFormData({})
                         }}
-                        className="bg-white text-black hover:bg-gray-200 px-8 py-3"
+                        className="h-12 px-8 bg-transparent border border-white/20 text-white hover:bg-white/5 hover:border-white/40 rounded-full text-[11px] uppercase tracking-widest font-bold transition-all duration-300"
                       >
                         Submit Another Inquiry
                       </Button>
-                      <p className="text-sm text-gray-400">
+                      <p className="text-xs text-white/40 font-light tracking-wide">
                         Need immediate assistance? Contact us at{" "}
-                        <a href="mailto:sales@vavefragrances.com" className="text-white hover:underline">
+                        <a href="mailto:sales@vavefragrances.com" className="text-white/70 hover:text-white transition-colors border-b border-white/20 pb-0.5">
                           sales@vavefragrances.com
                         </a>
                       </p>
@@ -281,147 +290,150 @@ export default function BusinessInquiry() {
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="bg-black/40 backdrop-blur-md border-white/10">
-                  <CardHeader>
-                    <div className="flex items-center gap-4 mb-4">
+                <Card className="bg-zinc-900/40 backdrop-blur-sm border-white/5">
+                  <CardHeader className="pb-8">
+                    <div className="mb-6">
                       <Button
                         variant="ghost"
                         onClick={() => setSelectedCategory("")}
-                        className="text-white hover:text-white/80"
+                        className="text-[10px] uppercase tracking-widest text-white/50 hover:text-white hover:bg-transparent -ml-3"
                       >
                         ← Back to Categories
                       </Button>
                     </div>
-                    <CardTitle className="text-3xl font-bold">
+                    <CardTitle className="text-3xl md:text-4xl font-serif text-white tracking-wide mb-4">
                       {selectedCategoryData?.title}
                     </CardTitle>
-                    <p className="text-gray-300 text-lg">
+                    <p className="text-white/50 text-sm font-light leading-relaxed">
                       {selectedCategoryData?.description}
                     </p>
                   </CardHeader>
                   <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-8">
                       {/* Basic Contact Information */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Full Name *</label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                          <label className="block text-[11px] uppercase tracking-widest text-white/50">Full Name *</label>
                           <Input
                             value={formData.fullName || ""}
                             onChange={(e) => handleInputChange("fullName", e.target.value)}
                             required
                             placeholder="Enter your full name"
-                            className="bg-black/40 border-white/20 text-white placeholder:text-gray-400"
+                            className="h-12 bg-zinc-950/50 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/30 rounded-none"
                           />
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Email Address *</label>
+                        <div className="space-y-2">
+                          <label className="block text-[11px] uppercase tracking-widest text-white/50">Email Address *</label>
                           <Input
                             type="email"
                             value={formData.email || ""}
                             onChange={(e) => handleInputChange("email", e.target.value)}
                             required
                             placeholder="Enter your email"
-                            className="bg-black/40 border-white/20 text-white placeholder:text-gray-400"
+                            className="h-12 bg-zinc-950/50 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/30 rounded-none"
                           />
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Phone Number *</label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-2">
+                          <label className="block text-[11px] uppercase tracking-widest text-white/50">Phone Number *</label>
                           <Input
                             type="tel"
                             value={formData.phone || ""}
                             onChange={(e) => handleInputChange("phone", e.target.value)}
                             required
                             placeholder="Enter your phone number"
-                            className="bg-black/40 border-white/20 text-white placeholder:text-gray-400"
+                            className="h-12 bg-zinc-950/50 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/30 rounded-none"
                           />
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">City, State *</label>
+                        <div className="space-y-2">
+                          <label className="block text-[11px] uppercase tracking-widest text-white/50">City, State *</label>
                           <Input
                             value={formData.location || ""}
                             onChange={(e) => handleInputChange("location", e.target.value)}
                             required
                             placeholder="Enter your location"
-                            className="bg-black/40 border-white/20 text-white placeholder:text-gray-400"
+                            className="h-12 bg-zinc-950/50 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/30 rounded-none"
                           />
                         </div>
                       </div>
 
-                      {/* Category-specific fields */}
-                      {selectedCategoryData && Object.entries(selectedCategoryData.fields).map(([fieldKey, fieldConfig]) => (
-                        <div key={fieldKey}>
-                          <label className="block text-sm font-medium mb-2">
-                            {fieldConfig.label} {fieldConfig.required && "*"}
-                          </label>
-                          
-                          {fieldConfig.type === "text" && (
-                            <Input
-                              value={formData[fieldKey] || ""}
-                              onChange={(e) => handleInputChange(fieldKey, e.target.value)}
-                              required={fieldConfig.required}
-                              placeholder={fieldConfig.placeholder}
-                              className="bg-black/40 border-white/20 text-white placeholder:text-gray-400"
-                            />
-                          )}
+                      <div className="border-t border-white/5 pt-8 space-y-8">
+                        <h3 className="text-lg font-serif text-white tracking-wide">Additional Details</h3>
+                        {/* Category-specific fields */}
+                        {selectedCategoryData && Object.entries(selectedCategoryData.fields).map(([fieldKey, fieldConfig]) => (
+                          <div key={fieldKey} className="space-y-2">
+                            <label className="block text-[11px] uppercase tracking-widest text-white/50 mb-3">
+                              {fieldConfig.label} {fieldConfig.required && "*"}
+                            </label>
+                            
+                            {fieldConfig.type === "text" && (
+                              <Input
+                                value={formData[fieldKey] || ""}
+                                onChange={(e) => handleInputChange(fieldKey, e.target.value)}
+                                required={fieldConfig.required}
+                                placeholder={fieldConfig.placeholder}
+                                className="h-12 bg-zinc-950/50 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/30 rounded-none"
+                              />
+                            )}
 
-                          {fieldConfig.type === "select" && (
-                            <Select
-                              value={formData[fieldKey] || ""}
-                              onValueChange={(value) => handleInputChange(fieldKey, value)}
-                              required={fieldConfig.required}
-                            >
-                              <SelectTrigger className="bg-black/40 border-white/20 text-white">
-                                <SelectValue placeholder={`Select ${fieldConfig.label.toLowerCase()}`} />
-                              </SelectTrigger>
-                              <SelectContent className="bg-gray-900 border-white/20">
+                            {fieldConfig.type === "select" && (
+                              <Select
+                                value={formData[fieldKey] || ""}
+                                onValueChange={(value) => handleInputChange(fieldKey, value)}
+                                required={fieldConfig.required}
+                              >
+                                <SelectTrigger className="h-12 bg-zinc-950/50 border-white/10 text-white focus:ring-1 focus:ring-white/30 rounded-none">
+                                  <SelectValue placeholder={`Select ${fieldConfig.label.toLowerCase()}`} className="text-white/20" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                                  {fieldConfig.options?.map((option) => (
+                                    <SelectItem key={option} value={option} className="hover:bg-white/5 focus:bg-white/10 cursor-pointer">
+                                      {option}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            )}
+
+                            {fieldConfig.type === "textarea" && (
+                              <Textarea
+                                value={formData[fieldKey] || ""}
+                                onChange={(e) => handleInputChange(fieldKey, e.target.value)}
+                                required={fieldConfig.required}
+                                placeholder={fieldConfig.placeholder}
+                                rows={4}
+                                className="bg-zinc-950/50 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-1 focus-visible:ring-white/30 rounded-none resize-none pt-4"
+                              />
+                            )}
+
+                            {fieldConfig.type === "checkbox" && (
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                 {fieldConfig.options?.map((option) => (
-                                  <SelectItem key={option} value={option} className="text-white hover:bg-white/10">
-                                    {option}
-                                  </SelectItem>
+                                  <div key={option} className="flex items-center space-x-3 bg-zinc-950/30 p-4 border border-white/5">
+                                    <Checkbox
+                                      id={`${fieldKey}-${option}`}
+                                      checked={formData[fieldKey]?.includes(option) || false}
+                                      onCheckedChange={(checked) => handleCheckboxChange(fieldKey, option, checked as boolean)}
+                                      className="border-white/20 data-[state=checked]:bg-white data-[state=checked]:text-black rounded-none"
+                                    />
+                                    <label htmlFor={`${fieldKey}-${option}`} className="text-sm font-light text-white/70 cursor-pointer">
+                                      {option}
+                                    </label>
+                                  </div>
                                 ))}
-                              </SelectContent>
-                            </Select>
-                          )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
 
-                          {fieldConfig.type === "textarea" && (
-                            <Textarea
-                              value={formData[fieldKey] || ""}
-                              onChange={(e) => handleInputChange(fieldKey, e.target.value)}
-                              required={fieldConfig.required}
-                              placeholder={fieldConfig.placeholder}
-                              rows={4}
-                              className="bg-black/40 border-white/20 text-white placeholder:text-gray-400"
-                            />
-                          )}
-
-                          {fieldConfig.type === "checkbox" && (
-                            <div className="space-y-3">
-                              {fieldConfig.options?.map((option) => (
-                                <div key={option} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`${fieldKey}-${option}`}
-                                    checked={formData[fieldKey]?.includes(option) || false}
-                                    onCheckedChange={(checked) => handleCheckboxChange(fieldKey, option, checked as boolean)}
-                                    className="border-white/20 data-[state=checked]:bg-white data-[state=checked]:text-black"
-                                  />
-                                  <label htmlFor={`${fieldKey}-${option}`} className="text-sm text-gray-300">
-                                    {option}
-                                  </label>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-
-                      <div className="pt-6">
+                      <div className="pt-8 border-t border-white/5">
                         <Button
                           type="submit"
                           disabled={isSubmitting}
-                          className="w-full bg-white text-black hover:bg-gray-200 py-3 text-lg font-semibold"
+                          className="w-full h-14 bg-white text-black hover:bg-gray-200 rounded-full text-[11px] uppercase tracking-widest font-bold transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]"
                         >
                           {isSubmitting ? "Submitting..." : "Submit Business Inquiry"}
                         </Button>
@@ -434,6 +446,7 @@ export default function BusinessInquiry() {
           )}
         </div>
       </div>
-    </>
+      <Footer />
+    </main>
   )
 }
