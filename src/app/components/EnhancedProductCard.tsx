@@ -64,7 +64,7 @@ export default function EnhancedProductCard({
 
   return (
     <motion.div
-      className="group relative bg-zinc-950 border border-white/5 rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 hover:border-white/20"
+      className="group relative bg-zinc-950 border border-white/5 rounded-none overflow-hidden shadow-2xl transition-all duration-500 hover:border-white/20 hover:shadow-[0_10px_40px_rgba(255,255,255,0.05)]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       whileHover={{ y: -5 }}
@@ -199,7 +199,7 @@ export default function EnhancedProductCard({
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex-1 flex items-center justify-center py-3.5 rounded-xl text-[10px] uppercase tracking-widest font-bold
+              className="flex-1 flex items-center justify-center py-3.5 rounded-none text-[10px] uppercase tracking-widest font-bold
                 bg-transparent hover:bg-white/5 text-white border border-white/20 transition-all duration-300"
               onClick={handleAddToCart}
             >
@@ -210,7 +210,7 @@ export default function EnhancedProductCard({
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex-1 flex items-center justify-center py-3.5 rounded-xl text-[10px] uppercase tracking-widest font-bold
+              className="flex-1 flex items-center justify-center py-3.5 rounded-none text-[10px] uppercase tracking-widest font-bold
                 bg-white text-black transition-all duration-300 border border-transparent shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]"
               onClick={handleBuyNow}
             >

@@ -8,6 +8,7 @@ import Image from "next/image"
 import { ShoppingBag } from "lucide-react"
 import dynamic from "next/dynamic"
 import Footer from "@/src/app/components/Footer"
+import { motion, AnimatePresence } from "framer-motion"
 import EnhancedProductCard from "./components/EnhancedProductCard"
 import { useToast } from "@/components/ui/use-toast"
 import Hero from "./components/Hero"
@@ -180,14 +181,20 @@ export default function Home() {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-white/20 to-transparent" />
           <div className="container mx-auto px-4 md:px-6">
             {/* Section Header */}
-            <div className="text-center mb-20 relative z-10">
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8 }}
+              className="text-center mb-20 relative z-10"
+            >
               <h2 className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-4">Signature Collection</h2>
               <h3 className="text-4xl md:text-5xl font-serif text-white mb-8 tracking-wide">Featured Fragrances</h3>
               <p className="text-white/40 max-w-2xl mx-auto font-light leading-relaxed text-sm">
                 Discover our curated selection of premium fragrances, each crafted to evoke unique emotions and
                 memories.
               </p>
-            </div>
+            </motion.div>
 
             {/* Enhanced Product Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative">
@@ -203,8 +210,15 @@ export default function Home() {
                   </div>
                 ))
               ) : products.length > 0 ? (
-                products.map((product) => (
-                  <div key={product.id} className="transform transition-transform duration-300 hover:-translate-y-2">
+                products.map((product, index) => (
+                  <motion.div 
+                    key={product.id} 
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    className="transform transition-transform duration-300 hover:-translate-y-2"
+                  >
                     <EnhancedProductCard
                       product={{
                         ...product,
@@ -221,12 +235,19 @@ export default function Home() {
                       selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size}
                       onSizeSelect={(size: string) => handleSizeSelect(product.id, size)}
                     />
-                  </div>
+                  </motion.div>
                 ))
               ) : (
                 // Fallback to static products if loading fails
-                ProductInfo.allProductItems.map((product) => (
-                  <div key={product.id} className="transform transition-transform duration-300 hover:-translate-y-2">
+                ProductInfo.allProductItems.map((product, index) => (
+                  <motion.div 
+                    key={product.id} 
+                    initial={{ opacity: 0, y: 50 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    className="transform transition-transform duration-300 hover:-translate-y-2"
+                  >
                     <EnhancedProductCard
                       product={{
                         ...product,
@@ -243,25 +264,58 @@ export default function Home() {
                       selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size}
                       onSizeSelect={(size: string) => handleSizeSelect(product.id, size)}
                     />
-                  </div>
+                  </motion.div>
                 ))
               )}
             </div>
           </div>
         </section>
       </div>
-      <CompactLayeringAwareness />
-      <CompactScentFinderAwareness />
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8 }}
+      >
+        <CompactLayeringAwareness />
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8 }}
+      >
+        <CompactScentFinderAwareness />
+      </motion.div>
 
       {/* Instagram Feed Section */}
-      <div className="mt-24">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 1 }}
+        className="mt-24"
+      >
         <SimpleInstagramFeed />
-      </div>
+      </motion.div>
 
       <Footer />
-      {isQuickViewOpen && selectedProduct && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-zinc-950 border border-white/5 rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col md:flex-row relative">
+      <AnimatePresence>
+        {isQuickViewOpen && selectedProduct && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="bg-zinc-950 border border-white/5 rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col md:flex-row relative"
+            >
             <button
               onClick={() => setIsQuickViewOpen(false)}
               className="absolute top-6 right-6 z-10 p-3 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors"
@@ -344,9 +398,10 @@ export default function Home() {
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
       <Cart />
       <style jsx>{`
         @keyframes fadeInUp {

@@ -1,6 +1,8 @@
 "use client"
 
-import { InstagramEmbed } from 'react-social-media-embed'
+import { Instagram } from 'lucide-react'
+import Image from 'next/image'
+import { ProductInfo } from '@/src/data/product-info'
 
 interface SimpleInstagramFeedProps {
     maxPosts?: number
@@ -8,21 +10,23 @@ interface SimpleInstagramFeedProps {
 
 export default function SimpleInstagramFeed({ maxPosts = 0 }: SimpleInstagramFeedProps) {
     const username = "vavefragrances"
-    const samplePosts = [
-        "https://www.instagram.com/p/DMS1aDZN6AC/",
-        "https://www.instagram.com/p/DLP3Zy_NUrQ/?img_index=1",
-        "https://www.instagram.com/p/DLAToK_vUwm/?img_index=1",
-        "https://www.instagram.com/p/DKkFjqyvRdT/",
-        "https://www.instagram.com/p/DKruTO-PhjG/?img_index=1",
-        "https://www.instagram.com/p/DO8m7LMkSP9/",
-        "https://www.instagram.com/p/DKpNcU_PXMY/",
-        "https://www.instagram.com/p/DK2Ru_ztMBP/",
-        "https://www.instagram.com/p/DLVBuf7tdw1/",
-        "https://www.instagram.com/p/DK7d5jHS90N/",
-        "https://www.instagram.com/p/DLB8wK2TMVX/",
-        "https://www.instagram.com/p/DLkLFNCIXSu/"
-    ]
-    const calculatedMaxPosts = maxPosts > 0 ? maxPosts : samplePosts.length
+    
+    // Extract exactly one representative image for 30ml and one for 50ml per product
+    const allImages = ProductInfo.getAllProductItems().flatMap(product => {
+        const images = [];
+        if (product.images["30"] && product.images["30"].length > 0) {
+            images.push(product.images["30"][1] || product.images["30"][0]);
+        }
+        if (product.images["50"] && product.images["50"].length > 0) {
+            // Use index 0 (bottle.jpg) for 50ml to ensure the 50ml bottle size is visually represented
+            images.push(product.images["50"][0]);
+        }
+        return images;
+    });
+
+    // Remove duplicates to ensure visual variety
+    const uniqueImages = Array.from(new Set(allImages));
+    const displayImages = uniqueImages.slice(0, maxPosts > 0 ? maxPosts : 18);
 
     return (
         <section className="w-full py-32 bg-zinc-950 relative border-t border-white/5">
@@ -60,17 +64,31 @@ export default function SimpleInstagramFeed({ maxPosts = 0 }: SimpleInstagramFee
                     </a>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {samplePosts.slice(0, calculatedMaxPosts).map((postUrl, index) => (
-                        <div key={index} className="flex justify-center transform transition-transform duration-500 hover:-translate-y-2 opacity-90 hover:opacity-100">
-                            <InstagramEmbed
-                                url={postUrl}
-                                width={328}
-                                height={460}
-                                className='rounded-none bg-zinc-900 border border-white/10 shadow-2xl'
-                            />
-                        </div>
-                    ))}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1 md:gap-2">
+                    {displayImages.map((imgUrl, index) => {
+                        return (
+                            <a
+                                key={index}
+                                href={`https://instagram.com/${username}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group relative aspect-square overflow-hidden bg-zinc-900"
+                            >
+                                <Image 
+                                    src={imgUrl} 
+                                    alt={`Instagram journal entry ${index}`} 
+                                    fill 
+                                    className="object-cover transition-transform duration-[1.5s] group-hover:scale-110 ease-[0.25,0.4,0.25,1]"
+                                />
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all duration-500 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 backdrop-blur-sm">
+                                    <Instagram className="text-white w-8 h-8 mb-3 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500" strokeWidth={1} />
+                                    <span className="text-white text-[10px] uppercase tracking-[0.2em] font-medium transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75 text-center px-2">
+                                        View
+                                    </span>
+                                </div>
+                            </a>
+                        )
+                    })}
                 </div>
             </div>
         </section>

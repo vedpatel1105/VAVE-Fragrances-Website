@@ -7,8 +7,15 @@ export default function Hero() {
   return (
     <section className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-black">
       
-      {/* Subtle Ambient Glow (Optional, for pure aesthetic depth on black) */}
-      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-900/40 via-black to-black" />
+      {/* Subtle Ambient Glow */}
+      <motion.div 
+        animate={{ 
+          opacity: [0.3, 0.6, 0.3],
+          scale: [1, 1.05, 1],
+        }}
+        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+        className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-800/20 via-zinc-950 to-zinc-950" 
+      />
 
       {/* Content Container */}
       <div className="relative z-10 container mx-auto px-6 flex flex-col items-center justify-center text-center h-full pt-16">
@@ -42,10 +49,19 @@ export default function Hero() {
           className="mt-8"
         >
           <Link href="/collection">
-            <button className="px-10 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full text-sm uppercase tracking-widest font-medium transition-all duration-500 hover:border-white/50 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] group">
-              Explore Collection
-              <span className="inline-block ml-3 transition-transform duration-300 group-hover:translate-x-1">→</span>
-            </button>
+            <motion.button 
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-10 py-5 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-none text-sm uppercase tracking-widest font-medium transition-all duration-500 hover:border-white/50 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] group flex items-center justify-center space-x-3"
+            >
+              <span>Explore Collection</span>
+              <motion.span 
+                initial={{ x: 0 }}
+                whileHover={{ x: 5 }}
+                transition={{ duration: 0.3 }}
+                className="inline-block"
+              >→</motion.span>
+            </motion.button>
           </Link>
         </motion.div>
 
