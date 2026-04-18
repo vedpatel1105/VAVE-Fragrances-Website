@@ -289,86 +289,94 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-zinc-950 text-white font-mono">
       <SimpleNavbar />
 
-      <div className="container mx-auto px-4 py-24">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Sidebar */}
-          <div className="w-full md:w-64 space-y-4">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex flex-col items-center">
-                  <Avatar className="h-20 w-20 mb-4">
-                    <AvatarImage src={profile.avatarUrl} alt={profile.full_name} />
-                    <AvatarFallback>{profile.full_name.charAt(0)}</AvatarFallback>
+      <div className="container mx-auto px-6 py-32 max-w-7xl">
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* Architectural Sidebar */}
+          <div className="w-full lg:w-80 shrink-0 space-y-8">
+            <div className="bg-zinc-900 border border-white/5 rounded-none p-10 overflow-hidden relative group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[80px] -mr-16 -mt-16 group-hover:bg-white/10 transition-colors duration-700" />
+              
+              <div className="flex flex-col items-center relative z-10">
+                <div className="relative mb-6">
+                  <Avatar className="h-24 w-24 rounded-none border border-white/10 p-1 bg-zinc-950">
+                    <AvatarImage src={profile.avatarUrl} alt={profile.full_name} className="object-cover" />
+                    <AvatarFallback className="bg-zinc-950 text-white rounded-none font-serif text-2xl">{profile.full_name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <h2 className="text-xl font-bold">{profile.full_name}</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{profile.email}</p>
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white border border-black rounded-none" title="Verified Profile" />
                 </div>
+                
+                <h2 className="text-2xl font-serif text-white mb-1 tracking-tight text-center">{profile.full_name}</h2>
+                <p className="text-[9px] uppercase tracking-[0.3em] text-white/30 text-center">{profile.email}</p>
+              </div>
 
-                <Separator className="my-4" />
+              <div className="my-8 border-t border-white/5" />
 
-                <nav className="space-y-2">
-                  <Button variant="ghost" className="w-full justify-start" asChild>
-                    <a href="#profile">
-                      <User className="h-4 w-4 mr-2" />
-                      Profile
-                    </a>
-                  </Button>
-                  <Button variant="ghost" className="w-full justify-start" asChild>
-                    <a href="/my-orders">
-                      <Package className="h-4 w-4 mr-2" />
-                      Orders
-                    </a>
-                  </Button>
-                  <Button variant="ghost" className="w-full justify-start" asChild>
-                    <a href="#wishlist">
-                      <Heart className="h-4 w-4 mr-2" />
-                      Wishlist
-                    </a>
-                  </Button>
-                  <Button variant="ghost" className="w-full justify-start" asChild>
-                    <a href="#settings">
-                      <Settings className="h-4 w-4 mr-2" />
-                      Settings
-                    </a>
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
+              <nav className="flex flex-col space-y-1">
+                {[
+                  { id: 'profile', icon: User, label: 'Personal Registry' },
+                  { id: 'orders', icon: Package, label: 'Order History', href: '/my-orders' },
+                  { id: 'wishlist', icon: Heart, label: 'Curated Wishlist' },
+                  { id: 'settings', icon: Settings, label: 'Global Settings' },
+                ].map((item) => (
+                  <Button 
+                    key={item.id}
+                    variant="ghost" 
+                    className="w-full justify-start rounded-none h-12 text-[10px] uppercase tracking-[0.2em] text-white/40 hover:text-white hover:bg-white/5 transition-all group px-4"
+                    asChild={!!item.href}
                   >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
+                    {item.href ? (
+                      <a href={item.href}>
+                        <item.icon className="h-4 w-4 mr-3 opacity-30 group-hover:opacity-100 transition-opacity" />
+                        {item.label}
+                      </a>
+                    ) : (
+                      <div className="cursor-pointer">
+                        <item.icon className="h-4 w-4 mr-3 opacity-30 group-hover:opacity-100 transition-opacity" />
+                        {item.label}
+                      </div>
+                    )}
                   </Button>
-                </nav>
-              </CardContent>
-            </Card>
+                ))}
+                
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start rounded-none h-12 text-[10px] uppercase tracking-[0.2em] text-red-500/60 hover:text-red-500 hover:bg-red-500/5 mt-4 px-4"
+                >
+                  <LogOut className="h-4 w-4 mr-3" />
+                  Sign Out
+                </Button>
+              </nav>
+            </div>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Shipping Addresses</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+            <div className="bg-zinc-900 border border-white/5 rounded-none p-8">
+              <h3 className="text-[10px] uppercase tracking-[0.3em] text-white/20 mb-6 font-bold flex items-center">
+                <MapPin className="h-3 w-3 mr-2" />
+                Saved Enclaves
+              </h3>
+              
+              <div className="space-y-6">
                 {isLoading ? (
-                  <div className="flex justify-center items-center py-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+                  <div className="flex justify-center py-8">
+                    <div className="w-6 h-px bg-white/10 relative overflow-hidden">
+                      <motion.div animate={{ x: ["-100%", "200%"] }} transition={{ duration: 1.5, repeat: Infinity }} className="absolute inset-0 bg-white/40" />
+                    </div>
                   </div>
                 ) : (
                   <>
                     {addresses.length > 0 ? (
                       addresses.map((address) => (
-                        <div key={address.id} className="text-sm">
-                          <div className="flex justify-between items-start mb-1">
-                            <div className="font-medium">{address.type}</div>
+                        <div key={address.id} className="group relative">
+                          <div className="flex justify-between items-start mb-2">
+                             <span className="text-[9px] uppercase tracking-widest text-white/50 font-bold">{address.type}</span>
                             {address.is_default && (
-                              <Badge variant="outline" className="text-xs">
-                                Default
-                              </Badge>
+                              <span className="text-[7px] uppercase tracking-[0.3em] font-mono text-zinc-950 bg-white px-2 py-0.5">Primary</span>
                             )}
                           </div>
-                          <p className="text-gray-500 dark:text-gray-400">
-                            {address.address}, {address.city}, {address.state}, {address.pincode}
+                          <p className="text-[10px] text-white/30 leading-relaxed font-light mb-3">
+                            {address.address}, {address.city}, {address.state} {address.pincode}
                           </p>
                           <AddAddressModal 
                             onAddAddress={handleAddAddress} 
@@ -380,302 +388,265 @@ export default function Profile() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-center text-gray-500 dark:text-gray-400 py-4">
-                        No addresses found. Add your first address below.
+                      <p className="text-[10px] text-white/20 text-center py-4 uppercase tracking-widest italic font-light">
+                        No vaults found
                       </p>
                     )}
-                    <AddAddressModal 
-                      onAddAddress={handleAddAddress} 
-                      userId={profile.id}
-                    />
+                    <div className="pt-2 border-t border-white/5">
+                      <AddAddressModal 
+                        onAddAddress={handleAddAddress} 
+                        userId={profile.id}
+                      />
+                    </div>
                   </>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
-            <Tabs defaultValue="profile">
-              <TabsList className="grid grid-cols-4 mb-8">
-                <TabsTrigger value="profile">Profile</TabsTrigger>
-                {/* <TabsTrigger value="orders">Orders</TabsTrigger> */}
-                <TabsTrigger value="wishlist">Wishlist</TabsTrigger>
-                <TabsTrigger value="settings">Settings</TabsTrigger>
+          <div className="flex-1 min-w-0">
+            <Tabs defaultValue="profile" className="w-full">
+              <TabsList className="flex bg-transparent border-b border-white/5 w-full justify-start rounded-none h-auto p-0 mb-12 gap-10">
+                {[
+                  { value: 'profile', label: 'Identity' },
+                  { value: 'wishlist', label: 'Aspirations' },
+                  { value: 'settings', label: 'Preferences' }
+                ].map((tab) => (
+                  <TabsTrigger 
+                    key={tab.value}
+                    value={tab.value}
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-white data-[state=active]:bg-transparent data-[state=active]:text-white text-white/30 text-[10px] uppercase tracking-[0.3em] font-bold h-12 px-0 transition-all hover:text-white/60"
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
               </TabsList>
 
-              <TabsContent value="profile">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Personal Information</CardTitle>
-                    <CardDescription>Update your personal details here.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <Label htmlFor="full_name">Full Name</Label>
-                          <Input
-                            id="full_name"
-                            name="full_name"
-                            value={profile.full_name}
-                            onChange={handleInputChange}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="email">Email</Label>
-                          <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            value={profile.email}
-                            disabled
-                            className="bg-gray-100 text-black"
-                            readOnly
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="phone">Phone Number</Label>
-                          <Input
-                            id="phone"
-                            name="phone"
-                            value={profile.phone}
-                            onChange={handleInputChange}
-                          />
-                        </div>
+              <TabsContent value="profile" className="focus-visible:ring-0">
+                <div className="space-y-12">
+                  <div className="bg-zinc-900 border border-white/5 rounded-none p-10">
+                    <div className="flex items-center justify-between mb-8">
+                       <h3 className="text-xl font-serif text-white tracking-tight">Identity Details</h3>
+                       <Badge variant="outline" className="rounded-none border-white/10 text-[8px] uppercase tracking-widest text-white/40">Verified</Badge>
+                    </div>
+                    
+                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                      <div className="space-y-2">
+                        <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 ml-1">Full Name</label>
+                        <Input
+                          id="full_name"
+                          name="full_name"
+                          value={profile.full_name}
+                          onChange={handleInputChange}
+                          className="bg-zinc-950 border-white/10 text-white rounded-none h-12 focus:border-white/30 focus:ring-0 transition-all font-mono text-sm"
+                        />
                       </div>
-                      <Button type="submit">Update Profile</Button>
+                      <div className="space-y-2 opacity-50">
+                        <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 ml-1">Email (Permanent)</label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          value={profile.email}
+                          disabled
+                          className="bg-zinc-950 border-white/5 text-white/50 rounded-none h-12 cursor-not-allowed font-mono text-sm"
+                          readOnly
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[9px] uppercase tracking-[0.2em] text-white/40 ml-1">Cellular Registry</label>
+                        <Input
+                          id="phone"
+                          name="phone"
+                          value={profile.phone}
+                          onChange={handleInputChange}
+                          className="bg-zinc-950 border-white/10 text-white rounded-none h-12 focus:border-white/30 focus:ring-0 transition-all font-mono text-sm"
+                        />
+                      </div>
+                      <div className="md:col-span-2 flex justify-end mt-4">
+                        <Button type="submit" className="bg-white hover:bg-zinc-200 text-black px-10 rounded-none h-12 text-[10px] uppercase tracking-[0.2em] font-bold shadow-xl">
+                          Sync Profile
+                        </Button>
+                      </div>
                     </form>
-                  </CardContent>
-                </Card>
+                  </div>
 
-                <Card className="mt-8">
-                  <CardHeader>
-                    <CardTitle>Contact Information</CardTitle>
-                    <CardDescription>Your contact details are used for order updates.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-start">
-                        <MapPin className="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400 mt-0.5" />
-                        <div>
-                          <h4 className="font-medium">Default Shipping Address</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  <div className="bg-zinc-900 border border-white/5 rounded-none p-10">
+                    <h3 className="text-xl font-serif text-white tracking-tight mb-8">Primary Logistics</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                      <div className="space-y-2">
+                         <div className="flex items-center text-[9px] uppercase tracking-[0.2em] text-white/40 mb-3">
+                           <MapPin className="h-3 w-3 mr-2 opacity-50" />
+                           Base Location
+                         </div>
+                         <p className="text-[11px] text-white/60 leading-relaxed font-light">
                             {addresses.find((a) => a && a.is_default) ? (
                               <>
-                                {addresses.find((a) => a && a.is_default)?.address},
-                                {addresses.find((a) => a && a.is_default)?.city},
-                                {addresses.find((a) => a && a.is_default)?.state},
-                                {addresses.find((a) => a && a.is_default)?.pincode}
+                                {addresses.find((a) => a && a.is_default)?.address}, {addresses.find((a) => a && a.is_default)?.city}
                               </>
                             ) : (
-                              "No default address set"
+                              "Undefined"
                             )}
-                          </p>
-                        </div>
+                         </p>
                       </div>
-                      <div className="flex items-center">
-                        <Phone className="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400" />
-                        <div>
-                          <h4 className="font-medium">Phone Number</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{profile.phone}</p>
-                        </div>
+                      <div className="space-y-2">
+                         <div className="flex items-center text-[9px] uppercase tracking-[0.2em] text-white/40 mb-3">
+                           <Phone className="h-3 w-3 mr-2 opacity-50" />
+                           Verified Line
+                         </div>
+                         <p className="text-[11px] text-white/60 font-mono tracking-wider">
+                            {profile.phone || "Undefined"}
+                         </p>
                       </div>
-                      <div className="flex items-center">
-                        <Mail className="h-5 w-5 mr-3 text-gray-500 dark:text-gray-400" />
-                        <div>
-                          <h4 className="font-medium">Email Address</h4>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{profile.email}</p>
-                        </div>
+                      <div className="space-y-2">
+                         <div className="flex items-center text-[9px] uppercase tracking-[0.2em] text-white/40 mb-3">
+                           <Mail className="h-3 w-3 mr-2 opacity-50" />
+                           Dispatch Email
+                         </div>
+                         <p className="text-[11px] text-white/60 font-mono truncate">
+                            {profile.email}
+                         </p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </TabsContent>
 
-              <TabsContent value="orders">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Order History</CardTitle>
-                    <CardDescription>View and track your orders.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {orders.length > 0 ? (
-                      <div className="space-y-6">
-                        {orders.map((order) => (
-                          <div key={order.id} className="border rounded-lg overflow-hidden">
-                            <div className="bg-gray-50 dark:bg-gray-800 p-4 flex flex-wrap justify-between items-center gap-4">
-                              <div>
-                                <div className="font-medium">Order #{order.id}</div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400">
-                                  Placed on {new Date(order.created_at).toLocaleDateString()}
+              <TabsContent value="wishlist" className="focus-visible:ring-0">
+                <div className="bg-zinc-900 border border-white/5 rounded-none p-10">
+                  <div className="flex justify-between items-end mb-12">
+                     <h3 className="text-3xl font-serif text-white tracking-tight">Curation</h3>
+                     <p className="text-[10px] uppercase tracking-[0.3em] text-white/20">{wishlistItems.length} OBJECTS SAVED</p>
+                  </div>
+
+                  {wishlistItems.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-px bg-white/5 border border-white/5">
+                      {wishlistItems.map((item) => {
+                        const product = ProductInfo.allProductItems.find(p => p.id.toString() === item.id)
+                        if (!product) return null
+
+                        return (
+                          <div key={item.id} className="bg-zinc-950 p-8 flex flex-col sm:flex-row items-center gap-10 group transition-all">
+                            <div className="relative w-40 aspect-[3/4] overflow-hidden shrink-0 bg-zinc-900">
+                              <Image
+                                src={item.image}
+                                alt={item.name}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-1000"
+                              />
+                            </div>
+                            
+                            <div className="flex-1 flex flex-col h-full py-2">
+                              <div className="flex flex-col gap-1 mb-6">
+                                <h3 className="text-2xl font-serif text-white tracking-wide">{item.name}</h3>
+                                <p className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-mono">
+                                  {product.tagline || product.category}
+                                </p>
+                              </div>
+                              
+                              <div className="flex flex-wrap items-center gap-8 mb-8">
+                                <div className="space-y-1.5">
+                                  <label className="block text-[8px] uppercase tracking-widest text-white/20">Valuation</label>
+                                  <p className="text-sm font-mono text-white tracking-wider">₹{item.price}</p>
                                 </div>
-                              </div>
-                              <div className="flex items-center gap-4">
-                                <Badge className={getOrderStatusColor(order.status)}>
-                                  {getOrderStatusIcon(order.status)}
-                                  {order.status}
-                                </Badge>
-                                <Button variant="outline" size="sm">
-                                  View Details
-                                </Button>
-                              </div>
-                            </div>
-                            <div className="p-4">
-                              <div className="space-y-4">
-                                {order.items.map((item: OrderItem) => (
-                                  <div key={item.id} className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center">
-                                      <ShoppingBag className="h-6 w-6 text-gray-500 dark:text-gray-400" />
-                                    </div>
-                                    <div className="flex-1">
-                                      <div className="font-medium">{item.name}</div>
-                                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                                        {item.size} • Qty: {item.quantity}
-                                      </div>
-                                    </div>
-                                    <div className="font-medium">₹{item.price * item.quantity}</div>
-                                  </div>
-                                ))}
-                              </div>
-                              <Separator className="my-4" />
-                              <div className="flex justify-between">
-                                <div className="text-sm text-gray-500 dark:text-gray-400">Total</div>
-                                <div className="font-bold">₹{order.total}</div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-12">
-                        <Package className="h-12 w-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-                        <h3 className="text-lg font-medium mb-2">No orders yet</h3>
-                        <p className="text-gray-500 dark:text-gray-400 mb-4">
-                          When you place an order, it will appear here.
-                        </p>
-                        <Button>Start Shopping</Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="wishlist">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>My Wishlist</CardTitle>
-                    <CardDescription>Products you've saved for later.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {wishlistItems.length > 0 ? (
-                      <div className="space-y-6">
-                        {wishlistItems.map((item) => {
-                          const product = ProductInfo.allProductItems.find(p => p.id.toString() === item.id)
-                          if (!product) return null
-
-                          return (
-                            <div key={item.id} className="flex items-center gap-6 p-4 border rounded-lg">
-                              <div className="relative w-24 h-24">
-                                <Image
-                                  src={item.image}
-                                  alt={item.name}
-                                  fill
-                                  className="object-cover rounded-md"
-                                />
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="font-medium">{item.name}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">₹{item.price}</p>
-                                <div className="mt-2">
+                                <div className="space-y-1.5">
+                                  <label className="block text-[8px] uppercase tracking-widest text-white/20">Capacity</label>
                                   <select
-                                    className="w-24 px-2 py-1 text-sm border rounded-md"
+                                    className="bg-transparent text-sm font-mono text-white border-b border-white/10 focus:border-white transition-colors cursor-pointer outline-none pb-0.5"
                                     value={selectedSizes[item.id] || product.sizeOptions[0].size}
                                     onChange={(e) => handleSizeSelect(item.id, e.target.value)}
                                   >
                                     {product.sizeOptions.map((size) => (
-                                      <option key={size.size} value={size.size}>
-                                        {size.size}ml
+                                      <option key={size.size} value={size.size} className="bg-zinc-900">
+                                        {size.size}ML
                                       </option>
                                     ))}
                                   </select>
                                 </div>
                               </div>
-                              <div className="flex flex-col gap-2">
+
+                              <div className="flex flex-wrap gap-4 mt-auto">
                                 <Button
                                   variant="outline"
+                                  className="rounded-none border-white/10 hover:border-white/30 hover:bg-white/5 text-[9px] uppercase tracking-[0.2em] font-bold h-11 px-8"
                                   onClick={() => handleAddToCart(product, selectedSizes[item.id] || product.sizeOptions[0].size)}
                                 >
-                                  Add to Cart
+                                  Acquire
                                 </Button>
                                 <Button
                                   variant="ghost"
-                                  className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
+                                  className="rounded-none text-white/20 hover:text-red-500 hover:bg-transparent text-[9px] uppercase tracking-[0.2em] h-11"
                                   onClick={() => handleRemoveFromWishlist(item.id)}
                                 >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Remove
+                                  Discard
                                 </Button>
                               </div>
                             </div>
-                          )
-                        })}
-                      </div>
-                    ) : (
-                      <div className="text-center py-12">
-                        <Heart className="h-12 w-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-                        <h3 className="text-lg font-medium mb-2">Your wishlist is empty</h3>
-                        <p className="text-gray-500 dark:text-gray-400 mb-4">
-                          Save your favorite items to your wishlist for later.
-                        </p>
-                        <Button onClick={() => router.push("/collection")}>Explore Collection</Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-20 border border-dashed border-white/5">
+                      <Heart className="h-10 w-10 mx-auto text-white/5 mb-6" strokeWidth={0.5} />
+                      <h3 className="text-xl font-serif text-white/20 mb-8 italic">Your curation is currently void.</h3>
+                      <Button 
+                        onClick={() => router.push("/collection")}
+                        className="bg-white text-black rounded-none px-10 h-12 text-[10px] uppercase tracking-[0.2em] font-bold"
+                      >
+                        Explore Essence
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </TabsContent>
 
-              <TabsContent value="settings">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Account Settings</CardTitle>
-                    <CardDescription>Manage your account preferences.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="font-medium mb-2">Password</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                          Change your password to keep your account secure.
-                        </p>
-                        <Button variant="outline">Change Password</Button>
+              <TabsContent value="settings" className="focus-visible:ring-0">
+                <div className="bg-zinc-900 border border-white/5 rounded-none p-10">
+                   <h3 className="text-3xl font-serif text-white tracking-tight mb-12">System Toggles</h3>
+                   
+                   <div className="divide-y divide-white/5">
+                      <div className="py-8 first:pt-0">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                           <div className="space-y-1">
+                              <h4 className="text-[11px] uppercase tracking-[0.2em] text-white font-bold">Security Credentials</h4>
+                              <p className="text-[10px] text-white/30 tracking-wider">Rotate your access password</p>
+                           </div>
+                           <Button variant="outline" className="rounded-none border-white/10 hover:border-white text-[9px] uppercase tracking-[0.2em] px-8 h-10">
+                              Initiate Rotation
+                           </Button>
+                        </div>
                       </div>
 
-                      <Separator />
-
-                      <div>
-                        <h3 className="font-medium mb-2">Notifications</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                          Manage your email and SMS notification preferences.
-                        </p>
-                        <Button variant="outline">Notification Settings</Button>
+                      <div className="py-8">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                           <div className="space-y-1">
+                              <h4 className="text-[11px] uppercase tracking-[0.2em] text-white font-bold">Communication Protocol</h4>
+                              <p className="text-[10px] text-white/30 tracking-wider">Manage system alerts and news</p>
+                           </div>
+                           <Button variant="outline" className="rounded-none border-white/10 hover:border-white text-[9px] uppercase tracking-[0.2em] px-8 h-10">
+                              Config Alerts
+                           </Button>
+                        </div>
                       </div>
 
-                      <Separator />
-
-                      <div>
-                        <h3 className="font-medium mb-2">Delete Account</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                          Permanently delete your account and all associated data.
-                        </p>
-                        <Button variant="destructive">Delete Account</Button>
+                      <div className="py-8 pb-0">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                           <div className="space-y-1">
+                              <h4 className="text-[11px] uppercase tracking-[0.2em] text-red-500 font-bold">Termination</h4>
+                              <p className="text-[10px] text-white/20 tracking-wider">Erase your profile from the registry</p>
+                           </div>
+                           <Button variant="ghost" className="rounded-none text-red-500/40 hover:text-red-500 hover:bg-red-500/5 text-[9px] uppercase tracking-[0.2em] px-8 h-10">
+                              Purge Account
+                           </Button>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                   </div>
+                </div>
               </TabsContent>
             </Tabs>
-          </div>
+          </div>  </div>
         </div>
       </div>
 

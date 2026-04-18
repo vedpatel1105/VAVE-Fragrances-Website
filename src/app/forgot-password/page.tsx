@@ -45,79 +45,66 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-950 p-4 font-mono">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.02)_0%,transparent_100%)] pointer-events-none" />
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full max-w-md bg-zinc-900 border border-white/5 rounded-none shadow-2xl overflow-hidden relative z-10"
       >
-        <div className="p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold">Reset Password</h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Enter your email to reset your password
-            </p>
+        <div className="p-10">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl font-serif text-white mb-2 tracking-tight">Recovery</h1>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-white/40">Restore access to your essence</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="relative">
-              <Mail
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={18}
-              />
-              <Input
-                type="email"
-                placeholder="Email address"
-                className="pl-10"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-2">
+              <label className="text-[9px] uppercase tracking-[0.2em] text-white/50 ml-1">Email Address</label>
+              <div className="relative">
+                <Input
+                  type="email"
+                  placeholder="name@example.com"
+                  className="bg-zinc-950 border-white/10 text-white rounded-none h-12 focus:border-white/30 focus:ring-0 transition-all placeholder:text-white/10"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full bg-white hover:bg-zinc-200 text-black h-12 rounded-none text-[11px] uppercase tracking-[0.3em] font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all duration-500" 
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <span className="flex items-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
+                  <svg className="animate-spin -ml-1 mr-3 h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Sending...
+                  Processing...
                 </span>
               ) : (
                 <span className="flex items-center">
-                  Send Reset Link
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  Send Link
+                  <ArrowRight className="ml-2 h-3 w-3" />
                 </span>
               )}
             </Button>
           </form>
         </div>
 
-        <div className="p-4 bg-gray-50 dark:bg-gray-700 text-center">
+        <div className="p-6 bg-white/5 border-t border-white/5 text-center">
           <Link
             href="/auth/login"
-            className="text-blue-600 dark:text-blue-400 hover:underline font-medium inline-flex items-center"
+             className="text-[10px] uppercase tracking-[0.2em] text-white/40 hover:text-white transition-colors flex items-center justify-center gap-2"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Login
+            <ArrowLeft className="h-3 w-3" />
+            Return to Sanctuary
           </Link>
         </div>
       </motion.div>

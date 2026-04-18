@@ -130,144 +130,129 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-950 p-4 font-mono">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.03)_0%,transparent_100%)] pointer-events-none" />
+      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden"
+        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full max-w-md bg-zinc-900 border border-white/5 rounded-none shadow-2xl overflow-hidden relative z-10"
       >
-        <div className="p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold">Welcome to Vave</h1>
-            <p className="text-gray-600 dark:text-gray-400">Sign in to your account</p>
+        <div className="p-10">
+          <div className="text-center mb-10">
+            <h1 className="text-4xl font-serif text-white mb-2 tracking-tight">Welcome Back</h1>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-white/40">Sign in to your luxury sanctuary</p>
           </div>
 
           {/* Global login error */}
           {loginError && (
             <motion.div
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-start gap-2"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="mb-6 p-4 rounded-none bg-red-500/10 border border-red-500/20 flex items-start gap-3"
             >
-              <AlertCircle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 shrink-0" />
-              <p className="text-sm text-red-700 dark:text-red-300">{loginError}</p>
+              <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+              <p className="text-[11px] text-red-400 uppercase tracking-wider leading-relaxed">{loginError}</p>
             </motion.div>
           )}
 
-          <form onSubmit={handleEmailLogin} className="space-y-4">
-            <div>
+          <form onSubmit={handleEmailLogin} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-[9px] uppercase tracking-[0.2em] text-white/50 ml-1">Email Address</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                 <Input
                   type="email"
-                  placeholder="Email address"
-                  className={`pl-10 ${fieldErrors.email ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  placeholder="name@example.com"
+                  className={`bg-zinc-950 border-white/10 text-white rounded-none h-12 focus:border-white/30 focus:ring-0 transition-all placeholder:text-white/10 ${fieldErrors.email ? 'border-red-500/50' : ''}`}
                   value={emailForm.email}
                   onChange={(e) => handleFieldChange('email', e.target.value)}
                   autoComplete="email"
-                  aria-invalid={!!fieldErrors.email}
                 />
-                {emailForm.email && !fieldErrors.email && (
-                  <CheckCircle2 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500" size={16} />
-                )}
               </div>
               {fieldErrors.email && (
-                <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>
+                <p className="text-[9px] text-red-500/80 uppercase tracking-widest ml-1">{fieldErrors.email}</p>
               )}
             </div>
 
-            <div>
+            <div className="space-y-2">
+               <div className="flex justify-between items-end px-1">
+                <label className="text-[9px] uppercase tracking-[0.2em] text-white/50">Password</label>
+                <Link href="/forgot-password" size="sm" className="text-[9px] uppercase tracking-[0.2em] text-white/30 hover:text-white transition-colors">
+                  Forgot?
+                </Link>
+              </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Password"
-                  className={`pl-10 pr-10 ${fieldErrors.password ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  placeholder="••••••••"
+                  className={`bg-zinc-950 border-white/10 text-white rounded-none h-12 focus:border-white/30 focus:ring-0 transition-all placeholder:text-white/10 ${fieldErrors.password ? 'border-red-500/50' : ''}`}
                   value={emailForm.password}
                   onChange={(e) => handleFieldChange('password', e.target.value)}
                   autoComplete="current-password"
-                  aria-invalid={!!fieldErrors.password}
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/20 hover:text-white transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
               {fieldErrors.password && (
-                <p className="mt-1 text-xs text-red-500">{fieldErrors.password}</p>
+                <p className="text-[9px] text-red-500/80 uppercase tracking-widest ml-1">{fieldErrors.password}</p>
               )}
-              <div className="flex justify-end mt-1">
-                <Link href="/forgot-password" className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium">
-                  Forgot password?
-                </Link>
-              </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full bg-white hover:bg-zinc-200 text-black h-12 rounded-none text-[11px] uppercase tracking-[0.3em] font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)] transition-all duration-500" 
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <span className="flex items-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
+                  <svg className="animate-spin -ml-1 mr-3 h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Signing in...
+                  Authenticating...
                 </span>
               ) : (
                 <span className="flex items-center">
-                  Sign in
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  Sign In
+                  <ArrowRight className="ml-2 h-3 w-3" />
                 </span>
               )}
             </Button>
           </form>
 
-          <div className="mt-6">
+          <div className="mt-8 text-center space-y-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <Separator />
+                <div className="w-full border-t border-white/5"></div>
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white dark:bg-gray-800 px-2 text-gray-500 dark:text-gray-400">
-                  Or continue with
-                </span>
+              <div className="relative flex justify-center text-[8px] uppercase tracking-[0.4em] text-white/20">
+                <span className="bg-zinc-900 px-4">Or Discover Social Join</span>
               </div>
             </div>
 
-            <div className="mt-6">
-              <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={isLoading}>
-                <Image src="/google-logo.svg" alt="Google" width={20} height={20} className="mr-2" />
-                Google
-              </Button>
-            </div>
+            <Button 
+              variant="outline" 
+              className="w-full border-white/10 hover:border-white/30 hover:bg-white/5 text-white h-12 rounded-none text-[10px] uppercase tracking-[0.2em] transition-all" 
+              onClick={handleGoogleLogin} 
+              disabled={isLoading}
+            >
+              <Image src="/google-logo.svg" alt="Google" width={18} height={18} className="mr-3 opacity-80" />
+              Sign in with Google
+            </Button>
           </div>
         </div>
 
-        <div className="p-4 bg-gray-50 dark:bg-gray-700 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="p-6 bg-white/5 border-t border-white/5 text-center">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-white/40">
             Don't have an account?{" "}
-            <Link href="/auth/register" className="text-accent font-medium hover:underline">
-              Sign up
+            <Link href="/auth/register" className="text-white hover:text-white/70 transition-colors font-bold ml-1">
+              Create One
             </Link>
           </p>
         </div>
@@ -279,8 +264,14 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
+        <div className="w-10 h-[1px] bg-white/20 relative overflow-hidden">
+          <motion.div
+            animate={{ x: ["-100%", "200%"] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent"
+          />
+        </div>
       </div>
     }>
       <LoginForm />
