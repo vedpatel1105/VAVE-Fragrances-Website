@@ -150,22 +150,19 @@ export default function LayeringPage() {
     selectedPerfume1 && selectedPerfume2 ? generateLayeredFragrance(selectedPerfume1, selectedPerfume2) : null
 
   return (
-    <div className="min-h-screen bg-black text-white relative">
+    <div className="min-h-screen bg-zinc-950 text-white relative">
       <SimpleNavbar />
 
-      <main className="container mx-auto px-4 py-24 relative z-10">
+      <main className="container mx-auto px-4 pt-32 pb-24 relative z-10">
         <div className="max-w-4xl mx-auto">
-          {/* Hero Section with enhanced animations */}
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">Layering</h1>
-            <div className="max-w-4xl mx-auto">
-              <p className="text-xl text-gray-300 mb-4">What is Layering?</p>
-              <p className="text-base md:text-lg text-gray-400 leading-relaxed">
-                Layering is the art of combining two different fragrances to create your own unique scent. Simply
-                choose any two of our perfumes and wear them together - the scents will blend on your skin to form
-                a completely new fragrance that's uniquely yours. It's like being your own perfumer!
-              </p>
-            </div>
+          {/* Hero Section */}
+          <div className="text-center mb-24 relative">
+            <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-6 font-mono">Scent Alchemy</h2>
+            <h1 className="text-4xl md:text-5xl font-serif text-white mb-8 tracking-wide">The Art of Layering</h1>
+            <div className="w-px h-16 bg-gradient-to-b from-white/20 to-transparent mx-auto mb-8" />
+            <p className="text-white/40 max-w-2xl mx-auto font-light leading-relaxed text-sm">
+                Layering is the art of combining two different fragrances to create your own bespoke signature. Simply choose any two of our Extraits and wear them together. The oils will merge on your skin to form a completely new composition.
+            </p>
           </div>
 
           {/* Main Layering Section with enhanced layout */}
@@ -175,33 +172,33 @@ export default function LayeringPage() {
               <div className="space-y-8">
                 {/* First Perfume Selection */}
                 <div>
-                  <h2 className="text-2xl font-bold mb-6 text-center">Choose Your First Fragrance</h2>
+                  <h2 className="text-lg font-serif mb-8 text-center text-white tracking-wide">Select Foundational Note</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     {isLoading ? (
                       Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="aspect-square bg-gray-800/50 rounded-xl animate-pulse" />
+                        <div key={i} className="aspect-square bg-zinc-900/40 border border-white/5 rounded-none animate-pulse" />
                       ))
                     ) : products.map((perfume) => (
                       <Card
                         key={perfume.id}
-                        className={`cursor-pointer transition-all duration-300 hover:scale-105 ${
+                        className={`cursor-pointer transition-all duration-500 hover:scale-105 rounded-none ${
                           selectedPerfume1?.id === perfume.id
-                            ? "bg-white/20 border-white shadow-lg"
-                            : "bg-white/5 border-white/10 hover:bg-white/10"
+                            ? "bg-white/10 border-white/40 shadow-lg"
+                            : "bg-zinc-950 border-white/5 hover:border-white/20 hover:bg-zinc-900/40"
                         }`}
                         onClick={() => setSelectedPerfume1(perfume)}
                       >
                         <CardContent className="p-4">
-                          <div className="aspect-square relative mb-3">
+                          <div className="aspect-square relative mb-4">
                             <Image
                               src={perfume.images["30"][0]}
                               alt={perfume.name}
                               fill
-                              className="object-cover rounded-lg"
+                              className="object-cover mix-blend-screen"
                             />
                           </div>
-                          <h3 className="font-medium text-center text-sm md:text-base">{perfume.name}</h3>
-                          <p className="text-xs md:text-sm text-gray-400 text-center">{perfume.category}</p>
+                          <h3 className="font-serif tracking-wide text-center text-sm md:text-base text-white">{perfume.name}</h3>
+                          <p className="text-[9px] uppercase tracking-widest text-white/40 text-center mt-1">{perfume.category}</p>
                         </CardContent>
                       </Card>
                     ))}
@@ -210,33 +207,33 @@ export default function LayeringPage() {
 
                 {/* Second Perfume Selection */}
                 <div>
-                  <h2 className="text-2xl font-bold mb-6 text-center">Choose Your Second Fragrance</h2>
+                  <h2 className="text-lg font-serif mb-8 text-center text-white tracking-wide">Select Accentuating Note</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     {isLoading ? (
                       Array.from({ length: 4 }).map((_, i) => (
-                        <div key={i} className="aspect-square bg-gray-800/50 rounded-xl animate-pulse" />
+                        <div key={i} className="aspect-square bg-zinc-900/40 border border-white/5 rounded-none animate-pulse" />
                       ))
                     ) : products.map((perfume) => (
                       <Card
                         key={perfume.id}
-                        className={`cursor-pointer transition-all duration-300 hover:scale-105 ${
+                        className={`cursor-pointer transition-all duration-500 hover:scale-105 rounded-none ${
                           selectedPerfume2?.id === perfume.id
-                            ? "bg-white/20 border-white shadow-lg"
-                            : "bg-white/5 border-white/10 hover:bg-white/10"
+                            ? "bg-white/10 border-white/40 shadow-lg"
+                            : "bg-zinc-950 border-white/5 hover:border-white/20 hover:bg-zinc-900/40"
                         }`}
                         onClick={() => setSelectedPerfume2(perfume)}
                       >
                         <CardContent className="p-4">
-                          <div className="aspect-square relative mb-3">
+                          <div className="aspect-square relative mb-4">
                             <Image
                               src={perfume.images["30"][0]}
                               alt={perfume.name}
                               fill
-                              className="object-cover rounded-lg"
+                              className="object-cover mix-blend-screen"
                             />
                           </div>
-                          <h3 className="font-medium text-center text-sm md:text-base">{perfume.name}</h3>
-                          <p className="text-xs md:text-sm text-gray-400 text-center">{perfume.category}</p>
+                          <h3 className="font-serif tracking-wide text-center text-sm md:text-base text-white">{perfume.name}</h3>
+                          <p className="text-[9px] uppercase tracking-widest text-white/40 text-center mt-1">{perfume.category}</p>
                         </CardContent>
                       </Card>
                     ))}
@@ -250,123 +247,69 @@ export default function LayeringPage() {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10"
+                    className="bg-zinc-950 rounded-none p-8 md:p-10 border border-white/5 shadow-2xl"
                   >
-                    <h2 className="text-2xl font-bold mb-6 text-center">Your Custom Blend</h2>
+                    <h2 className="text-2xl font-serif tracking-wide mb-8 text-center text-white">Your Custom Blend</h2>
                     
-                    {/* Selected Fragrances */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    {/* Selected Fragrances Side-by-Side */}
+                    <div className="grid grid-cols-2 gap-4 mb-8">
                       {/* First Perfume */}
-                      <div className="bg-white/5 rounded-lg p-4">
-                        <div className="aspect-square relative mb-4">
+                      <div className="bg-zinc-900/40 rounded-none p-4 md:p-6 border border-white/5 relative flex flex-col items-center">
+                        <span className="absolute top-4 left-4 text-[9px] uppercase tracking-widest text-white/30 hidden md:block">Base</span>
+                        <div className="w-24 h-24 md:w-32 md:h-32 relative mb-4">
                           <Image
                             src={selectedPerfume1.images["30"][0]}
                             alt={selectedPerfume1.name}
                             fill
-                            className="object-cover rounded-lg"
+                            className="object-cover mix-blend-screen"
                           />
                         </div>
-                        <h3 className="font-medium text-center mb-2">{selectedPerfume1.name}</h3>
-                        <div className="flex justify-center gap-2">
-                          {selectedPerfume1.notes.top.slice(0, 3).map((note: string, idx: number) => (
-                            <span key={idx} className="text-xs bg-white/10 px-2 py-1 rounded-full">
-                              {note}
-                            </span>
-                          ))}
-                        </div>
+                        <h3 className="font-serif tracking-wide text-center text-white">{selectedPerfume1.name}</h3>
                       </div>
 
                       {/* Second Perfume */}
-                      <div className="bg-white/5 rounded-lg p-4">
-                        <div className="aspect-square relative mb-4">
+                      <div className="bg-zinc-900/40 rounded-none p-4 md:p-6 border border-white/5 relative flex flex-col items-center">
+                        <span className="absolute top-4 left-4 text-[9px] uppercase tracking-widest text-white/30 hidden md:block">Accent</span>
+                        <div className="w-24 h-24 md:w-32 md:h-32 relative mb-4">
                           <Image
                             src={selectedPerfume2.images["30"][0]}
                             alt={selectedPerfume2.name}
                             fill
-                            className="object-cover rounded-lg"
+                            className="object-cover mix-blend-screen"
                           />
                         </div>
-                        <h3 className="font-medium text-center mb-2">{selectedPerfume2.name}</h3>
-                        <div className="flex justify-center gap-2">
-                          {selectedPerfume2.notes.top.slice(0, 3).map((note: string, idx: number) => (
-                            <span key={idx} className="text-xs bg-white/10 px-2 py-1 rounded-full">
-                              {note}
-                            </span>
-                          ))}
-                        </div>
+                        <h3 className="font-serif tracking-wide text-center text-white">{selectedPerfume2.name}</h3>
                       </div>
                     </div>
 
-                    {/* Size Selection */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">First Fragrance Size</label>
-                        <Select value={selectedSize1} onValueChange={setSelectedSize1}>
-                          <SelectTrigger className="w-full bg-white/5 border-white/10">
-                            <SelectValue placeholder="Select size" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {selectedPerfume1.sizeOptions.map((option: { size: string; price: number }) => (
-                              <SelectItem key={option.size} value={option.size}>
-                                {option.size}ml - ₹{option.price}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Second Fragrance Size</label>
-                        <Select value={selectedSize2} onValueChange={setSelectedSize2}>
-                          <SelectTrigger className="w-full bg-white/5 border-white/10">
-                            <SelectValue placeholder="Select size" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {selectedPerfume2.sizeOptions.map((option: { size: string; price: number }) => (
-                              <SelectItem key={option.size} value={option.size}>
-                                {option.size}ml - ₹{option.price}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    {/* Combined Fragrance Notes */}
+                    {/* The Alchemy Result (Notes) */}
                     {layeredFragrance && (
-                      <div className="mb-8 bg-white/5 rounded-lg p-6">
-                        <h3 className="text-xl font-semibold mb-4">Combined Fragrance Profile</h3>
-                        <p className="text-gray-300 mb-4">{layeredFragrance.description}</p>
+                      <div className="mb-8 p-6 bg-white/[0.02] border justify-center border-white/5 flex flex-col items-center text-center">
+                        <h4 className="text-[10px] uppercase tracking-[0.3em] text-white/30 mb-2">The Alchemy</h4>
+                        <p className="text-white/60 text-sm font-light leading-relaxed mb-6 italic max-w-sm">"{layeredFragrance.description}"</p>
                         
-                        <div className="space-y-4">
+                        <div className="w-full grid grid-cols-3 gap-2 text-center items-start">
                           <div>
-                            <h4 className="text-sm font-medium mb-2">Top Notes</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {layeredFragrance.notes.top.map((note: string, idx: number) => (
-                                <span key={idx} className="text-xs bg-white/10 px-2 py-1 rounded-full">
-                                  {note}
-                                </span>
+                            <h4 className="text-[9px] uppercase tracking-widest text-white/40 mb-2">Top Notes</h4>
+                            <div className="flex flex-col gap-1 items-center">
+                              {layeredFragrance.notes.top.slice(0, 2).map((note: string, idx: number) => (
+                                <span key={idx} className="text-[10px] text-white/70">{note}</span>
                               ))}
                             </div>
                           </div>
-                          
                           <div>
-                            <h4 className="text-sm font-medium mb-2">Heart Notes</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {layeredFragrance.notes.heart.map((note: string, idx: number) => (
-                                <span key={idx} className="text-xs bg-white/10 px-2 py-1 rounded-full">
-                                  {note}
-                                </span>
+                            <h4 className="text-[9px] uppercase tracking-widest text-white/40 mb-2">Heart Notes</h4>
+                            <div className="flex flex-col gap-1 items-center">
+                              {layeredFragrance.notes.heart.slice(0, 2).map((note: string, idx: number) => (
+                                <span key={idx} className="text-[10px] text-white/70">{note}</span>
                               ))}
                             </div>
                           </div>
-                          
                           <div>
-                            <h4 className="text-sm font-medium mb-2">Base Notes</h4>
-                            <div className="flex flex-wrap gap-2">
-                              {layeredFragrance.notes.base.map((note: string, idx: number) => (
-                                <span key={idx} className="text-xs bg-white/10 px-2 py-1 rounded-full">
-                                  {note}
-                                </span>
+                            <h4 className="text-[9px] uppercase tracking-widest text-white/40 mb-2">Base Notes</h4>
+                            <div className="flex flex-col gap-1 items-center">
+                              {layeredFragrance.notes.base.slice(0, 2).map((note: string, idx: number) => (
+                                <span key={idx} className="text-[10px] text-white/70">{note}</span>
                               ))}
                             </div>
                           </div>
@@ -374,9 +317,40 @@ export default function LayeringPage() {
                       </div>
                     )}
 
-                    {/* Add to Cart Button */}
+                    {/* Configuration & Purchase */}
+                    <div className="grid grid-cols-2 gap-4 mb-8 text-white">
+                      <div>
+                        <Select value={selectedSize1} onValueChange={setSelectedSize1}>
+                          <SelectTrigger className="w-full bg-zinc-900 border border-white/10 rounded-none h-12 text-xs font-mono text-white hover:border-white/30 transition-colors focus:ring-0">
+                            <SelectValue placeholder="Base Size" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-zinc-950 border-white/10">
+                            {selectedPerfume1.sizeOptions.map((option: { size: string; price: number }) => (
+                              <SelectItem key={option.size} value={option.size} className="text-xs font-mono text-white/80 focus:bg-white focus:text-black cursor-pointer rounded-none">
+                                {option.size}ml - ₹{option.price}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Select value={selectedSize2} onValueChange={setSelectedSize2}>
+                          <SelectTrigger className="w-full bg-zinc-900 border border-white/10 rounded-none h-12 text-xs font-mono text-white hover:border-white/30 transition-colors focus:ring-0">
+                            <SelectValue placeholder="Accent Size" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-zinc-950 border-white/10">
+                            {selectedPerfume2.sizeOptions.map((option: { size: string; price: number }) => (
+                              <SelectItem key={option.size} value={option.size} className="text-xs font-mono text-white/80 focus:bg-white focus:text-black cursor-pointer rounded-none">
+                                {option.size}ml - ₹{option.price}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
                     <Button
-                      className="w-full bg-white text-black hover:bg-gray-200 py-6 text-lg font-semibold rounded-xl"
+                      className="w-full h-14 bg-white text-black hover:bg-gray-200 rounded-full text-[11px] uppercase tracking-widest font-bold transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]"
                       onClick={addLayeredProductToCart}
                       disabled={isAnimating}
                     >
@@ -389,8 +363,8 @@ export default function LayeringPage() {
                         </motion.div>
                       ) : (
                         <>
-                          <ShoppingBag className="h-6 w-6 mr-2" />
-                          Add Combo to Cart
+                          <ShoppingBag className="h-4 w-4 mr-3" strokeWidth={1.5} />
+                          Secure Allocation
                         </>
                       )}
                     </Button>
@@ -399,34 +373,34 @@ export default function LayeringPage() {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="bg-white/5 backdrop-blur-md rounded-xl p-8 border border-white/10 h-full flex flex-col items-center justify-center text-center"
+                    className="bg-zinc-950 p-12 border border-white/5 h-full flex flex-col items-center justify-center text-center shadow-2xl"
                   >
                     <div className="max-w-md">
-                      <h2 className="text-2xl font-bold mb-4">Create Your Custom Blend</h2>
-                      <p className="text-gray-300 mb-6">
-                        Select two fragrances from our collection to create your unique layered scent. 
-                        Each combination creates a distinctive aroma that's uniquely yours.
+                      <h2 className="text-2xl font-serif tracking-wide text-white mb-6">Create Your Custom Blend</h2>
+                      <p className="text-white/40 text-sm font-light leading-relaxed mb-10">
+                        Select two Extraits from our collection to create your bespoke layered scent. 
+                        Each combination acts dynamically, producing an evolving signature.
                       </p>
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-3 text-sm text-gray-400">
-                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">1</div>
-                          <span>Choose your first fragrance from the left</span>
+                      <div className="space-y-6">
+                        <div className="flex items-center gap-4 text-xs font-mono tracking-widest text-white/40">
+                          <div className="w-8 h-8 rounded-full border border-white/20 flex flex-shrink-0 items-center justify-center text-[10px]">01</div>
+                          <span className="text-left w-full">Select the foundational note</span>
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-gray-400">
-                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">2</div>
-                          <span>Select your second fragrance</span>
+                        <div className="flex items-center gap-4 text-xs font-mono tracking-widest text-white/40">
+                          <div className="w-8 h-8 rounded-full border border-white/20 flex flex-shrink-0 items-center justify-center text-[10px]">02</div>
+                          <span className="text-left w-full">Select the accentuating note</span>
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-gray-400">
-                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">3</div>
-                          <span>Choose sizes and add to cart</span>
+                        <div className="flex items-center gap-4 text-xs font-mono tracking-widest text-white/40">
+                          <div className="w-8 h-8 rounded-full border border-white/20 flex flex-shrink-0 items-center justify-center text-[10px]">03</div>
+                          <span className="text-left w-full">Configure sizes and acquire</span>
                         </div>
                       </div>
-                      <div className="mt-8 p-4 bg-white/5 rounded-lg">
-                        <h3 className="text-lg font-semibold mb-2">Popular Combinations</h3>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="mt-12 pt-8 border-t border-white/5 w-full">
+                        <h3 className="text-[10px] uppercase tracking-[0.3em] font-mono text-white/30 mb-6">Currently Trending</h3>
+                        <div className="grid grid-cols-2 gap-4 text-[10px] uppercase tracking-widest">
                           {popularCombinations.slice(0, 4).map((combo, index) => (
-                            <div key={index} className="text-gray-400">
-                              {combo.name} ({combo.popularity})
+                            <div key={index} className="text-white/60 border border-white/5 p-3 hover:border-white/20 transition-colors">
+                              {combo.name}
                             </div>
                           ))}
                         </div>

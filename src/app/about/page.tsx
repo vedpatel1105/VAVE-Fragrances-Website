@@ -63,10 +63,9 @@ export default function About() {
   return (
     <>
       <SimpleNavbar />
-      <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white">
+      <div className="min-h-screen bg-zinc-950 text-white selection:bg-white/20">
         {/* Hero Section */}
-        <section className="relative pt-20 pb-16 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-white/5" />
+        <section className="relative pt-32 pb-24 overflow-hidden border-b border-white/5">
           <div className="container mx-auto px-4 relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -74,19 +73,21 @@ export default function About() {
               transition={{ duration: 0.8 }}
               className="text-center max-w-4xl mx-auto"
             >
+              <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-6 font-mono">Brand Heritage</h2>
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.8 }}
-                className="text-5xl md:text-7xl font-bold mt-8 mb-6 font-serif text-white"
+                className="text-5xl md:text-7xl font-serif tracking-wide text-white mb-8"
               >
                 About VAVE
               </motion.h1>
+              <div className="w-px h-16 bg-gradient-to-b from-white/20 to-transparent mx-auto mb-8" />
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.8 }}
-                className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed"
+                className="text-sm md:text-base text-white/60 mb-8 max-w-2xl mx-auto font-light leading-relaxed tracking-wide"
               >
                 Where fragrance becomes personal expression. We believe every scent tells a story—and that story should be uniquely yours.
               </motion.p>
@@ -95,29 +96,29 @@ export default function About() {
         </section>
 
         {/* Stats Section */}
-        <section className="py-16 bg-gradient-to-r from-white/5 to-white/10">
+        <section className="py-20 border-b border-white/5 bg-white/[0.01]">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="grid grid-cols-2 md:grid-cols-4 gap-8"
+              className="grid grid-cols-2 md:grid-cols-4 gap-12"
             >
               {stats.map((stat, index) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, scale: 0.8 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.1, duration: 0.6 }}
-                  className="text-center"
+                  className="text-center flex flex-col items-center justify-center border-l border-white/5 first:border-l-0"
                 >
-                  <div className="flex justify-center mb-4 text-white">
+                  <div className="flex justify-center mb-6 text-white/40">
                     {stat.icon}
                   </div>
-                  <div className="text-3xl md:text-4xl font-bold text-white mb-2">
+                  <div className="text-3xl md:text-4xl font-serif text-white mb-3 tracking-wide">
                     {stat.number}
                   </div>
-                  <div className="text-gray-300 text-sm md:text-base">
+                  <div className="text-[10px] uppercase tracking-[0.2em] font-mono text-white/40">
                     {stat.label}
                   </div>
                 </motion.div>
@@ -127,43 +128,45 @@ export default function About() {
         </section>
 
         {/* Our Story Section */}
-        <section className="py-20">
+        <section className="py-24 border-b border-white/5">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8 }}
               >
-                <Image
-                  src={`${ProductInfo.baseUrl}/about/about.webp`}
-                  alt="VAVE Fragrance Creation Process"
-                  width={600}
-                  height={400}
-                  className="rounded-2xl shadow-2xl"
-                />
+                <div className="relative aspect-[4/5] w-full">
+                    <Image
+                    src={`${ProductInfo.baseUrl}/about/about.webp`}
+                    alt="VAVE Fragrance Creation Process"
+                    fill
+                    className="object-cover grayscale hover:grayscale-0 transition-all duration-700 p-8 border border-white/10"
+                    />
+                </div>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8 }}
-                className="space-y-6"
+                className="space-y-8"
               >
-                <h2 className="text-4xl md:text-5xl font-bold font-serif text-white mb-6">
+                <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-2 font-mono">Origins</h2>
+                <h3 className="text-3xl md:text-5xl font-serif tracking-wide text-white mb-8 border-b border-white/10 pb-8">
                   Our Story
-                </h2>
-                <p className="text-lg text-gray-300 leading-relaxed">
+                </h3>
+                <p className="text-sm text-white/60 leading-relaxed font-light">
                   Founded in 2025 by two passionate creators, VAVE was born out of a simple yet powerful idea: 
                   to empower people to craft their own signature scent. We believe fragrance is more than just 
                   a product—it's a form of self-expression, a way to tell your story without saying a word.
                 </p>
-                <p className="text-lg text-gray-300 leading-relaxed">
+                <p className="text-sm text-white/60 leading-relaxed font-light">
                   Our journey began with a vision to democratize luxury fragrance, making premium quality 
                   accessible to everyone. We use only the finest ingredients and offer a rich 25% oil 
                   concentration in all our perfumes, ensuring an 8+ hour lasting experience that stays 
                   with you through the day and night.
                 </p>
-                <p className="text-lg text-gray-300 leading-relaxed">
+                <p className="text-sm text-white/60 leading-relaxed font-light">
                   What sets us apart is our unique layering system. We currently offer 8 signature perfumes, 
                   each carefully selected not just for their individual brilliance, but for their ability 
                   to layer seamlessly with one another. This unlocks up to 64 unique combinations that 
@@ -175,7 +178,7 @@ export default function About() {
         </section>
 
         {/* Our Values Section */}
-        <section className="py-20 bg-gradient-to-r from-gray-900/50 to-white/5">
+        <section className="py-24 border-b border-white/5 bg-white/[0.01]">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -183,14 +186,15 @@ export default function About() {
               transition={{ duration: 0.8 }}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl md:text-5xl font-bold font-serif text-white mb-6">
+              <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-6 font-mono">Philosophy</h2>
+              <h3 className="text-3xl md:text-5xl font-serif tracking-wide text-white mb-6">
                 Our Values
-              </h2>
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              </h3>
+              <p className="text-sm text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
                 The principles that guide everything we do, from ingredient selection to customer experience.
               </p>
             </motion.div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {values.map((value, index) => (
                 <motion.div
                   key={index}
@@ -198,19 +202,17 @@ export default function About() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1, duration: 0.6 }}
                 >
-                  <Card className="bg-gray-800/50 border-gray-700 hover:bg-gray-800/70 transition-all duration-300 h-full">
-                    <CardContent className="p-6 text-center">
-                      <div className="text-white mb-4 flex justify-center">
-                        {value.icon}
-                      </div>
-                      <h3 className="text-xl font-semibold text-white mb-3">
-                        {value.title}
-                      </h3>
-                      <p className="text-gray-300 text-sm leading-relaxed">
-                        {value.description}
-                      </p>
-                    </CardContent>
-                  </Card>
+                  <div className="bg-zinc-900/40 border border-white/5 hover:border-white/20 transition-all duration-500 h-full p-8 flex flex-col justify-center text-center items-center rounded-none group">
+                    <div className="text-white/40 mb-8 transform group-hover:scale-110 transition-transform duration-500">
+                      {value.icon}
+                    </div>
+                    <h3 className="text-sm font-mono tracking-widest uppercase text-white mb-4">
+                      {value.title}
+                    </h3>
+                    <p className="text-white/40 text-[11px] leading-relaxed font-light uppercase tracking-wider">
+                      {value.description}
+                    </p>
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -218,7 +220,7 @@ export default function About() {
         </section>
 
         {/* Product Showcase Section */}
-        <section className="py-20">
+        <section className="py-24 border-b border-white/5">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -226,15 +228,16 @@ export default function About() {
               transition={{ duration: 0.8 }}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl md:text-5xl font-bold font-serif text-white mb-6">
+              <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-2 font-mono">The Extrait Portfolio</h2>
+              <h3 className="text-3xl md:text-5xl font-serif tracking-wide text-white mb-6">
                 Our Signature Collection
-              </h2>
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              </h3>
+              <p className="text-sm text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
                 Eight carefully crafted fragrances, each designed to layer beautifully with the others, 
                 creating endless possibilities for personal expression.
               </p>
             </motion.div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredProducts.map((product, index) => (
                 <motion.div
                   key={product.id}
@@ -243,32 +246,32 @@ export default function About() {
                   transition={{ delay: index * 0.1, duration: 0.6 }}
                   className="group"
                 >
-                  <Card className="bg-gray-800/50 border-gray-700 hover:bg-gray-800/70 transition-all duration-300 overflow-hidden">
-                    <div className="aspect-square relative overflow-hidden">
+                  <div className="bg-zinc-950 border border-white/5 hover:border-white/20 transition-all duration-500 overflow-hidden h-full rounded-none">
+                    <div className="aspect-square relative overflow-hidden bg-zinc-900/40 p-4">
                       <Image
                         src={product.images["30"][0]}
                         alt={product.name}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        className="object-cover mix-blend-screen scale-90 group-hover:scale-100 transition-transform duration-700"
                       />
                     </div>
-                    <CardContent className="p-4">
-                      <h3 className="text-lg font-semibold text-white mb-2">
-                        {product.name}
-                      </h3>
-                      <p className="text-sm text-gray-400 mb-2">
-                        {product.tagline}
-                      </p>
-                      <p className="text-sm text-gray-300 mb-4">
-                        {product.description}
-                      </p>
-                      <div className="flex items-center gap-2 text-yellow-400">
-                        <Star className="h-4 w-4 fill-current" />
-                        <span className="text-sm">{product.rating}</span>
-                        <span className="text-gray-400 text-sm">({product.reviews} reviews)</span>
+                    <div className="p-6 border-t border-white/5 text-center flex flex-col justify-between h-[200px]">
+                      <div>
+                          <h3 className="text-lg font-serif tracking-wide text-white mb-2">
+                            {product.name}
+                          </h3>
+                          <p className="text-[10px] uppercase font-mono tracking-widest text-white/40 mb-4">
+                            {product.tagline}
+                          </p>
                       </div>
-                    </CardContent>
-                  </Card>
+                      <div className="flex flex-col items-center">
+                          <div className="flex items-center gap-2 text-white/60 mb-4">
+                            <Star className="h-3 w-3 fill-white/60" />
+                            <span className="text-[10px] uppercase font-mono tracking-widest">{product.rating}</span>
+                          </div>
+                      </div>
+                    </div>
+                  </div>
                 </motion.div>
               ))}
             </div>
@@ -276,13 +279,13 @@ export default function About() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.8 }}
-              className="text-center mt-12"
+              className="text-center mt-16"
             >
               <Link href="/collection">
-                <Button className="bg-white text-black hover:bg-gray-200 px-8 py-3 rounded-full">
-                  <BookOpen className="h-5 w-5 mr-2" />
-                  Explore Full Collection
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                <Button className="bg-white text-black hover:bg-gray-200 px-8 py-6 rounded-none tracking-widest uppercase text-xs font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+                  <BookOpen className="h-4 w-4 mr-3" strokeWidth={1.5} />
+                  Explore Portfolio
+                  <ArrowRight className="h-4 w-4 ml-3" />
                 </Button>
               </Link>
             </motion.div>
@@ -290,51 +293,52 @@ export default function About() {
         </section>
 
         {/* Layering Innovation Section */}
-        <section className="py-20 bg-gradient-to-r from-white/5 to-white/10">
+        <section className="py-24 border-b border-white/5 bg-white/[0.01]">
           <div className="container mx-auto px-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.8 }}
-                className="space-y-6"
+                className="space-y-8"
               >
-                <h2 className="text-4xl md:text-5xl font-bold font-serif text-white mb-6">
+                <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-2 font-mono">Sensory Alchemy</h2>
+                <h3 className="text-3xl md:text-5xl font-serif tracking-wide text-white mb-6">
                   The Art of Layering
-                </h2>
-                <p className="text-lg text-gray-300 leading-relaxed">
+                </h3>
+                <p className="text-sm text-white/60 leading-relaxed font-light">
                   Our revolutionary layering system allows you to combine any two of our 8 signature 
                   fragrances, creating up to 64 unique scent combinations. This isn't just mixing 
                   perfumes—it's creating your personal olfactory signature.
                 </p>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="h-6 w-6 text-white mt-1 flex-shrink-0" />
-                    <p className="text-gray-300">
-                      <span className="text-white font-semibold">Perfect Harmony:</span> Each fragrance is 
-                      designed to complement others, ensuring beautiful combinations every time.
+                <div className="space-y-6 pt-4">
+                  <div className="flex items-start gap-4">
+                    <CheckCircle className="h-5 w-5 text-white/60 mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                    <p className="text-[11px] uppercase tracking-wider text-white/40 leading-relaxed">
+                      <span className="text-white font-mono block mb-1">Architectural Harmony</span> 
+                      Each fragrance is designed to complement others.
                     </p>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="h-6 w-6 text-white mt-1 flex-shrink-0" />
-                    <p className="text-gray-300">
-                      <span className="text-white font-semibold">Endless Possibilities:</span> From fresh 
-                      morning scents to mysterious evening blends, create the perfect fragrance for any moment.
+                  <div className="flex items-start gap-4">
+                    <CheckCircle className="h-5 w-5 text-white/60 mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                    <p className="text-[11px] uppercase tracking-wider text-white/40 leading-relaxed">
+                      <span className="text-white font-mono block mb-1">Infinite Combinations</span> 
+                      From fresh morning scents to mysterious evening blends.
                     </p>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="h-6 w-6 text-white mt-1 flex-shrink-0" />
-                    <p className="text-gray-300">
-                      <span className="text-white font-semibold">Your Signature:</span> No two people will 
-                      have the same combination, making your scent truly unique to you.
+                  <div className="flex items-start gap-4">
+                    <CheckCircle className="h-5 w-5 text-white/60 mt-0.5 flex-shrink-0" strokeWidth={1.5} />
+                    <p className="text-[11px] uppercase tracking-wider text-white/40 leading-relaxed">
+                      <span className="text-white font-mono block mb-1">Bespoke Signature</span> 
+                      Your selected ratio creates a scent uniquely yours.
                     </p>
                   </div>
                 </div>
-                <Link href="/layering">
-                  <Button className="mt-4 bg-white text-black hover:bg-gray-200 px-6 py-3 rounded-full">
-                    <Layers className="h-5 w-5 mr-2" />
-                    Try Layering Now
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                <Link href="/layering" className="inline-block mt-4">
+                  <Button className="bg-transparent border border-white text-white hover:bg-white hover:text-black px-8 py-6 rounded-none tracking-widest uppercase text-xs font-bold transition-all">
+                    <Layers className="h-4 w-4 mr-3" strokeWidth={1.5} />
+                    Experience Layering
+                    <ArrowRight className="h-4 w-4 ml-3" />
                   </Button>
                 </Link>
               </motion.div>
@@ -348,17 +352,17 @@ export default function About() {
                   {ProductInfo.popularCombinations.slice(0, 4).map((combo, index) => (
                     <motion.div
                       key={index}
-                      initial={{ opacity: 0, scale: 0.8 }}
+                      initial={{ opacity: 0, scale: 0.9 }}
                       whileInView={{ opacity: 1, scale: 1 }}
                       transition={{ delay: index * 0.1, duration: 0.6 }}
-                      className="bg-gray-800/50 border border-gray-700 rounded-lg p-4 text-center hover:bg-gray-800/70 transition-all duration-300"
+                      className="bg-zinc-900/40 border border-white/5 rounded-none p-6 text-center hover:border-white/20 transition-all duration-500"
                     >
-                      <h4 className="text-white font-semibold mb-2">{combo.name}</h4>
-                      <p className="text-sm text-gray-400 mb-2">
-                        {combo.fragrance1} + {combo.fragrance2}
+                      <h4 className="text-white font-serif tracking-wide mb-3">{combo.name}</h4>
+                      <p className="text-[9px] uppercase font-mono tracking-widest text-white/40 mb-4">
+                        {combo.fragrance1} <br/>+<br/> {combo.fragrance2}
                       </p>
-                      <div className="text-white text-sm font-medium">
-                        {combo.popularity} Popular
+                      <div className="text-white/60 tracking-widest uppercase text-[10px] pt-4 border-t border-white/5">
+                        {combo.popularity} Match
                       </div>
                     </motion.div>
                   ))}
@@ -369,7 +373,7 @@ export default function About() {
         </section>
 
         {/* Quality Promise Section */}
-        <section className="py-20">
+        <section className="py-24 border-b border-white/5">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -377,57 +381,55 @@ export default function About() {
               transition={{ duration: 0.8 }}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl md:text-5xl font-bold font-serif text-white mb-6">
+              <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-2 font-mono">Assurance</h2>
+              <h3 className="text-3xl md:text-5xl font-serif tracking-wide text-white mb-6">
                 Our Quality Promise
-              </h2>
-              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              </h3>
+              <p className="text-sm text-white/60 max-w-2xl mx-auto font-light leading-relaxed">
                 Every bottle is crafted with uncompromising attention to detail and the highest quality standards.
               </p>
             </motion.div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1, duration: 0.6 }}
-                className="text-center"
+                className="bg-zinc-900/40 border border-white/5 p-8 flex flex-col items-center justify-center text-center rounded-none group hover:border-white/20 transition-all duration-500"
               >
-                <div className="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Award className="h-8 w-8 text-black" />
+                <div className="mb-6 text-white/40 transform group-hover:scale-110 transition-transform duration-500">
+                  <Award className="h-8 w-8" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-3">Premium Ingredients</h3>
-                <p className="text-gray-300">
-                  We source only the finest raw materials from trusted suppliers worldwide, 
-                  ensuring exceptional quality in every drop.
+                <h3 className="text-sm uppercase font-mono tracking-widest text-white mb-4">Finest Extracts</h3>
+                <p className="text-[11px] uppercase tracking-wider text-white/40 leading-relaxed">
+                  We source only the rarest raw materials globally, ensuring exceptional pedigree in every drop.
                 </p>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.6 }}
-                className="text-center"
+                className="bg-zinc-900/40 border border-white/5 p-8 flex flex-col items-center justify-center text-center rounded-none group hover:border-white/20 transition-all duration-500"
               >
-                <div className="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Zap className="h-8 w-8 text-black" />
+                <div className="mb-6 text-white/40 transform group-hover:scale-110 transition-transform duration-500">
+                  <Zap className="h-8 w-8" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-3">25% Oil Concentration</h3>
-                <p className="text-gray-300">
-                  Our high concentration ensures 8+ hours of lasting fragrance, 
-                  making every spray count throughout your day.
+                <h3 className="text-sm uppercase font-mono tracking-widest text-white mb-4">Extrait de Parfum</h3>
+                <p className="text-[11px] uppercase tracking-wider text-white/40 leading-relaxed">
+                  25% concentration creates a monumental sillage, lasting well beyond 12+ hours on skin.
                 </p>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
-                className="text-center"
+                className="bg-zinc-900/40 border border-white/5 p-8 flex flex-col items-center justify-center text-center rounded-none group hover:border-white/20 transition-all duration-500"
               >
-                <div className="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Shield className="h-8 w-8 text-black" />
+                <div className="mb-6 text-white/40 transform group-hover:scale-110 transition-transform duration-500">
+                  <Shield className="h-8 w-8" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-3">Rigorous Testing</h3>
-                <p className="text-gray-300">
-                  Every batch undergoes extensive quality control testing to ensure 
-                  consistency, safety, and exceptional performance.
+                <h3 className="text-sm uppercase font-mono tracking-widest text-white mb-4">Precision Testing</h3>
+                <p className="text-[11px] uppercase tracking-wider text-white/40 leading-relaxed">
+                  Batches undergo strict maceration times to allow natural oils to achieve perfect equilibrium.
                 </p>
               </motion.div>
             </div>
@@ -435,7 +437,7 @@ export default function About() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-20 bg-gradient-to-r from-white/10 to-white/5">
+        <section className="py-32 bg-white/[0.01]">
           <div className="container mx-auto px-4 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -443,26 +445,26 @@ export default function About() {
               transition={{ duration: 0.8 }}
               className="max-w-4xl mx-auto"
             >
-              <h2 className="text-4xl md:text-5xl font-bold font-serif text-white mb-6">
+              <h2 className="text-3xl md:text-5xl font-serif tracking-wide text-white mb-6">
                 Ready to Find Your Signature Scent?
               </h2>
-              <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+              <p className="text-sm text-white/60 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
                 Join thousands of fragrance enthusiasts who have discovered their perfect scent 
                 through VAVE's unique collection and layering system.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/collection">
-                  <Button className="bg-white text-black hover:bg-gray-200 px-8 py-4 rounded-full text-lg">
-                    <ShoppingBag className="h-5 w-5 mr-2" />
-                    Shop Collection
-                    <ArrowRight className="h-4 w-4 ml-2" />
+              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                <Link href="/collection" className="w-full sm:w-auto">
+                  <Button className="w-full sm:w-auto bg-white text-black hover:bg-gray-200 px-8 py-6 rounded-none tracking-widest uppercase text-xs font-bold transition-all shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+                    <ShoppingBag className="h-4 w-4 mr-3" strokeWidth={1.5} />
+                    Shop Portfolio
+                    <ArrowRight className="h-4 w-4 ml-3" />
                   </Button>
                 </Link>
-                <Link href="/scent-finder">
-                  <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 px-8 py-4 rounded-full text-lg">
-                    <Sparkles className="h-5 w-5 mr-2" />
-                    Find My Scent
-                    <ArrowRight className="h-4 w-4 ml-2" />
+                <Link href="/scent-finder" className="w-full sm:w-auto">
+                  <Button className="w-full sm:w-auto bg-transparent border border-white/20 text-white hover:bg-white hover:text-black px-8 py-6 rounded-none tracking-widest uppercase text-xs font-bold transition-all">
+                    <Sparkles className="h-4 w-4 mr-3" strokeWidth={1.5} />
+                    Take The Quiz
+                    <ArrowRight className="h-4 w-4 ml-3" />
                   </Button>
                 </Link>
               </div>

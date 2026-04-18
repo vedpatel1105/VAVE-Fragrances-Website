@@ -174,15 +174,16 @@ export default function Home() {
     <main className="flex flex-col min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white">
       <SimpleNavbar />
       <Hero />
-      <div className="px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
+      <div className="px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 bg-zinc-950">
         {/* Featured Products Section */}
-        <section id="featured" className="w-full py-24">
+        <section id="featured" className="w-full py-32 relative">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-white/20 to-transparent" />
           <div className="container mx-auto px-4 md:px-6">
             {/* Section Header */}
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold mb-4 font-serif text-white">Featured Fragrances</h2>
-              <div className="w-24 h-1 bg-white mx-auto rounded-full mb-4" />
-              <p className="text-gray-300 max-w-2xl mx-auto">
+            <div className="text-center mb-20 relative z-10">
+              <h2 className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-4">Signature Collection</h2>
+              <h3 className="text-4xl md:text-5xl font-serif text-white mb-8 tracking-wide">Featured Fragrances</h3>
+              <p className="text-white/40 max-w-2xl mx-auto font-light leading-relaxed text-sm">
                 Discover our curated selection of premium fragrances, each crafted to evoke unique emotions and
                 memories.
               </p>
@@ -258,87 +259,89 @@ export default function Home() {
       </div>
 
       <Footer />
+      {isQuickViewOpen && selectedProduct && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-zinc-950 border border-white/5 rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col md:flex-row relative">
+            <button
+              onClick={() => setIsQuickViewOpen(false)}
+              className="absolute top-6 right-6 z-10 p-3 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+            >
+              <X className="h-5 w-5" strokeWidth={1.5} />
+            </button>
 
-      {isQuickViewOpen && selectedProduct && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto">
-            <div className="flex justify-end p-4">
-              <button
-                onClick={() => setIsQuickViewOpen(false)}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6">
-              <div className="aspect-square relative">
+            {/* Image side */}
+            <div className="md:w-1/2 p-12 flex items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-900/40 via-zinc-950 to-zinc-950 relative">
+              <div className="aspect-[4/5] relative w-full h-full max-h-[60vh] drop-shadow-2xl">
                 <Image
                   src={selectedProduct.images["30"][0] || "/placeholder.svg"}
                   alt={selectedProduct.name}
                   fill
-                  className="object-contain"
+                  className="object-contain mix-blend-screen"
                 />
               </div>
-              <div>
-                <h2 className="text-2xl font-bold mb-2">{selectedProduct.name}</h2>
-                <div className="flex items-center mb-4">
-                  <div className="flex">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`h-4 w-4 ${star <= Math.round(selectedProduct.rating) ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}`}
-                      />
+            </div>
+
+            {/* Content side */}
+            <div className="md:w-1/2 p-10 md:p-14 overflow-y-auto bg-zinc-950 border-l border-white/5">
+              <h2 className="text-4xl font-serif text-white tracking-wide mb-3">{selectedProduct.name}</h2>
+              <div className="flex items-center mb-8 gap-2">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`h-3 w-3 ${star <= Math.round(selectedProduct.rating) ? "text-white/80 fill-white/80" : "text-white/20"}`}
+                      strokeWidth={1}
+                    />
+                  ))}
+                </div>
+                <span className="text-[10px] uppercase font-mono tracking-widest text-white/40">
+                  {selectedProduct.rating} ({selectedProduct.reviews} reviews)
+                </span>
+              </div>
+
+              <p className="text-sm font-light leading-relaxed text-white/50 mb-10">{selectedProduct.description}</p>
+
+              {selectedProduct.notes && (
+                <div className="mb-10">
+                  <h3 className="text-[10px] uppercase tracking-widest text-white/40 mb-4">Key Notes</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {[...selectedProduct.notes.top, ...selectedProduct.notes.heart, ...selectedProduct.notes.base].map((note: string, index: number) => (
+                      <span key={index} className="px-4 py-1.5 bg-transparent border border-white/10 rounded-full text-[10px] uppercase tracking-wider text-white/60">
+                        {note}
+                      </span>
                     ))}
                   </div>
-                  <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                    {selectedProduct.rating} ({selectedProduct.reviews} reviews)
-                  </span>
                 </div>
-                <p className="text-gray-700 dark:text-gray-300 mb-6">{selectedProduct.description}</p>
+              )}
 
-                {selectedProduct.notes && (
-                  <div className="mb-6">
-                    <h3 className="text-sm font-medium mb-2">Key Notes:</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {[...selectedProduct.notes.top, ...selectedProduct.notes.heart, ...selectedProduct.notes.base].map((note: string, index: number) => (
-                        <span key={index} className="px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm">
-                          {note}
-                        </span>
-                      ))}
+              <div className="mb-10">
+                <h3 className="text-[10px] uppercase tracking-widest text-white/40 mb-4">Available Sizes</h3>
+                <div className="flex flex-wrap gap-3">
+                  {selectedProduct.sizeOptions.map((size: any) => (
+                    <div key={size.size} className="px-5 py-2 rounded-full border border-white/10 text-xs font-mono text-white/70">
+                      {size.size}ml - ₹{size.price}
                     </div>
-                  </div>
-                )}
-
-                <div className="mb-6">
-                  <h3 className="text-sm font-medium mb-2">Sizes:</h3>
-                  <div className="flex gap-3">
-                    {selectedProduct.sizeOptions.map((size: any) => (
-                      <div key={size.size} className="px-4 py-2 rounded-md text-sm bg-gray-100 dark:bg-gray-700">
-                        {size.size}ml - ₹{size.price}
-                      </div>
-                    ))}
-                  </div>
+                  ))}
                 </div>
+              </div>
 
-                <div className="flex gap-3">
-                  <Button
-                    className="flex-1"
-                    onClick={() => {
-                      addToCart(selectedProduct, 1, selectedProduct.sizeOptions[0].size)
-                      setIsQuickViewOpen(false)
-                    }}
-                  >
-                    <ShoppingBag className="h-5 w-5 mr-2" />
-                    Add to Cart
-                  </Button>
-                  <Button
-                    className="flex-1"
-                    variant="outline"
-                    onClick={() => router.push(`/product/${selectedProduct.id}`)}
-                  >
-                    View Full Details
-                  </Button>
-                </div>
+              <div className="flex gap-4 pt-4 border-t border-white/5">
+                <Button
+                  className="flex-1 h-14 bg-white text-black hover:bg-gray-200 rounded-full text-[11px] uppercase tracking-widest font-bold transition-all duration-300 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+                  onClick={() => {
+                    addToCart(selectedProduct, 1, selectedProduct.sizeOptions[0].size)
+                    setIsQuickViewOpen(false)
+                  }}
+                >
+                  <ShoppingBag className="h-4 w-4 mr-2" strokeWidth={1.5} />
+                  Add to Cart
+                </Button>
+                <Button
+                  className="flex-1 h-14 bg-transparent border border-white/20 text-white hover:bg-white/5 hover:border-white/40 rounded-full text-[11px] uppercase tracking-widest font-bold transition-all duration-300"
+                  onClick={() => router.push(`/product/${selectedProduct.id}`)}
+                >
+                  View Details
+                </Button>
               </div>
             </div>
           </div>

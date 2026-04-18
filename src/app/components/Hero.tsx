@@ -2,94 +2,73 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Layers, Search, ArrowRight, BookOpen, Sparkles } from "lucide-react"
 
 export default function Hero() {
   return (
-    <section className="w-full min-h-screen flex items-center justify-center bg-hero bg-cover bg-center relative overflow-hidden">
-      <div className="absolute inset-0 bg-black/50" />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="container mx-auto px-4 md:px-6 relative z-10 text-center"
-      >
+    <section className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-black">
+      
+      {/* Subtle Ambient Glow (Optional, for pure aesthetic depth on black) */}
+      <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-900/40 via-black to-black" />
+
+      {/* Content Container */}
+      <div className="relative z-10 container mx-auto px-6 flex flex-col items-center justify-center text-center h-full pt-16">
+        
+        {/* Subtle Accent Text */}
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.5 }}
+          className="text-xs md:text-sm uppercase tracking-[0.3em] text-white/70 mb-6 font-medium"
+        >
+          The Art of Fine Perfumery
+        </motion.p>
+
+        {/* Main Headline */}
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.8 }}
-          className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-4 font-serif"
+          transition={{ duration: 1.2, delay: 0.7, ease: [0.25, 0.4, 0.25, 1] }}
+          className="text-5xl md:text-7xl lg:text-8xl font-serif text-white mb-6 leading-tight select-none"
         >
-          Discover Your Signature Scent
+          Discover Your <br className="hidden md:block" />
+          <span className="italic font-light text-white/90">Signature</span> Scent
         </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.8 }}
-          className="text-xl md:text-2xl text-white/90 mb-8 max-w-2xl mx-auto font-cormorant"
-        >
-          Indulge in our collection of exquisite fragrances, crafted to elevate your senses and leave a lasting
-          impression.
-        </motion.p>
+
+        {/* Primary CTA Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="flex flex-col gap-6 justify-center items-center"
+          transition={{ duration: 1, delay: 1 }}
+          className="mt-8"
         >
-          {/* Primary CTA */}
           <Link href="/collection">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-3 bg-white text-black hover:bg-gray-200 transition-all duration-300 cursor-pointer px-8 py-4 rounded-full text-lg font-semibold"
-            >
-              <BookOpen className="h-5 w-5" />
-              <span>Explore Our Collection</span>
-              <ArrowRight className="h-4 w-4" />
-            </motion.div>
+            <button className="px-10 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full text-sm uppercase tracking-widest font-medium transition-all duration-500 hover:border-white/50 hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] group">
+              Explore Collection
+              <span className="inline-block ml-3 transition-transform duration-300 group-hover:translate-x-1">→</span>
+            </button>
           </Link>
-
-          {/* Secondary Features */}
-          <div className="hidden sm:flex sm:flex-row gap-4">
-            <Link href="/scent-finder">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 text-white hover:bg-white/20 transition-all duration-300 cursor-pointer"
-              >
-                <Search className="h-4 w-4" />
-                <span className="text-sm font-medium">Find Your Scent</span>
-                <ArrowRight className="h-3 w-3" />
-              </motion.div>
-            </Link>
-
-            <Link href="/layering">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 text-white hover:bg-white/20 transition-all duration-300 cursor-pointer"
-              >
-                <Layers className="h-4 w-4" />
-                <span className="text-sm font-medium">Try Layering</span>
-                <ArrowRight className="h-3 w-3" />
-              </motion.div>
-            </Link>
-
-            <a href="#featured">
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 text-white hover:bg-white/20 transition-all duration-300 cursor-pointer"
-              >
-                <Sparkles className="h-4 w-4" />
-                <span className="text-sm font-medium">Featured Fragrances</span>
-                <ArrowRight className="h-3 w-3" />
-              </motion.div>
-            </a>
-          </div>
         </motion.div>
-      </motion.div>
+
+        {/* Minimal Secondary Navigation Footer */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.5, delay: 1.5 }}
+          className="absolute bottom-12 flex items-center justify-center gap-6 text-[11px] uppercase tracking-widest text-white/40"
+        >
+          <Link href="/scent-finder" className="hover:text-white transition-colors duration-300">
+            Scent Finder
+          </Link>
+          <span className="w-1 h-1 rounded-full bg-white/20" />
+          <Link href="/layering" className="hover:text-white transition-colors duration-300">
+            Layering
+          </Link>
+          <span className="w-1 h-1 rounded-full bg-white/20" />
+          <a href="#featured" className="hover:text-white transition-colors duration-300">
+            Featured
+          </a>
+        </motion.div>
+      </div>
     </section>
   )
 }

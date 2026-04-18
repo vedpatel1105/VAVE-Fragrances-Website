@@ -330,14 +330,13 @@ export default function ScentFinderPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black">
-      {/* Animated background particles */}
+    <div className="min-h-screen bg-zinc-950 relative text-white">
+      {/* Animated background particles mapped out for luxury darkness */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-black opacity-90"></div>
-        {[...Array(50)].map((_, i) => (
+        {[...Array(20)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-1 h-1 bg-white/20 rounded-full"
+            className="absolute w-px h-px bg-white/20"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
@@ -347,9 +346,9 @@ export default function ScentFinderPage() {
               opacity: [0, 1, 0],
             }}
             transition={{
-              duration: Math.random() * 3 + 2,
+              duration: Math.random() * 5 + 5,
               repeat: Number.POSITIVE_INFINITY,
-              delay: Math.random() * 2,
+              delay: Math.random() * 5,
             }}
           />
         ))}
@@ -357,14 +356,14 @@ export default function ScentFinderPage() {
 
       <SimpleNavbar />
 
-      <main className="container mx-auto px-4 py-24 relative z-10">
+      <main className="container mx-auto px-4 pt-32 pb-24 relative z-10">
         <div className="max-w-4xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
-            <h1 className="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-100 to-white">
-              Find Your Perfect Scent
-            </h1>
-            <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-              Let us guide you to your signature fragrance through an immersive journey of discovery
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-24 relative">
+            <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-6 font-mono">Digital Sommelier</h2>
+            <h1 className="text-4xl md:text-5xl font-serif text-white mb-8 tracking-wide">Find Your Perfect Scent</h1>
+            <div className="w-px h-16 bg-gradient-to-b from-white/20 to-transparent mx-auto mb-8" />
+            <p className="text-white/40 max-w-2xl mx-auto font-light leading-relaxed text-sm">
+              Let us guide you to your signature fragrance through an immersive journey of discovery.
             </p>
           </motion.div>
 
@@ -375,20 +374,20 @@ export default function ScentFinderPage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                className="space-y-8 bg-white/5 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-white/10"
+                className="space-y-8 bg-zinc-950 p-8 md:p-12 shadow-2xl border border-white/5 rounded-none"
               >
                 <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="text-center">
-                  <h2 className="text-3xl font-semibold mb-6 text-white">{questions[currentQuestion].title}</h2>
+                  <h2 className="text-xl md:text-2xl font-serif tracking-wide mb-8 text-center text-white">{questions[currentQuestion].title}</h2>
 
-                  {/* Enhanced progress bar with glass effect */}
-                  <div className="relative w-full h-3 bg-white/10 backdrop-blur-sm rounded-full mb-8 overflow-hidden border border-white/20">
+                  {/* Enhanced progress bar */}
+                  <div className="relative w-full h-1 bg-white/5 rounded-none mb-10 overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{
                         width: `${((currentQuestion + 1) / questions.length) * 100}%`,
                       }}
                       transition={{ duration: 0.5 }}
-                      className="absolute h-full bg-gradient-to-r from-gray-600 to-black backdrop-blur-sm"
+                      className="absolute h-full bg-white"
                     />
                   </div>
                 </motion.div>
@@ -401,33 +400,33 @@ export default function ScentFinderPage() {
                         <motion.div key={option.value} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <button
                             onClick={() => handleNoteToggle(option.value)}
-                            className={`relative w-full h-auto p-4 flex flex-col items-center gap-2 rounded-xl
-                              transition-all duration-300 group border backdrop-blur-xl
+                            className={`relative w-full h-auto p-4 flex flex-col items-center gap-3 rounded-none
+                              transition-all duration-300 group border
                               ${selectedNotes.includes(option.value)
-                                ? "bg-white/20 text-white border-white/30 shadow-lg"
-                                : "bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-gray-200 hover:text-white"
+                                ? "bg-white/10 text-white border-white/40 shadow-lg"
+                                : "bg-zinc-900/40 hover:bg-white/5 border-white/5 hover:border-white/20 text-white/60 hover:text-white"
                               }`}
                           >
-                            <span className="text-3xl transform group-hover:scale-110 transition-transform duration-300">
+                            <span className="text-2xl transform group-hover:scale-110 transition-transform duration-300 opacity-80 group-hover:opacity-100">
                               {option.icon}
                             </span>
-                            <span className="text-sm font-medium transition-colors">{option.label}</span>
+                            <span className="text-[10px] uppercase font-mono tracking-widest transition-colors">{option.label}</span>
                             {selectedNotes.includes(option.value) && (
                               <span className="absolute top-2 right-2">
-                                <Check className="h-4 w-4 text-white" />
+                                <Check className="h-3 w-3 text-white" />
                               </span>
                             )}
                           </button>
                         </motion.div>
                       ))}
                     </div>
-                    <div className="flex justify-center mt-6">
+                    <div className="flex justify-center mt-10">
                       <Button
                         onClick={handleNotesSubmit}
                         disabled={selectedNotes.length === 0}
-                        className="bg-white/20 hover:bg-white/30 text-white px-8 py-2 rounded-full backdrop-blur-xl border border-white/20 disabled:opacity-50"
+                        className="bg-white text-black hover:bg-gray-200 px-8 py-6 rounded-none tracking-widest uppercase text-xs font-bold transition-colors disabled:opacity-50"
                       >
-                        Continue
+                        Continue Phase
                         <ChevronRight className="ml-2 h-4 w-4" />
                       </Button>
                     </div>
@@ -436,18 +435,20 @@ export default function ScentFinderPage() {
                   /* Regular option grid for other questions */
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {questions[currentQuestion].options.map((option) => (
-                      <motion.div key={option.value} whileHover={{ scale: 1.02, y: -5 }} whileTap={{ scale: 0.98 }}>
+                      <motion.div key={option.value} whileHover={{ scale: 1.02, y: -2 }} whileTap={{ scale: 0.98 }}>
                         <button
                           onClick={() => handleSelection(questions[currentQuestion].id, option.value)}
-                          className="w-full h-auto p-6 flex flex-col items-center gap-3 rounded-xl
-                            bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20
-                            transition-all duration-300 group text-gray-200 hover:text-white backdrop-blur-xl"
+                          className="w-full h-auto p-8 flex flex-col items-center gap-4 rounded-none
+                            bg-zinc-900/40 hover:bg-white/5 border border-white/5 hover:border-white/20
+                            transition-all duration-500 group text-white/60 hover:text-white"
                         >
-                          <span className="text-4xl transform group-hover:scale-110 transition-transform duration-300">
+                          <span className="text-3xl transform group-hover:scale-110 transition-transform duration-500 opacity-80 group-hover:opacity-100 mb-2">
                             {option.icon}
                           </span>
-                          <span className="text-lg font-medium transition-colors">{option.label}</span>
-                          <span className="text-sm text-gray-400 group-hover:text-gray-300">{option.description}</span>
+                          <span className="text-xs uppercase font-mono tracking-widest transition-colors">{option.label}</span>
+                          <span className="text-[10px] text-white/40 group-hover:text-white/60 font-light text-center leading-relaxed">
+                            {option.description}
+                          </span>
                         </button>
                       </motion.div>
                     ))}
@@ -455,22 +456,22 @@ export default function ScentFinderPage() {
                 )}
 
                 {/* Enhanced navigation */}
-                <div className="flex justify-between items-center mt-8">
+                <div className="flex justify-between items-center mt-10 pt-6 border-t border-white/5">
                   <Button
                     variant="ghost"
                     onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
                     disabled={currentQuestion === 0}
-                    className="text-white hover:text-gray-200 hover:bg-white/10 backdrop-blur-xl disabled:opacity-50"
+                    className="text-white/40 hover:text-black hover:bg-white rounded-none tracking-widest uppercase text-[10px] font-mono disabled:opacity-10 disabled:hover:bg-transparent disabled:hover:text-white/40 transition-colors cursor-pointer"
                   >
-                    <ArrowRight className="h-4 w-4 rotate-180 mr-2" />
-                    Previous
+                    <ArrowRight className="h-3 w-3 rotate-180 mr-2" />
+                    Previous Stage
                   </Button>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     {questions.map((_, index) => (
                       <motion.div
                         key={index}
-                        className={`w-2.5 h-2.5 rounded-full backdrop-blur-sm ${index === currentQuestion ? "bg-white/80" : "bg-white/30"
+                        className={`w-1.5 h-1.5 rounded-none ${index === currentQuestion ? "bg-white" : "bg-white/20"
                           }`}
                         animate={{
                           scale: index === currentQuestion ? 1.2 : 1,
@@ -486,9 +487,9 @@ export default function ScentFinderPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-8"
               >
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-semibold text-white mb-4">Your Perfect Matches</h2>
-                  <p className="text-gray-300">Based on your preferences, we recommend these fragrances</p>
+                <div className="text-center mb-12">
+                  <h2 className="text-2xl font-serif text-white mb-4 tracking-wide">Your Perfect Matches</h2>
+                  <p className="text-white/40 tracking-widest text-xs uppercase font-mono">Based on your olfactory profile</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -497,33 +498,33 @@ export default function ScentFinderPage() {
                       key={product.id}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="bg-white/5 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 flex flex-col"
+                      className="bg-zinc-950 overflow-hidden border border-white/5 flex flex-col group rounded-none hover:border-white/20 transition-all duration-500"
                     >
                       <div 
-                        className="relative aspect-square cursor-pointer"
+                        className="relative aspect-square cursor-pointer bg-zinc-900/40 p-6"
                         onClick={() => gotoProducPage(product.id)}
                       >
                         <Image
                           src={product.images[selectedSize][0] || "/placeholder.svg"}
                           alt={product.name}
                           fill
-                          className="object-cover"
+                          className="object-cover mix-blend-screen p-4 group-hover:scale-105 transition-transform duration-700"
                         />
                       </div>
 
-                      <div className="p-6 flex flex-col flex-1">
-                        <h3 className="text-xl font-semibold text-white mb-2">{product.name}</h3>
-                        <p className="text-gray-300 text-sm mb-4 line-clamp-2">{product.description}</p>
+                      <div className="p-8 flex flex-col flex-1 border-t border-white/5">
+                        <h3 className="text-xl font-serif tracking-wide text-white mb-2 text-center">{product.name}</h3>
+                        <p className="text-white/40 text-xs text-center mb-6 line-clamp-2 uppercase tracking-widest">{product.category}</p>
 
-                        <div className="grid grid-cols-3 gap-2 mb-4">
+                        <div className="grid grid-cols-3 gap-2 mb-8">
                           {['top', 'heart', 'base'].map((noteType) => (
                             <div key={noteType} className="text-center">
-                              <h5 className="text-xs font-medium uppercase text-gray-400 mb-2">
+                              <h5 className="text-[9px] uppercase tracking-widest text-white/40 mb-2">
                                 {noteType.charAt(0).toUpperCase() + noteType.slice(1)} Notes
                               </h5>
                               <div className="space-y-1">
                                 {product.notes[noteType as keyof typeof product.notes].slice(0, 2).map((note: string, i: number) => (
-                                  <div key={i} className="text-xs text-gray-200 bg-white/10 rounded-full px-2 py-1 truncate">
+                                  <div key={i} className="text-[10px] text-white/70 truncate uppercase tracking-wider">
                                     {note}
                                   </div>
                                 ))}
@@ -532,10 +533,9 @@ export default function ScentFinderPage() {
                           ))}
                         </div>
 
-                        <div className="mt-auto space-y-4">
+                        <div className="mt-auto space-y-6">
                           <div>
-                            <h4 className="text-sm font-medium text-gray-300 mb-2">Size:</h4>
-                            <div className="flex gap-2 flex-wrap">
+                            <div className="flex gap-2 flex-wrap justify-center">
                               {product.sizeOptions.map((size: { size: string; price: number }) => (
                                 <button
                                   key={size.size}
@@ -543,10 +543,10 @@ export default function ScentFinderPage() {
                                     e.stopPropagation();
                                     setSelectedSize(size.size);
                                   }}
-                                  className={`px-3 py-1 rounded-full text-sm transition-all ${
+                                  className={`px-4 py-2 text-[10px] uppercase font-mono tracking-widest transition-all rounded-none border ${
                                     selectedSize === size.size
-                                      ? "bg-white text-black font-medium"
-                                      : "bg-white/10 text-white hover:bg-white/20"
+                                      ? "bg-white text-black border-white"
+                                      : "bg-transparent text-white/60 border-white/10 hover:border-white/40"
                                   }`}
                                 >
                                   {size.size}ml
@@ -555,8 +555,8 @@ export default function ScentFinderPage() {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between pt-4 border-t border-white/10">
-                            <span className="text-xl font-bold text-white">
+                          <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                            <span className="text-lg font-mono text-white">
                               ₹{product.sizeOptions.find((s: { size: string; price: number }) => s.size === selectedSize)?.price || product.price}
                             </span>
                             <Button
@@ -565,9 +565,9 @@ export default function ScentFinderPage() {
                                 handleAddToCart(product);
                               }}
                               disabled={isAddingToCart[product.id]}
-                              className="bg-white text-black hover:bg-gray-200"
+                              className="bg-white text-black hover:bg-gray-200 rounded-full text-[10px] uppercase tracking-widest font-bold h-10 px-6 shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-shadow"
                             >
-                              <ShoppingBag className="h-4 w-4 mr-2" />
+                              <ShoppingBag className="h-3 w-3 mr-2" strokeWidth={1.5} />
                               {isAddingToCart[product.id] ? "Adding..." : "Add to Cart"}
                             </Button>
                           </div>
@@ -577,14 +577,14 @@ export default function ScentFinderPage() {
                   ))}
                 </div>
 
-                <div className="text-center mt-8">
+                <div className="text-center mt-12">
                   <Button
                     onClick={resetQuiz}
                     variant="outline"
-                    className="text-white border-white/20 hover:bg-white/10"
+                    className="text-white border-white/20 hover:bg-white hover:text-black rounded-none tracking-widest uppercase font-mono text-xs px-8 py-6 transition-colors"
                   >
-                    <Undo2 className="h-4 w-4 mr-2" />
-                    Try Again
+                    <Undo2 className="h-4 w-4 mr-3" strokeWidth={1.5}/>
+                    Restart Consultation
                   </Button>
                 </div>
               </motion.div>

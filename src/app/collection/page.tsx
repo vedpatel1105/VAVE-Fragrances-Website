@@ -114,26 +114,32 @@ export default function CollectionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-zinc-950">
       <SimpleNavbar />
       
-      <main className="container mx-auto px-4 py-24">
-        <div className="flex items-center text-sm text-gray-500 mt-4 sm:mt-2 mb-8">
-          <Link href="/" className="hover:text-accent">Home</Link>
-          <ChevronRight className="h-4 w-4 mx-2" />
-          <span className="text-gray-900 dark:text-white">Our Collection</span>
+      <main className="container mx-auto px-4 pt-32 pb-24">
+        {/* Breadcrumb */}
+        <div className="flex items-center justify-center text-[10px] uppercase font-mono tracking-widest text-white/30 mb-8 mt-8">
+          <Link href="/" className="hover:text-white transition-colors">Home</Link>
+          <ChevronRight className="h-3 w-3 mx-3 text-white/10" strokeWidth={1} />
+          <span className="text-white">Our Collection</span>
         </div>
 
-        <h1 className="text-4xl font-bold text-center mb-4">Our Collection</h1>
-        <p className="text-center text-gray-600 dark:text-gray-300 mb-12 max-w-2xl mx-auto">
-          Discover our range of unique fragrances, each crafted to evoke distinct emotions and memories.
-        </p>
+        {/* Collection Header */}
+        <div className="text-center mb-24 relative">
+          <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-6 font-mono">The Complete Library</h2>
+          <h1 className="text-4xl md:text-5xl font-serif text-white mb-8 tracking-wide">Our Collection</h1>
+          <div className="w-px h-16 bg-gradient-to-b from-white/20 to-transparent mx-auto mb-8" />
+          <p className="text-white/40 max-w-2xl mx-auto font-light leading-relaxed text-sm">
+            Discover our entire library of premium Extraits de Parfum. Each composition is an intricate balance of rare ingredients, crafted to evolve beautifully on your skin.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent blur-3xl -z-10" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent -z-10" />
           {isLoading ? (
             Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="bg-gray-800/50 rounded-lg p-6 animate-pulse min-h-[400px]" />
+              <div key={index} className="bg-zinc-900/20 border border-white/5 animate-pulse min-h-[500px]" />
             ))
           ) : products.length > 0 ? (
             products.map((product) => (

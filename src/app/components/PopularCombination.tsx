@@ -9,7 +9,6 @@ import { useCartStore } from '@/src/lib/cartStore'
 import { useToast } from '@/components/ui/use-toast'
 import { Button } from '@/components/ui/button';
 
-
 function PopularCombination() {
     const { toast } = useToast()
     const { addItem, setIsOpen } = useCartStore()
@@ -66,13 +65,17 @@ function PopularCombination() {
         }, 1200)
     }
     return (
-        < section className="container mx-auto px-4 py-16" >
+        <section className="container mx-auto px-4 py-32 border-t border-white/5 relative">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
             <div className="max-w-7xl mx-auto">
-                <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Popular Combinations</h2>
+                <div className="text-center mb-16 relative z-10">
+                    <h2 className="text-[10px] uppercase tracking-[0.4em] text-white/40 mb-4 font-mono">Curated Synergy</h2>
+                    <h3 className="text-3xl md:text-4xl font-serif text-white tracking-wide">Cult Combinations</h3>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {isLoading ? (
                         Array.from({ length: 4 }).map((_, i) => (
-                            <div key={i} className="bg-gray-800/50 rounded-xl h-64 animate-pulse" />
+                            <div key={i} className="bg-zinc-900/40 border border-white/5 h-64 animate-pulse rounded-none" />
                         ))
                     ) : ProductInfo.popularCombinations.map((combo, index) => {
                         const perfume1 = products.find(p => p.name === combo.fragrance1)
@@ -86,54 +89,51 @@ function PopularCombination() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
-                                className="bg-white/5 backdrop-blur-md rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all duration-300"
+                                className="bg-zinc-950 p-8 border border-white/5 hover:border-white/20 hover:bg-zinc-900/20 transition-all duration-500 rounded-none group flex flex-col items-center text-center"
                             >
-                                <div className="relative h-48 mb-6">
+                                <div className="relative h-48 mb-8 w-full">
                                     {/* First Perfume Circle */}
-                                    <div className="absolute left-0 top-0 w-32 h-32 rounded-full overflow-hidden border-2 border-white/20">
+                                    <div className="absolute left-4 top-0 w-32 h-32 rounded-full overflow-hidden border border-white/10 z-10 group-hover:-translate-x-2 transition-transform duration-500">
                                         <Image
                                             src={perfume1.images["30"][0]}
                                             alt={perfume1.name}
                                             fill
-                                            className="object-cover"
+                                            className="object-cover mix-blend-screen"
                                         />
                                     </div>
                                     {/* Second Perfume Circle */}
-                                    <div className="absolute right-0 bottom-0 w-32 h-32 rounded-full overflow-hidden border-2 border-white/20">
+                                    <div className="absolute right-4 bottom-0 w-32 h-32 rounded-full overflow-hidden border border-white/10 group-hover:translate-x-2 transition-transform duration-500">
                                         <Image
                                             src={perfume2.images["30"][0]}
                                             alt={perfume2.name}
                                             fill
-                                            className="object-cover"
+                                            className="object-cover mix-blend-screen"
                                         />
                                     </div>
                                     {/* Overlay Circle */}
-                                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white border border-white/20 flex items-center justify-center z-20 text-black">
                                         <span className="text-sm font-medium">
-                                            <Blend />
+                                            <Blend strokeWidth={1.5} className="w-5 h-5"/>
                                         </span>
                                     </div>
                                 </div>
 
-                                <div className="text-center">
-                                    <h3 className="text-xl font-bold mb-2">{combo.name}</h3>
-                                    <div className="flex justify-center gap-2 mb-4">
-                                        <span className="text-sm bg-white/10 px-3 py-1 rounded-full">
+                                <div className="text-center w-full">
+                                    <h3 className="text-lg font-serif mb-4 tracking-wide text-white">{combo.name}</h3>
+                                    <div className="flex justify-center flex-wrap gap-2 mb-6">
+                                        <span className="text-[9px] uppercase tracking-widest text-white/60 border border-white/10 px-3 py-1 bg-white/5 rounded-full">
                                             {perfume1.name}
                                         </span>
-                                        <span className="text-sm bg-white/10 px-3 py-1 rounded-full">
+                                        <span className="text-[9px] uppercase tracking-widest text-white/60 border border-white/10 px-3 py-1 bg-white/5 rounded-full">
                                             {perfume2.name}
                                         </span>
                                     </div>
-                                    <div className="flex items-center justify-center gap-2 text-sm text-gray-400 mb-4">
-                                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                        <span>{combo.popularity} Popular</span>
-                                    </div>
+                                    
                                     <Button
-                                        className="w-full bg-white text-black hover:bg-gray-200"
+                                        className="w-full bg-transparent border border-white/20 text-white hover:bg-white hover:text-black rounded-full text-[10px] uppercase tracking-widest font-bold transition-all duration-500 h-12"
                                         onClick={() => addPopularComboToCart(perfume1, perfume2)}
                                     >
-                                        <ShoppingBag className="w-4 h-4 mr-2" />
+                                        <ShoppingBag className="w-4 h-4 mr-2" strokeWidth={1.5} />
                                         Add to Cart
                                     </Button>
                                 </div>
