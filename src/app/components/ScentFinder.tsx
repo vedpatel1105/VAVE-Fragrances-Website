@@ -261,7 +261,7 @@ export default function ScentFinder() {
                       {addedToCart ? "Added!" : "Add to Cart"}
                     </button>
                     <Link
-                      href="/checkout"
+                      href={`/checkout?productId=${perfumes[result].id}&size=${selectedSize.replace('ml', '')}&quantity=1`}
                       className="flex items-center justify-center gap-2 bg-accent hover:bg-accent/90 text-white py-2 rounded-lg text-sm font-medium transition-colors"
                     >
                       <Zap className="h-4 w-4" />

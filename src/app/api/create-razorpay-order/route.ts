@@ -17,30 +17,28 @@ export async function POST(request: NextRequest) {
         const headersList = headers();
         const authorization = (await headersList).get('authorization');
 
-        if (!authorization?.startsWith('Bearer ')) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        }
+        let user: any = null;
+        let supabaseClient = supabase; // Use public client by default
 
-        const supabaseToken = authorization.split(' ')[1];
-
-        // Create authenticated Supabase client
-        const supabaseAuth = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-            {
-                global: {
-                    headers: {
-                        Authorization: `Bearer ${supabaseToken}`,
+        if (authorization?.startsWith('Bearer ')) {
+            const supabaseToken = authorization.split(' ')[1];
+            const supabaseAuth = createClient(
+                process.env.NEXT_PUBLIC_SUPABASE_URL!,
+                process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+                {
+                    global: {
+                        headers: {
+                            Authorization: `Bearer ${supabaseToken}`,
+                        },
                     },
-                },
+                }
+            );
+
+            const { data: { user: authUser }, error: userError } = await supabaseAuth.auth.getUser();
+            if (!userError && authUser) {
+                user = authUser;
+                supabaseClient = supabaseAuth;
             }
-        );
-
-        // Get authenticated user
-        const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
-
-        if (userError || !user) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
         const { items, total, shipping_address, payment_method } = await request.json();
@@ -70,7 +68,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Get products from database to verify prices
-        const { data: products, error: productsError } = await supabaseAuth
+        const { data: products, error: productsError } = await supabaseClient
             .from('products')
             .select('id, price_30ml, price_50ml, stock_30ml, stock_50ml')
             .in(
@@ -135,18 +133,18 @@ export async function POST(request: NextRequest) {
             currency: 'INR',
             receipt: `order_${Date.now()}`,
             notes: {
-                user_id: user.id,
+                user_id: user?.id || 'guest',
                 // Keep lightweight notes; sensitive validation remains server-side
                 shipping_inr: String(shippingCharge),
             },
         });
 
         // Start a database transaction
-        const { data: newOrder, error: orderError } = await supabaseAuth
+        const { data: newOrder, error: orderError } = await supabaseClient
             .from('orders')
             .insert([
                 {
-                    user_id: user.id,
+                    user_id: user?.id || null,
                     items: items,
                     total_amount: computedOrderTotal,
                     subtotal_amount: calculatedSubtotal,

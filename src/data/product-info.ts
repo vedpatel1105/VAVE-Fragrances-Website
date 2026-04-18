@@ -1,6 +1,7 @@
 "use client";
 
 import { productService } from "@/src/lib/productService";
+import { isSupabaseConfigured } from "@/src/lib/supabaseClient";
 
 export namespace ProductInfo {
 
@@ -659,6 +660,8 @@ export namespace ProductInfo {
 
     // Load products from localStorage or Supabase
     export async function loadProducts(): Promise<Product[]> {
+        if (!isSupabaseConfigured) return staticProducts;
+        
         if (typeof window !== "undefined") {
             const cached = window.localStorage.getItem(CACHE_KEY);
             const timestamp = window.localStorage.getItem(CACHE_TIMESTAMP_KEY);
@@ -667,8 +670,11 @@ export namespace ProductInfo {
                 const now = Date.now();
                 if (now - parseInt(timestamp) < CACHE_EXPIRATION_MS) {
                     try {
-                        _productCache = JSON.parse(cached);
-                        return _productCache || [];
+                        const parsed = JSON.parse(cached);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            _productCache = parsed;
+                            return _productCache;
+                        }
                     } catch { }
                 }
             }
@@ -676,22 +682,26 @@ export namespace ProductInfo {
 
         const products = await productService.getAllProducts();
 
-        _productCache = products.map(dbProd => {
-            const staticProd = staticProducts.find(sp => sp.slug === dbProd.slug);
-            return {
-                ...staticProd,
-                price: dbProd.price_30ml || staticProd?.price || 400,
-                priceXL: dbProd.price_50ml || staticProd?.priceXL || 500,
-                id: dbProd.id,
-            } as Product;
-        });
+        if (products && products.length > 0) {
+            _productCache = products.map(dbProd => {
+                const staticProd = staticProducts.find(sp => sp.slug === dbProd.slug);
+                return {
+                    ...staticProd,
+                    price: dbProd.price_30ml || staticProd?.price || 400,
+                    priceXL: dbProd.price_50ml || staticProd?.priceXL || 500,
+                    id: dbProd.id,
+                } as Product;
+            });
 
-        if (typeof window !== "undefined") {
-            window.localStorage.setItem(CACHE_KEY, JSON.stringify(_productCache));
-            window.localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+            if (typeof window !== "undefined") {
+                window.localStorage.setItem(CACHE_KEY, JSON.stringify(_productCache));
+                window.localStorage.setItem(CACHE_TIMESTAMP_KEY, Date.now().toString());
+            }
+        } else {
+            _productCache = [...staticProducts];
         }
 
-        return _productCache || staticProducts;
+        return _productCache;
     }
 
     // Synchronous getter for use in components
@@ -710,7 +720,7 @@ export namespace ProductInfo {
     }
 
     // For legacy compatibility
-    export let allProductItems: Product[] = [];
+    export let allProductItems: Product[] = [...staticProducts];
 
     // On app load, fetch and cache products (only once per tab)
     if (typeof window !== "undefined") {
@@ -729,16 +739,28 @@ export namespace ProductInfo {
             if (needsFetch) {
                 try {
                     const products = await loadProducts();
-                    allProductItems = products;
-                    _productCache = products;
+                    if (products && products.length > 0) {
+                        allProductItems = products;
+                        _productCache = products;
+                    }
                 } catch (err) {
                     console.error("Failed to load products:", err);
                 }
             } else {
                 try {
-                    allProductItems = JSON.parse(cached!);
-                    _productCache = allProductItems;
-                } catch { }
+                    const parsed = JSON.parse(cached!);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        allProductItems = parsed;
+                        _productCache = allProductItems;
+                    } else {
+                        // If cached is invalid or empty, force a re-load
+                        const products = await loadProducts();
+                        allProductItems = products;
+                        _productCache = products;
+                    }
+                } catch { 
+                    allProductItems = [...staticProducts];
+                }
             }
         })();
     }

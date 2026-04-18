@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import SimpleNavbar from "@/src/app/components/SimpleNavbar"
 import { useToast } from "@/components/ui/use-toast"
 import Cart from "@/src/app/components/Cart"
@@ -21,8 +21,26 @@ type Size = "30" | "50"
 export default function CollectionPage() {
   const { toast } = useToast()
   const [selectedSizes, setSelectedSizes] = useState<{ [key: string]: Size }>({})
+  const [products, setProducts] = useState<ProductInfo.Product[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const { addItem, setIsOpen, getTotalItems } = useCartStore()
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlistStore()
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true)
+        const items = await ProductInfo.loadProducts()
+        setProducts(items)
+      } catch (err) {
+        console.error("Failed to load products:", err)
+        setProducts(ProductInfo.getAllProductItems())
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadData()
+  }, [])
 
   const handleAddToCart = (product: ProductInfo.Product, quantity: number, size: Size) => {
     try {
@@ -113,32 +131,42 @@ export default function CollectionPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent blur-3xl -z-10" />
-          {ProductInfo.allProductItems.map((product) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              className="h-full"
-            >
-              <EnhancedProductCard
-                product={{
-                  ...product,
-                  images: {
-                    ...product.images,
-                    label: product.images.label || ""
+          {isLoading ? (
+            Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="bg-gray-800/50 rounded-lg p-6 animate-pulse min-h-[400px]" />
+            ))
+          ) : products.length > 0 ? (
+            products.map((product) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                className="h-full"
+              >
+                <EnhancedProductCard
+                  product={{
+                    ...product,
+                    images: {
+                      ...product.images,
+                      label: product.images.label || ""
+                    }
+                  }}
+                  onAddToCart={(product, quantity) =>
+                    handleAddToCart(product, quantity, selectedSizes[product.id] || product.sizeOptions[0].size as Size)
                   }
-                }}
-                onAddToCart={(product, quantity) =>
-                  handleAddToCart(product, quantity, selectedSizes[product.id] || product.sizeOptions[0].size as Size)
-                }
-                onAddToWishlist={handleAddToWishlist}
-                inWishlist={isInWishlist(product.id.toString())}
-                selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size as Size}
-                onSizeSelect={(size) => handleSizeSelect(product.id, size as Size)}
-              />
-            </motion.div>
-          ))}
+                  onAddToWishlist={handleAddToWishlist}
+                  inWishlist={isInWishlist(product.id.toString())}
+                  selectedSize={selectedSizes[product.id] || product.sizeOptions[0].size as Size}
+                  onSizeSelect={(size) => handleSizeSelect(product.id, size as Size)}
+                />
+              </motion.div>
+            ))
+          ) : (
+            <div className="col-span-full py-24 text-center text-gray-400">
+              No products available at the moment.
+            </div>
+          )}
         </div>
       </main>
 

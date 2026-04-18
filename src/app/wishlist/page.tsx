@@ -35,13 +35,23 @@ export default function WishlistPage() {
     setIsOpen: setIsCartOpen
   } = useCartStore()
 
+  const [products, setProducts] = useState<Product[]>([])
+
   useEffect(() => {
-    // Simulate loading state
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 500)
+    const loadData = async () => {
+      try {
+        setIsLoading(true)
+        const items = await ProductInfo.loadProducts()
+        setProducts(items)
+      } catch (err) {
+        console.error("Failed to load products:", err)
+        setProducts(ProductInfo.getAllProductItems())
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadData()
     setMounted(true)
-    return () => clearTimeout(timer)
   }, [])
 
   const handleAddToWishlist = (product: Product) => {
@@ -142,7 +152,7 @@ export default function WishlistPage() {
       if (wishlistItems.length === 0) return
 
       wishlistItems.forEach((item) => {
-        const product = ProductInfo.allProductItems.find(p => p.id.toString() === item.id)
+        const product = products.find(p => p.id.toString() === item.id)
         if (product) {
           const size = selectedSizes[product.id] || product.sizeOptions[0].size
           const sizeOption = product.sizeOptions.find(s => s.size === size)
@@ -225,7 +235,7 @@ export default function WishlistPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               <AnimatePresence>
                 {wishlistItems.map((item) => {
-                  const product = ProductInfo.allProductItems.find(p => p.id.toString() === item.id)
+                  const product = products.find(p => p.id.toString() === item.id)
                   if (!product) return null
                   return (
                     <motion.div
@@ -257,7 +267,7 @@ export default function WishlistPage() {
             <div className="mt-16">
               <h2 className="text-2xl font-bold mb-8">You May Also Like</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {ProductInfo.allProductItems
+                {products
                   .filter((product) => !wishlistItems.some((item) => item.id === product.id.toString()))
                   .slice(0, 4)
                   .map((product) => (

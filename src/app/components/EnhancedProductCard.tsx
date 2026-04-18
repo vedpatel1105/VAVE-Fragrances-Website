@@ -50,9 +50,8 @@ export default function EnhancedProductCard({
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const size = product.sizeOptions && product.sizeOptions.length > 0 ? product.sizeOptions[0].size : "30"
-    onAddToCart(product, quantity)
-    router.push("/checkout")
+    const size = selectedSize || (product.sizeOptions && product.sizeOptions.length > 0 ? product.sizeOptions[0].size : "30")
+    router.push(`/checkout?productId=${product.id}&size=${size}&quantity=1`)
   }
 
   const handleViewProduct = (e: React.MouseEvent) => {

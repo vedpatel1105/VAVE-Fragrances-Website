@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { supabase } from "./supabaseClient";
+import { supabase, isSupabaseConfigured } from "./supabaseClient";
 
 interface User {
     user_metadata: any;
@@ -218,6 +218,14 @@ export const useAuthStore = create<AuthState>()(
                     
                     checkPromise = (async () => {
                         try {
+                            if (!isSupabaseConfigured) {
+                                set({
+                                    user: null,
+                                    isAuthenticated: false,
+                                    isLoading: false,
+                                });
+                                return;
+                            }
                             const { data: { session } } = await supabase.auth.getSession();
                             
                             if (session?.user) {

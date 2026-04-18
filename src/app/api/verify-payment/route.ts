@@ -13,11 +13,32 @@ export async function POST(request: NextRequest) {
   try {
     // Check for authorization header
     const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Missing or invalid authorization header' },
-        { status: 401 }
+    
+    let user: any = null;
+    let supabaseClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const authenticatedClient = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        }
       );
+
+      const { data: { user: authUser }, error: authError } = await authenticatedClient.auth.getUser();
+      if (!authError && authUser) {
+        user = authUser;
+        supabaseClient = authenticatedClient;
+      }
     }
 
     const body = await request.json();
@@ -40,39 +61,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const token = authHeader.split(' ')[1];
-    
-    // Create authenticated Supabase client using the user's token
-    // This ensures RLS is applied correctly for the context of this user
-    const supabaseAuth = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        global: {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      }
-    );
-
-    // Verify the user token
-    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
-    
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Invalid token' },
-        { status: 401 }
-      );
-    }
+    // Verification is done using the Razorpay order ID which was shared between client and server
+    // We also check against user_id if authenticated, or null for guests
 
     // Get the order from database
-    const { data: order, error: orderError } = await supabaseAuth
+    const query = supabaseClient
       .from('orders')
       .select('*')
-      .eq('razorpay_order_id', razorpay_order_id)
-      .eq('user_id', user.id) // Ensure order belongs to the authenticated user
-      .single();
+      .eq('razorpay_order_id', razorpay_order_id);
+
+    if (user) {
+      query.eq('user_id', user.id);
+    } else {
+      query.is('user_id', null);
+    }
+
+    const { data: order, error: orderError } = await query.single();
 
     if (orderError || !order) {
       return NextResponse.json(
@@ -82,7 +86,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update order status
-    const { error: updateError } = await supabaseAuth
+    const { error: updateError } = await supabaseClient
       .from('orders')
       .update({ status: 'paid' })
       .eq('id', order.id);
@@ -90,7 +94,7 @@ export async function POST(request: NextRequest) {
     if (updateError) throw updateError;
 
     // Create transaction record
-    const { error: transactionError } = await supabaseAuth
+    const { error: transactionError } = await supabaseClient
       .from('transactions')
       .insert([
         {

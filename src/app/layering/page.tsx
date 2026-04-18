@@ -58,13 +58,32 @@ const generateLayeredFragrance = (perfume1: any, perfume2: any) => {
 
 export default function LayeringPage() {
   const { toast } = useToast()
+  const [products, setProducts] = useState<ProductInfo.Product[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const { addItem, setIsOpen } = useCartStore()
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true)
+        const items = await ProductInfo.loadProducts()
+        setProducts(items)
+      } catch (err) {
+        console.error("Failed to load products:", err)
+        setProducts(ProductInfo.getAllProductItems())
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadData()
+  }, [])
+
   const [selectedPerfume1, setSelectedPerfume1] = useState<any>(null)
   const [selectedPerfume2, setSelectedPerfume2] = useState<any>(null)
   const [selectedSize1, setSelectedSize1] = useState("30")
   const [selectedSize2, setSelectedSize2] = useState("30")
   const [isAnimating, setIsAnimating] = useState(false)
   const [showNotes, setShowNotes] = useState<{ [key: string]: boolean }>({})
-  const { addItem, setIsOpen } = useCartStore()
 
   const addLayeredProductToCart = () => {
     if (!selectedPerfume1 || !selectedPerfume2) {
@@ -158,7 +177,11 @@ export default function LayeringPage() {
                 <div>
                   <h2 className="text-2xl font-bold mb-6 text-center">Choose Your First Fragrance</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {ProductInfo.allProductItems.map((perfume) => (
+                    {isLoading ? (
+                      Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="aspect-square bg-gray-800/50 rounded-xl animate-pulse" />
+                      ))
+                    ) : products.map((perfume) => (
                       <Card
                         key={perfume.id}
                         className={`cursor-pointer transition-all duration-300 hover:scale-105 ${
@@ -189,7 +212,11 @@ export default function LayeringPage() {
                 <div>
                   <h2 className="text-2xl font-bold mb-6 text-center">Choose Your Second Fragrance</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {ProductInfo.allProductItems.map((perfume) => (
+                    {isLoading ? (
+                      Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="aspect-square bg-gray-800/50 rounded-xl animate-pulse" />
+                      ))
+                    ) : products.map((perfume) => (
                       <Card
                         key={perfume.id}
                         className={`cursor-pointer transition-all duration-300 hover:scale-105 ${

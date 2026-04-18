@@ -49,10 +49,8 @@ export default function ProductCard({ product, onAddToCart, onAddToWishlist, onQ
 
   const handleBuyNow = (e: React.MouseEvent) => {
     e.stopPropagation()
-    // Add to cart first
-    onAddToCart(product, 1, "30ml")
-    // Then redirect to checkout
-    router.push("/checkout")
+    // Redirect with single item params
+    router.push(`/checkout?productId=${product.id}&size=30&quantity=1`)
   }
 
   const handleQuickView = (e: React.MouseEvent) => {

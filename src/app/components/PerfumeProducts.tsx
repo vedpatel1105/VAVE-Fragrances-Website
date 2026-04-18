@@ -155,10 +155,8 @@ export default function PerfumeProducts({ addToCart, addToWishlist }: PerfumePro
 
   const handleBuyNow = () => {
     if (selectedPerfume) {
-      // Add to cart first
-      addToCart(selectedPerfume, quantity, selectedSize)
-      // Then redirect to checkout
-      router.push('/checkout')
+      // Redirect with single item params
+      router.push(`/checkout?productId=${selectedPerfume.id}&size=${selectedSize.replace('ml', '')}&quantity=1`)
     }
   }
 

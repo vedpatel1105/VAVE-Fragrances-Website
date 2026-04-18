@@ -1,7 +1,7 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Trash2, Plus, Minus, CreditCard, Wallet, ShoppingBag, Loader2, CheckCircle2, Package, Truck } from "lucide-react"
+import { X, Trash2, Plus, Minus, CreditCard, Wallet, ShoppingBag, Loader2, CheckCircle2, Package, Truck, MessageCircle } from "lucide-react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -28,6 +28,18 @@ export default function Cart() {
   const [showAddressModal, setShowAddressModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [orderDetails, setOrderDetails] = useState<any>(null)
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false)
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([])
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
+  const [shippingAddress, setShippingAddress] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "Gujarat",
+    pincode: "",
+  })
   const { 
     items, 
     isOpen, 
@@ -55,6 +67,61 @@ export default function Cart() {
       subscription.unsubscribe()
     }
   }, [checkAuth])
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      fetchSavedAddresses()
+      setShippingAddress(prev => ({
+        ...prev,
+        name: user.user_metadata?.full_name || "",
+        email: user.email || "",
+        phone: user.user_metadata?.phone || "",
+      }))
+    }
+  }, [isAuthenticated, user])
+
+  const fetchSavedAddresses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_addresses')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('is_default', { ascending: false })
+
+      if (error) throw error
+      setSavedAddresses(data || [])
+      if (data && data.length > 0) {
+        handleAddressSelect(data[0].id, data[0])
+      }
+    } catch (error) {
+      console.error('Error fetching addresses:', error)
+    }
+  }
+
+  const handleAddressSelect = (id: string, addr?: any) => {
+    setSelectedAddressId(id)
+    if (id === 'new') {
+      setShippingAddress(prev => ({
+        ...prev,
+        address: "",
+        city: "",
+        pincode: "",
+      }))
+    } else if (addr) {
+      setShippingAddress(prev => ({
+        ...prev,
+        address: addr.address,
+        city: addr.city,
+        state: addr.state,
+        pincode: addr.pincode,
+      }))
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setShippingAddress(prev => ({ ...prev, [name]: value }))
+  }
 
   const handleCheckout = async () => {
     if (items.length === 0) return
@@ -133,18 +200,45 @@ export default function Cart() {
   const handleWhatsAppCheckout = () => {
     if (items.length === 0) return
 
-    // Create WhatsApp message with cart details
-    let message = "Hi, I would like to order the following items:\n\n"
+    // Validate if any field is missing
+    const missing = []
+    if (!shippingAddress.name.trim()) missing.push("Name")
+    if (!shippingAddress.phone.trim()) missing.push("Phone")
+    if (!shippingAddress.address.trim()) missing.push("Address")
 
-    items.forEach((item) => {
-      message += `${item.quantity}x ${item.name}${item.size ? ` (${item.size})` : ''} - Rs. ${item.price * item.quantity}\n`
-    })
+    if (missing.length > 0) {
+      toast({
+        title: "Details Required",
+        description: `Please provide your ${missing.join(", ")} to confirm the WhatsApp order.`,
+        variant: "destructive",
+      })
+      return
+    }
 
-    message += `\nTotal: Rs. ${getTotalPrice()}`
+    const itemsText = items
+      .map((item) => `*${item.name}*\n  Size: ${item.size}ml\n  Qty: ${item.quantity}\n  Price: ₹${item.price}`)
+      .join("\n\n")
 
-    // Redirect to WhatsApp
-    const encodedMessage = encodeURIComponent(message)
-    window.location.href = `https://wa.me/919328701508?text=${encodedMessage}`
+    const total = grandTotal
+    
+    const message = encodeURIComponent(
+      `*ORDER REQUEST - CASH ON DELIVERY*\n\n` +
+      `Hello Vave Fragrances! I'd like to place an order for:\n\n` +
+      `${itemsText}\n\n` +
+      `*Order Total:* ₹${total}\n\n` +
+      `*Customer Details:*\n` +
+      `Name: ${shippingAddress.name}\n` +
+      `Contact: ${shippingAddress.phone}\n` +
+      `Email: ${shippingAddress.email}\n\n` +
+      `*Shipping Address:*\n` +
+      `${shippingAddress.address}\n` +
+      `${shippingAddress.city}, ${shippingAddress.state}\n` +
+      `PIN: ${shippingAddress.pincode}\n\n` +
+      `Please confirm my COD order. Thank you!`
+    )
+
+    window.open(`https://wa.me/919328701508?text=${message}`, "_blank")
+    setShowWhatsAppModal(false)
   }
 
   // Calculate shipping cost
@@ -286,7 +380,7 @@ export default function Cart() {
                     disabled={items.length === 0}
                   >
                     <CreditCard className="mr-3 h-5 w-5" />
-                    Proceed to Checkout
+                    Check out (Online Payment)
                   </Button>
 
                   {/* Payment Options Divider */}
@@ -297,38 +391,16 @@ export default function Cart() {
                     </span>
                     <div className="flex-1 border-t border-gray-200 dark:border-gray-700"></div>
                   </div>
-
                   {/* Alternative Payment Options */}
                   <div className="space-y-3">
-                    {/* COD Button */}
-                    <Button
-                      className="w-full h-11 bg-green-600 hover:bg-green-700 text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
-                      onClick={handleCheckout}
-                      disabled={items.length === 0 || isPlacingOrder}
-                    >
-                      {isPlacingOrder ? (
-                        <>
-                          <Loader2 className="mr-3 h-4 w-4 animate-spin" />
-                          Processing COD Order...
-                        </>
-                      ) : (
-                        <>
-                          <Package className="mr-3 h-4 w-4" />
-                          Cash on Delivery
-                        </>
-                      )}
-                    </Button>
-
                     {/* WhatsApp Button */}
                     <Button
-                      onClick={handleWhatsAppCheckout}
+                      onClick={() => setShowWhatsAppModal(true)}
                       disabled={items.length === 0}
-                      className="w-full h-11 bg-[#25D366] hover:bg-[#20ba5a] text-white border-0 shadow-md hover:shadow-lg transition-all duration-200"
+                      className="w-full h-12 bg-[#25D366] hover:bg-[#20ba5a] text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 group"
                     >
-                      <svg className="mr-3 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
-                      </svg>
-                      Order via WhatsApp
+                      <MessageCircle className="mr-3 h-5 w-5 animate-pulse group-hover:animate-none" />
+                      Order via WhatsApp (COD)
                     </Button>
                   </div>
 
@@ -487,6 +559,139 @@ export default function Cart() {
                   }}
                 >
                   View Order Status
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          {/* WhatsApp COD Details Modal */}
+          <Dialog open={showWhatsAppModal} onOpenChange={setShowWhatsAppModal}>
+            <DialogContent className="sm:max-w-[450px] z-[10000] bg-zinc-950 border-zinc-800 text-white">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-[#25D366]">
+                  <MessageCircle className="h-6 w-6" />
+                  Order via WhatsApp (COD)
+                </DialogTitle>
+                <DialogDescription className="text-zinc-400">
+                  Provide your delivery details to confirm your order on WhatsApp.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                {/* Saved Addresses for Authenticated Users */}
+                {isAuthenticated && savedAddresses.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="text-xs uppercase tracking-widest text-zinc-500 font-bold">Select Saved Address</label>
+                    <div className="grid grid-cols-1 gap-2">
+                      {savedAddresses.map((addr) => (
+                        <div
+                          key={addr.id}
+                          onClick={() => handleAddressSelect(addr.id, addr)}
+                          className={`p-3 rounded-xl border cursor-pointer transition-all ${selectedAddressId === addr.id
+                              ? 'bg-zinc-900 border-[#25D366] shadow-[0_0_15px_rgba(37,211,102,0.1)]'
+                              : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-700'
+                            }`}
+                        >
+                          <div className="flex justify-between items-center text-sm">
+                            <div>
+                                <p className="font-medium text-zinc-100">{addr.address}</p>
+                                <p className="text-xs text-zinc-500">{addr.city}, {addr.state} - {addr.pincode}</p>
+                            </div>
+                            {selectedAddressId === addr.id && (
+                              <CheckCircle2 className="h-4 w-4 text-[#25D366]" />
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => handleAddressSelect('new')}
+                        className={`p-2 rounded-xl border border-dashed text-xs transition-all ${selectedAddressId === 'new'
+                            ? 'bg-zinc-900 border-[#25D366] text-white'
+                            : 'bg-zinc-900/20 border-zinc-800 text-zinc-500 hover:border-zinc-700'
+                          }`}
+                      >
+                        + Use different address
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-3 pt-2">
+                  <label className="text-xs uppercase tracking-widest text-zinc-500 font-bold">Delivery Details</label>
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs text-zinc-400 pl-1">Full Name</label>
+                      <input
+                        name="name"
+                        value={shippingAddress.name}
+                        onChange={handleInputChange}
+                        placeholder="Your full name"
+                        className="w-full bg-zinc-900 border-zinc-800 rounded-lg p-2.5 text-sm focus:ring-1 focus:ring-[#25D366] outline-none transition-all"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs text-zinc-400 pl-1">Phone Number</label>
+                      <input
+                        name="phone"
+                        value={shippingAddress.phone}
+                        onChange={handleInputChange}
+                        placeholder="10-digit mobile number"
+                        className="w-full bg-zinc-900 border-zinc-800 rounded-lg p-2.5 text-sm focus:ring-1 focus:ring-[#25D366] outline-none transition-all"
+                      />
+                    </div>
+                    {(!isAuthenticated || selectedAddressId === 'new') && (
+                      <>
+                        <div className="space-y-1">
+                          <label className="text-xs text-zinc-400 pl-1">Delivery Address</label>
+                          <input
+                            name="address"
+                            value={shippingAddress.address}
+                            onChange={handleInputChange}
+                            placeholder="Flat/House No, Street, Landmark"
+                            className="w-full bg-zinc-900 border-zinc-800 rounded-lg p-2.5 text-sm focus:ring-1 focus:ring-[#25D366] outline-none transition-all"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-xs text-zinc-400 pl-1">City</label>
+                            <input
+                              name="city"
+                              value={shippingAddress.city}
+                              onChange={handleInputChange}
+                              placeholder="City"
+                              className="w-full bg-zinc-900 border-zinc-800 rounded-lg p-2.5 text-sm focus:ring-1 focus:ring-[#25D366] outline-none transition-all"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs text-zinc-400 pl-1">PIN Code</label>
+                            <input
+                              name="pincode"
+                              value={shippingAddress.pincode}
+                              onChange={handleInputChange}
+                              placeholder="6-digit PIN"
+                              className="w-full bg-zinc-900 border-zinc-800 rounded-lg p-2.5 text-sm focus:ring-1 focus:ring-[#25D366] outline-none transition-all"
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <DialogFooter className="pt-2 border-t border-zinc-800">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowWhatsAppModal(false)}
+                  className="bg-transparent border-zinc-800 text-zinc-400 hover:bg-zinc-900 hover:text-white"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleWhatsAppCheckout}
+                  className="bg-[#25D366] hover:bg-[#20ba5a] text-white shadow-[0_4px_10px_rgba(37,211,102,0.2)]"
+                  disabled={!shippingAddress.name || !shippingAddress.phone || !shippingAddress.address}
+                >
+                  Confirm & Send to WhatsApp
                 </Button>
               </DialogFooter>
             </DialogContent>

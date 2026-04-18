@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { adminService } from './adminService';
 
 export interface DBProduct {
@@ -46,49 +46,71 @@ export const productService = {
     // ─── Public Queries (filter hidden products) ─────────────────────
 
     async getAllProducts(): Promise<DBProduct[]> {
-        const { data, error } = await supabase
-            .from('products')
-            .select('*')
-            .eq('is_hidden', false)
-            .order('name');
+        if (!isSupabaseConfigured) return [];
+        
+        try {
+            const { data, error } = await supabase
+                .from('products')
+                .select('*')
+                .eq('is_hidden', false)
+                .order('name');
 
-        if (error) throw error;
-        return data || [];
+            if (error) throw error;
+            return data || [];
+        } catch (e) {
+            console.warn("Falling back to local data due to Supabase error.");
+            return [];
+        }
     },
 
     async getProductBySlug(slug: string): Promise<DBProduct | null> {
-        const { data, error } = await supabase
-            .from('products')
-            .select('*')
-            .eq('slug', slug)
-            .eq('is_hidden', false)
-            .single();
+        if (!isSupabaseConfigured) return null;
+        try {
+            const { data, error } = await supabase
+                .from('products')
+                .select('*')
+                .eq('slug', slug)
+                .eq('is_hidden', false)
+                .single();
 
-        if (error) throw error;
-        return data;
+            if (error) throw error;
+            return data;
+        } catch (e) {
+            return null;
+        }
     },
 
     async getProductById(id: string): Promise<DBProduct | null> {
-        const { data, error } = await supabase
-            .from('products')
-            .select('*')
-            .eq('id', id)
-            .single();
+        if (!isSupabaseConfigured) return null;
+        try {
+            const { data, error } = await supabase
+                .from('products')
+                .select('*')
+                .eq('id', id)
+                .single();
 
-        if (error) throw error;
-        return data;
+            if (error) throw error;
+            return data;
+        } catch (e) {
+            return null;
+        }
     },
 
     async getBestsellerProducts(): Promise<DBProduct[]> {
-        const { data, error } = await supabase
-            .from('products')
-            .select('*')
-            .eq('is_bestseller', true)
-            .eq('is_hidden', false)
-            .order('name');
+        if (!isSupabaseConfigured) return [];
+        try {
+            const { data, error } = await supabase
+                .from('products')
+                .select('*')
+                .eq('is_bestseller', true)
+                .eq('is_hidden', false)
+                .order('name');
 
-        if (error) throw error;
-        return data || [];
+            if (error) throw error;
+            return data || [];
+        } catch (e) {
+            return [];
+        }
     },
 
     async getNewProducts(): Promise<DBProduct[]> {

@@ -160,8 +160,8 @@ export default function ProductDetailPage() {
   }
 
   const handleBuyNow = () => {
-    handleAddToCart()
-    router.push("/checkout")
+    // Redirect with single item params, forcing quantity to 1 as requested
+    router.push(`/checkout?productId=${product.id}&size=${selectedSize}&quantity=1`)
   }
 
   const handleAddToWishlist = () => {

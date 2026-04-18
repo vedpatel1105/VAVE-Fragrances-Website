@@ -110,9 +110,28 @@ export default function ScentFinderPage() {
   const [recommendedProducts, setRecommendedProducts] = useState<any[]>([])
   const [selectedSize, setSelectedSize] = useState("30")
   const [selectedNotes, setSelectedNotes] = useState<string[]>([])
-  const [isAddingToCart, setIsAddingToCart] = useState<Record<number, boolean>>({})
+  const [products, setProducts] = useState<ProductInfo.Product[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const { addItem, setIsOpen } = useCartStore()
   const router = useRouter()
+
+  const [isAddingToCart, setIsAddingToCart] = useState<Record<number, boolean>>({})
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true)
+        const items = await ProductInfo.loadProducts()
+        setProducts(items)
+      } catch (err) {
+        console.error("Failed to load products:", err)
+        setProducts(ProductInfo.getAllProductItems())
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadData()
+  }, [])
 
   const handleSelection = (questionId: string, value: string | string[]) => {
     const updatedPreferences = { ...preferences, [questionId]: value }
@@ -156,7 +175,7 @@ export default function ScentFinderPage() {
 
   const findMatchingFragrances = (prefs: Record<string, any>) => {
     // Enhanced matching algorithm with weighted scoring
-    const matches = ProductInfo.allProductItems.map((product) => {
+    const matches = products.map((product) => {
       let score = 0
       let matchedPreferences = []
 
@@ -224,7 +243,7 @@ export default function ScentFinderPage() {
 
       // If we still don't have 3, add random products
       if (bestMatches.length < 3) {
-        const unusedProducts = ProductInfo.allProductItems
+        const unusedProducts = products
           .filter(product => !bestMatches.some(match => match.product.id === product.id))
         
         while (bestMatches.length < 3 && unusedProducts.length > 0) {

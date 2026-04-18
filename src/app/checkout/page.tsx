@@ -6,16 +6,18 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
-import { CreditCard, Truck, AlertCircle, BadgePercent, CheckCircle2, Loader2 } from "lucide-react"
+import { CreditCard, Truck, AlertCircle, BadgePercent, CheckCircle2, Loader2, MessageCircle } from "lucide-react"
 import Image from "next/image"
 import { useToast } from "@/components/ui/use-toast"
 import { useCartStore } from "@/src/lib/cartStore"
 import { createRazorpayOrder, initializeRazorpayCheckout, validateShippingAddress } from "@/src/lib/razorpayService"
 import type { PaymentVerificationResult } from "@/src/types/orders"
 import { supabase } from "@/src/lib/supabaseClient"
+import { useSearchParams } from "next/navigation"
+import { ProductInfo } from "@/src/data/product-info"
 
-import type { ShippingAddress } from "@/src/types/orders";
 import { LoadingSpinner } from "@/src/components/ui/loading-spinner"
+import type { ShippingAddress } from "@/src/types/orders";
 import { useAuthStore } from "@/src/lib/auth"
 
 // Field helper component - Defined outside to prevent focus loss on re-render
@@ -73,6 +75,14 @@ export default function Checkout() {
   const [error, setError] = useState("")
   const { user, isAuthenticated, isLoading, checkAuth } = useAuthStore()
   const { items: cartItems, getTotalPrice: getSubtotalAmount, clearCart } = useCartStore()
+  
+  const searchParams = useSearchParams()
+  const productIdParam = searchParams.get('productId')
+  const sizeParam = searchParams.get('size')
+  const quantityParam = searchParams.get('quantity') || '1'
+
+  const [checkoutItems, setCheckoutItems] = useState<any[]>([])
+  const [isDirectBuy, setIsDirectBuy] = useState(false)
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     name: "",
     email: "",
@@ -86,48 +96,82 @@ export default function Checkout() {
   const [isLoadingAddress, setIsLoadingAddress] = useState(true);
   const [shippingCharge, setShippingCharge] = useState<number>(0);
   const [paymentStep, setPaymentStep] = useState<'form' | 'processing' | 'payment'>('form');
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | 'new'>('new');
 
-  // Protected route - redirect if not logged in (wait for loading)
+  // Initialize checkout items
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || !user)) {
-      const currentPath = window.location.pathname;
-      router.push(`/auth/login?redirect=${encodeURIComponent(currentPath)}`);
-      return;
-    }
-    if (!isLoading && cartItems.length === 0) {
+    if (isLoading) return;
+
+    if (productIdParam && sizeParam) {
+      const product = ProductInfo.allProductItems.find(p => p.id.toString() === productIdParam || p.id === Number(productIdParam));
+      if (product) {
+        const sizeOption = product.sizeOptions.find(s => s.size === sizeParam);
+        const price = sizeOption ? sizeOption.price : product.price;
+        const image = product.images[sizeParam as "30" | "50"] ? product.images[sizeParam as "30" | "50"][0] : product.images["30"][0];
+        
+        setCheckoutItems([{
+          product_id: product.id.toString(),
+          name: product.name,
+          price: price,
+          image: image,
+          quantity: Number(quantityParam),
+          size: sizeParam
+        }]);
+        setIsDirectBuy(true);
+      } else {
+        // Product not found in list yet, wait or fallback
+        if (cartItems.length > 0) {
+          setCheckoutItems(cartItems);
+          setIsDirectBuy(false);
+        } else {
+          // If no product and no cart, redirect
+          router.push("/collection");
+        }
+      }
+    } else if (cartItems.length > 0) {
+      setCheckoutItems(cartItems);
+      setIsDirectBuy(false);
+    } else {
+      // Nothing in cart and no direct buy
       router.push("/collection");
     }
-  }, [isAuthenticated, isLoading, user, cartItems, router]);
+  }, [isLoading, cartItems, productIdParam, sizeParam, quantityParam, router]);
 
-  // Load user's default address if available
+  // Compute subtotal
+  const subtotalAmount = useMemo(() => {
+    return checkoutItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+  }, [checkoutItems]);
+
+  // Load user's saved addresses if available
   useEffect(() => {
     if (!user?.id) {
       setIsLoadingAddress(false);
       return;
     }
 
-    const loadUserAddress = async () => {
+    const loadUserAddresses = async () => {
       try {
         const { data: addresses, error } = await supabase
           .from('user_addresses')
           .select('*')
           .eq('user_id', user.id)
-          .eq('is_default', true)
-          .single();
+          .order('is_default', { ascending: false });
 
-        if (error && error.code !== 'PGRST116') {
-          throw error;
-        }
+        if (error) throw error;
 
-        if (addresses) {
+        if (addresses && addresses.length > 0) {
+          setSavedAddresses(addresses);
+          const defaultAddress = addresses.find(a => a.is_default) || addresses[0];
+          setSelectedAddressId(defaultAddress.id);
           setShippingAddress({
             name: user.user_metadata?.full_name || '',
             email: user.email || '',
             phone: user.user_metadata?.phone || '',
-            address: addresses.address,
-            city: addresses.city,
-            state: addresses.state,
-            pincode: addresses.pincode,
+            address: defaultAddress.address,
+            city: defaultAddress.city,
+            state: defaultAddress.state,
+            pincode: defaultAddress.pincode,
           });
         } else {
           setShippingAddress(prev => ({
@@ -138,14 +182,14 @@ export default function Checkout() {
           }));
         }
       } catch (error) {
-        console.error('Error loading address:', error);
+        console.error('Error loading addresses:', error);
       } finally {
         setIsLoadingAddress(false);
       }
     };
 
-    loadUserAddress();
-  }, [user?.id]); // Only run when user ID changes
+    loadUserAddresses();
+  }, [user?.id]);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -162,6 +206,30 @@ export default function Checkout() {
     });
     if (error) setError("");
   }, [error]);
+
+  const handleAddressSelect = useCallback((addressId: string) => {
+    setSelectedAddressId(addressId);
+    if (addressId === 'new') {
+      setShippingAddress(prev => ({
+        ...prev,
+        address: "",
+        city: "",
+        state: "",
+        pincode: ""
+      }));
+    } else {
+      const address = savedAddresses.find(a => a.id === addressId);
+      if (address) {
+        setShippingAddress(prev => ({
+          ...prev,
+          address: address.address,
+          city: address.city,
+          state: address.state,
+          pincode: address.pincode
+        }));
+      }
+    }
+  }, [savedAddresses]);
 
   const validateForm = (): boolean => {
     const errors: Partial<Record<keyof ShippingAddress, string>> = {};
@@ -206,9 +274,8 @@ export default function Checkout() {
 
   // Compute shipping based on subtotal
   useEffect(() => {
-    const subtotal = getSubtotalAmount();
-    setShippingCharge(subtotal < 1000 ? 30 : 0);
-  }, [cartItems, getSubtotalAmount]);
+    setShippingCharge(subtotalAmount < 1000 ? 30 : 0);
+  }, [subtotalAmount]);
 
   const handleCheckout = async () => {
     try {
@@ -218,32 +285,23 @@ export default function Checkout() {
         return;
       }
 
-      // Re-check auth before payment
+      // Check auth - Optional now
       await checkAuth();
-      if (!isAuthenticated) {
-        toast({
-          title: "Session Expired",
-          description: "Your session has expired. Please log in again.",
-          variant: "destructive",
-        });
-        router.push(`/auth/login?redirect=/checkout`);
-        return;
-      }
 
       setIsProcessing(true);
       setPaymentStep('processing');
 
       // Create order object for Razorpay
       const order = {
-        items: cartItems.map(item => ({
-          product_id: item.id,
+        items: checkoutItems.map(item => ({
+          product_id: item.product_id || item.id, // Handle both cart items and direct items
           name: item.name,
           quantity: item.quantity,
           price: item.price,
           size: item.size ?? "",
           image: item.image,
         })),
-        total: getSubtotalAmount() + shippingCharge,
+        total: subtotalAmount + shippingCharge,
         shipping_address: shippingAddress,
         payment_method: 'razorpay' as const,
       };
@@ -296,7 +354,80 @@ export default function Checkout() {
     }
   };
 
-  if (cartItems.length === 0) {
+  const handleWhatsAppOrder = () => {
+    // 1. Trigger the standard form validation to show red borders/errors in UI
+    const isFormValid = validateForm();
+
+    // 2. Collect missing fields for a specific toast message
+    const missing = [];
+    if (!shippingAddress.name?.trim()) missing.push("Name");
+    if (!shippingAddress.phone?.trim()) missing.push("Phone Number");
+    if (!shippingAddress.address?.trim()) missing.push("Delivery Address");
+    if (!shippingAddress.city?.trim()) missing.push("City");
+    if (!shippingAddress.pincode?.trim()) missing.push("PIN Code");
+
+    if (!isFormValid || missing.length > 0) {
+      toast({
+        title: "Details Required",
+        description: `Please fill in your ${missing.slice(0, 2).join(", ")}${missing.length > 2 ? ' etc.' : ''} to confirm your COD order on WhatsApp.`,
+        variant: "destructive",
+      });
+      
+      // Scroll to the first error or the form top
+      const formElement = document.getElementById('name');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        window.scrollTo({ top: 400, behavior: 'smooth' });
+      }
+      return;
+    }
+
+    try {
+      const itemsText = checkoutItems
+        .map((item) => `*${item.name}*\n  Size: ${item.size}ml\n  Qty: ${item.quantity}\n  Price: ₹${item.price}`)
+        .join("\n\n");
+
+      const total = subtotalAmount + shippingCharge;
+      
+      const messageText = 
+        `*ORDER REQUEST - CASH ON DELIVERY*\n\n` +
+        `Hello Vave Fragrances! I'd like to place an order for:\n\n` +
+        `${itemsText}\n\n` +
+        `*Order Total:* ₹${total}\n\n` +
+        `*Customer Details:*\n` +
+        `Name: ${shippingAddress.name}\n` +
+        `Contact: ${shippingAddress.phone}\n` +
+        `Email: ${shippingAddress.email}\n\n` +
+        `*Shipping Address:*\n` +
+        `${shippingAddress.address}\n` +
+        `${shippingAddress.city}, ${shippingAddress.state}\n` +
+        `PIN: ${shippingAddress.pincode}\n\n` +
+        `Please confirm my COD order. Thank you!`;
+
+      const whatsappUrl = `https://wa.me/919328701508?text=${encodeURIComponent(messageText)}`;
+      
+      // Log to console for debugging if needed
+      console.log('Opening WhatsApp with URL:', whatsappUrl);
+      
+      // Use window.open with a small delay or directly to avoid popup blockers
+      const newWindow = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+      if (!newWindow) {
+        // Fallback if window.open is blocked
+        window.location.href = whatsappUrl;
+      }
+    } catch (err) {
+      console.error('Error generating WhatsApp link:', err);
+      toast({
+        title: "Error",
+        description: "Could not generate WhatsApp link. Please check your connection.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Show null only if truly nothing to checkout AND we are still loading/redirecting
+  if (!isLoading && checkoutItems.length === 0 && cartItems.length === 0 && !productIdParam) {
     return null;
   }
 
@@ -361,76 +492,128 @@ export default function Checkout() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Shipping Information */}
               <div className="space-y-6">
-                <div className="bg-white/5 rounded-lg p-6 space-y-4">
+                <div className="bg-white/5 rounded-lg p-6 space-y-6">
                   <h2 className="text-xl font-semibold flex items-center gap-2">
                     <Truck className="h-5 w-5" />
-                    Shipping Information
+                    Delivery Details
                   </h2>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      label="Full Name"
-                      name="name"
-                      placeholder="Your full name"
-                      value={shippingAddress.name}
-                      onChange={handleInputChange}
-                      error={fieldErrors.name}
-                    />
-                    <FormField
-                      label="Email"
-                      name="email"
-                      type="email"
-                      placeholder="name@example.com"
-                      value={shippingAddress.email}
-                      onChange={handleInputChange}
-                      error={fieldErrors.email}
-                    />
+                  {/* Saved Addresses for Authenticated Users */}
+                  {isAuthenticated && savedAddresses.length > 0 && (
+                    <div className="space-y-3">
+                      <Label className="text-xs uppercase tracking-wider text-gray-400">Select Saved Address</Label>
+                      <div className="grid grid-cols-1 gap-2">
+                        {savedAddresses.map((addr) => (
+                          <div
+                            key={addr.id}
+                            onClick={() => handleAddressSelect(addr.id)}
+                            className={`p-3 rounded-xl border cursor-pointer transition-all ${selectedAddressId === addr.id
+                                ? 'bg-white/10 border-white shadow-[0_0_15px_rgba(255,255,255,0.1)]'
+                                : 'bg-white/5 border-white/5 hover:border-white/20'
+                              }`}
+                          >
+                            <div className="flex justify-between items-center text-sm">
+                              <div>
+                                <p className="font-medium text-white">{addr.address}</p>
+                                <p className="text-xs opacity-60">{addr.city}, {addr.state} - {addr.pincode}</p>
+                              </div>
+                              {selectedAddressId === addr.id && (
+                                <CheckCircle2 className="h-4 w-4 text-white" />
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        <div
+                          onClick={() => handleAddressSelect('new')}
+                          className={`p-2 rounded-xl border border-dashed cursor-pointer text-center text-xs transition-all ${selectedAddressId === 'new'
+                              ? 'bg-white/10 border-white text-white'
+                              : 'bg-white/5 border-white/10 text-white/40 hover:border-white/30'
+                            }`}
+                        >
+                          + Use different address
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-medium text-white/60">Basic Contact Details</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField
+                          label="Full Name"
+                          name="name"
+                          placeholder="First and last name"
+                          value={shippingAddress.name}
+                          onChange={handleInputChange}
+                          error={fieldErrors.name}
+                        />
+                        <FormField
+                          label="Phone Number"
+                          name="phone"
+                          placeholder="10-digit mobile number"
+                          value={shippingAddress.phone}
+                          onChange={handleInputChange}
+                          error={fieldErrors.phone}
+                        />
+                      </div>
+                      <FormField
+                        label="Email Address"
+                        name="email"
+                        type="email"
+                        placeholder="your@email.com"
+                        value={shippingAddress.email}
+                        onChange={handleInputChange}
+                        error={fieldErrors.email}
+                      />
+                    </div>
+
+                    {(!isAuthenticated || savedAddresses.length === 0 || selectedAddressId === 'new') && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="space-y-4 pt-4 border-t border-white/5"
+                      >
+                        <h3 className="text-sm font-medium text-white/60">Delivery Address</h3>
+                        <FormField
+                          label="Street Address"
+                          name="address"
+                          placeholder="Flat/House No, Street, Landmark"
+                          value={shippingAddress.address}
+                          onChange={handleInputChange}
+                          error={fieldErrors.address}
+                        />
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                            label="City"
+                            name="city"
+                            placeholder="City"
+                            value={shippingAddress.city}
+                            onChange={handleInputChange}
+                            error={fieldErrors.city}
+                          />
+                          <FormField
+                            label="State"
+                            name="state"
+                            placeholder="State"
+                            value={shippingAddress.state}
+                            onChange={handleInputChange}
+                            error={fieldErrors.state}
+                          />
+                        </div>
+
+                        <FormField
+                          label="PIN Code"
+                          name="pincode"
+                          placeholder="6-digit PIN code"
+                          value={shippingAddress.pincode}
+                          onChange={handleInputChange}
+                          error={fieldErrors.pincode}
+                        />
+                      </motion.div>
+                    )}
                   </div>
-
-                  <FormField
-                    label="Phone Number"
-                    name="phone"
-                    placeholder="10-digit phone number"
-                    value={shippingAddress.phone}
-                    onChange={handleInputChange}
-                    error={fieldErrors.phone}
-                  />
-                  <FormField
-                    label="Address"
-                    name="address"
-                    placeholder="Street address, apartment, etc."
-                    value={shippingAddress.address}
-                    onChange={handleInputChange}
-                    error={fieldErrors.address}
-                  />
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      label="City"
-                      name="city"
-                      placeholder="City"
-                      value={shippingAddress.city}
-                      onChange={handleInputChange}
-                      error={fieldErrors.city}
-                    />
-                    <FormField
-                      label="State"
-                      name="state"
-                      placeholder="State"
-                      value={shippingAddress.state}
-                      onChange={handleInputChange}
-                      error={fieldErrors.state}
-                    />
-                  </div>
-
-                  <FormField
-                    label="PIN Code"
-                    name="pincode"
-                    placeholder="6-digit PIN code"
-                    value={shippingAddress.pincode}
-                    onChange={handleInputChange}
-                    error={fieldErrors.pincode}
-                  />
                 </div>
               </div>
 
@@ -440,8 +623,8 @@ export default function Checkout() {
                   <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
 
                   <div className="space-y-4">
-                    {cartItems.map((item) => (
-                      <div key={`${item.id}-${item.size}`} className="flex items-center gap-4">
+                    {checkoutItems.map((item) => (
+                      <div key={`${item.product_id || item.id}-${item.size}`} className="flex items-center gap-4">
                         <div className="relative w-16 h-16">
                           <Image
                             src={item.image}
@@ -463,7 +646,7 @@ export default function Checkout() {
                     <div className="border-t border-white/10 pt-4 mt-4 space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>Subtotal</span>
-                        <span>₹{getSubtotalAmount()}</span>
+                        <span>₹{subtotalAmount}</span>
                       </div>
                       <div className="flex justify-between text-sm">
                         <span>Shipping</span>
@@ -471,7 +654,7 @@ export default function Checkout() {
                       </div>
                       <div className="flex justify-between font-medium text-lg pt-2 border-t border-white/10">
                         <span>Total</span>
-                        <span>₹{getSubtotalAmount() + shippingCharge}</span>
+                        <span>₹{subtotalAmount + shippingCharge}</span>
                       </div>
                       <div className="flex items-center gap-2 text-xs text-gray-400">
                         <BadgePercent className="h-3 w-3" />
@@ -480,27 +663,65 @@ export default function Checkout() {
                     </div>
                   </div>
 
-                  <Button
-                    className="w-full h-12 text-lg mt-6"
-                    onClick={handleCheckout}
-                    disabled={isProcessing}
-                  >
-                    {isProcessing ? (
-                      <span className="flex items-center gap-2">
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        Processing...
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-2">
-                        <CreditCard className="h-5 w-5" />
-                        Pay ₹{getSubtotalAmount() + shippingCharge}
-                      </span>
-                    )}
-                  </Button>
+                  {/* Payment Options Section */}
+                  <div className="mt-8 space-y-6">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-3">Payment Options</h3>
+                      <div className="space-y-4">
+                        {/* Online Payment Option */}
+                        <div className="p-4 rounded-xl border border-white/20 bg-white/5">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-medium">Online Payment</span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/20">Recommended</span>
+                          </div>
+                          <p className="text-xs text-gray-400 mb-4">
+                            Pay securely via Cards, UPI, NetBanking or Wallets. (Online payment is processed through Razorpay)
+                          </p>
+                          <Button
+                            className="w-full h-11 bg-white text-black hover:bg-gray-200 font-semibold"
+                            onClick={handleCheckout}
+                            disabled={isProcessing}
+                          >
+                            {isProcessing ? (
+                              <span className="flex items-center gap-2">
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                Processing...
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-2">
+                                <CreditCard className="h-5 w-5" />
+                                Pay ₹{subtotalAmount + shippingCharge} Online
+                              </span>
+                            )}
+                          </Button>
+                        </div>
+
+                        {/* WhatsApp COD Option */}
+                        <div className="p-4 rounded-xl border border-white/10 bg-white/5 relative overflow-hidden group">
+                          <div className="absolute top-0 right-0 p-2">
+                            <MessageCircle className="h-4 w-4 text-green-500/30" />
+                          </div>
+                          <span className="font-medium block mb-1">Cash on Delivery (COD)</span>
+                          <p className="text-xs text-gray-400 mb-4">
+                            Prefer COD? Place your order directly on WhatsApp with our team.
+                          </p>
+                          <Button
+                            variant="outline"
+                            className="w-full h-11 border-green-500/30 hover:border-green-500 bg-green-500/10 hover:bg-green-500 text-white hover:text-white transition-all duration-300"
+                            onClick={handleWhatsAppOrder}
+                          >
+                            <MessageCircle className="h-4 w-4 mr-2" />
+                            Order via WhatsApp (COD)
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
 
                   {shippingCharge > 0 && (
                     <p className="text-xs text-center text-gray-400 mt-2">
-                      Add ₹{1000 - getSubtotalAmount()} more for free shipping
+                      Add ₹{1000 - subtotalAmount} more for free shipping
                     </p>
                   )}
                 </div>

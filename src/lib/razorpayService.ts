@@ -67,10 +67,16 @@ export const createRazorpayOrder = async (order: {
     payment_method: 'razorpay';
 }): Promise<RazorpayOrderResponse> => {
     try {
-        // Get the current session
+        // Get the current session if available
         const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.access_token) {
-            throw new Error('Not authenticated');
+        
+        // Pass the token only if it exists
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+        };
+        
+        if (session?.access_token) {
+            headers['Authorization'] = `Bearer ${session.access_token}`;
         }
 
         // Validate input
@@ -90,10 +96,7 @@ export const createRazorpayOrder = async (order: {
         // Create order
         const response = await fetch('/api/create-razorpay-order', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.access_token}`
-            },
+            headers,
             body: JSON.stringify({
                 items: order.items,
                 total: order.total,
@@ -142,19 +145,21 @@ export const initializeRazorpayCheckout = async (
             },
             handler: async (response: RazorpayVerificationResponse) => {
                 try {
-                    // Get the current session
+                    // Get the current session if available
                     const { data: { session } } = await supabase.auth.getSession();
-                    if (!session?.access_token) {
-                        throw new Error('Not authenticated');
+                    
+                    const verificationHeaders: Record<string, string> = {
+                        'Content-Type': 'application/json',
+                    };
+
+                    if (session?.access_token) {
+                        verificationHeaders['Authorization'] = `Bearer ${session.access_token}`;
                     }
 
                     // Verify payment with backend
                     const verificationResponse = await fetch('/api/verify-payment', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${session.access_token}`
-                        },
+                        headers: verificationHeaders,
                         body: JSON.stringify({
                             razorpay_order_id: response.razorpay_order_id,
                             razorpay_payment_id: response.razorpay_payment_id,

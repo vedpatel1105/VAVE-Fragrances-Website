@@ -13,6 +13,24 @@ import { Button } from '@/components/ui/button';
 function PopularCombination() {
     const { toast } = useToast()
     const { addItem, setIsOpen } = useCartStore()
+    const [products, setProducts] = React.useState<ProductInfo.Product[]>([])
+    const [isLoading, setIsLoading] = React.useState(true)
+
+    React.useEffect(() => {
+        const loadData = async () => {
+            try {
+                setIsLoading(true)
+                const items = await ProductInfo.loadProducts()
+                setProducts(items)
+            } catch (err) {
+                console.error("Failed to load products:", err)
+                setProducts(ProductInfo.getAllProductItems())
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        loadData()
+    }, [])
 
     const addPopularComboToCart = (perfume1: any, perfume2: any) => {
         if (!perfume1 || !perfume2) return
@@ -52,9 +70,13 @@ function PopularCombination() {
             <div className="max-w-7xl mx-auto">
                 <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Popular Combinations</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {ProductInfo.popularCombinations.map((combo, index) => {
-                        const perfume1 = ProductInfo.allProductItems.find(p => p.name === combo.fragrance1)
-                        const perfume2 = ProductInfo.allProductItems.find(p => p.name === combo.fragrance2)
+                    {isLoading ? (
+                        Array.from({ length: 4 }).map((_, i) => (
+                            <div key={i} className="bg-gray-800/50 rounded-xl h-64 animate-pulse" />
+                        ))
+                    ) : ProductInfo.popularCombinations.map((combo, index) => {
+                        const perfume1 = products.find(p => p.name === combo.fragrance1)
+                        const perfume2 = products.find(p => p.name === combo.fragrance2)
 
                         if (!perfume1 || !perfume2) return null
 
