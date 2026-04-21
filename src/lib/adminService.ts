@@ -1,4 +1,5 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { isSupabaseConfigured } from './supabaseClient'
 
 export interface User {
   id: string
@@ -10,8 +11,19 @@ export interface User {
 }
 
 export const adminService = {
+  getSupabase() {
+    if (!isSupabaseConfigured) return null
+    try {
+      return createClientComponentClient()
+    } catch {
+      return null
+    }
+  },
+
   async getCurrentUserRole(): Promise<'user' | 'admin' | 'viewer'> {
-    const supabase = createClientComponentClient()
+    const supabase = this.getSupabase()
+    if (!supabase) return 'user'
+
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) throw new Error('Not authenticated')
 
@@ -26,6 +38,7 @@ export const adminService = {
   },
 
   async isAdmin(): Promise<boolean> {
+    if (!isSupabaseConfigured) return false
     try {
       const role = await this.getCurrentUserRole()
       return role === 'admin'
@@ -35,6 +48,7 @@ export const adminService = {
   },
 
   async isViewer(): Promise<boolean> {
+    if (!isSupabaseConfigured) return false
     try {
       const role = await this.getCurrentUserRole()
       return role === 'admin' || role === 'viewer'
@@ -44,7 +58,9 @@ export const adminService = {
   },
 
   async getAllUsers(): Promise<User[]> {
-    const supabase = createClientComponentClient()
+    const supabase = this.getSupabase()
+    if (!supabase) return []
+
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) throw new Error('Not authenticated')
 
@@ -77,7 +93,9 @@ export const adminService = {
   },
 
   async setUserAsAdmin(userId: string): Promise<void> {
-    const supabase = createClientComponentClient()
+    const supabase = this.getSupabase()
+    if (!supabase) return
+
     const isAdmin = await this.isAdmin()
     if (!isAdmin) throw new Error('Not authorized')
 
@@ -88,7 +106,9 @@ export const adminService = {
   },
 
   async removeAdminRole(userId: string): Promise<void> {
-    const supabase = createClientComponentClient()
+    const supabase = this.getSupabase()
+    if (!supabase) return
+
     const isAdmin = await this.isAdmin()
     if (!isAdmin) throw new Error('Not authorized')
 
@@ -99,7 +119,9 @@ export const adminService = {
   },
 
   async getUserDetails(userId: string): Promise<User> {
-    const supabase = createClientComponentClient()
+    const supabase = this.getSupabase()
+    if (!supabase) throw new Error('System unconfigured')
+
     const isAdmin = await this.isAdmin()
     if (!isAdmin) throw new Error('Not authorized')
 
@@ -133,7 +155,12 @@ export const adminService = {
   },
 
   async getAnalyticsStats(startDate?: Date, endDate?: Date) {
-    const supabase = createClientComponentClient()
+    const supabase = this.getSupabase()
+    if (!supabase) return {
+      totalViews: 0, totalCarts: 0, checkoutStarts: 0, totalPurchases: 0, 
+      totalRevenue: 0, topProducts: [], timeline: []
+    }
+
     const end = endDate || new Date()
     const start = startDate || new Date(new Date().setDate(end.getDate() - 7))
     const startISO = start.toISOString()
