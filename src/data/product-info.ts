@@ -1,4 +1,4 @@
-"use client";
+
 
 import { productService } from "@/src/lib/productService";
 import { isSupabaseConfigured } from "@/src/lib/supabaseClient";
@@ -654,8 +654,8 @@ export namespace ProductInfo {
     // Product cache
     let _productCache: Product[] | null = null;
 
-    const CACHE_KEY = "allProductItems";
-    const CACHE_TIMESTAMP_KEY = "allProductItems_timestamp";
+    const CACHE_KEY = "vave_products_v2";
+    const CACHE_TIMESTAMP_KEY = "vave_products_v2_timestamp";
     const CACHE_EXPIRATION_MS = 48 * 60 * 60 * 1000; // 48 hours
 
     // Load products from localStorage or Supabase
@@ -683,12 +683,13 @@ export namespace ProductInfo {
         const products = await productService.getAllProducts();
 
         if (products && products.length > 0) {
-            _productCache = products.map(dbProd => {
-                const staticProd = staticProducts.find(sp => sp.slug === dbProd.slug);
+            _productCache = staticProducts.map(staticProd => {
+                const dbProd = products.find(dp => dp.slug === staticProd.slug);
+                if (!dbProd) return staticProd;
                 return {
                     ...staticProd,
-                    price: dbProd.price_30ml || staticProd?.price || 400,
-                    priceXL: dbProd.price_50ml || staticProd?.priceXL || 500,
+                    price: dbProd.price_30ml || staticProd.price || 400,
+                    priceXL: dbProd.price_50ml || staticProd.priceXL || 500,
                     stock_30ml: dbProd.stock_30ml ?? 100,
                     stock_50ml: dbProd.stock_50ml ?? 100,
                     id: dbProd.id,

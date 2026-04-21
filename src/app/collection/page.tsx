@@ -176,7 +176,7 @@ export default function CollectionPage() {
         </div>
       </main>
 
-      <Cart />
+      
       <Footer />
     </div>
   )

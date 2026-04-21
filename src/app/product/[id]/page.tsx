@@ -709,7 +709,7 @@ export default function ProductDetailPage() {
         )}
       </AnimatePresence>
 
-      <Cart />
+      
       <Footer />
     </motion.div>
   )

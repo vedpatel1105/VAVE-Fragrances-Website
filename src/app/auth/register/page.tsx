@@ -347,7 +347,7 @@ export default function RegisterPage() {
 
             <Button
               variant="outline"
-              className="w-full border-white/10 hover:border-white/40 hover:bg-white/5 text-white h-14 rounded-none text-[10px] uppercase tracking-[0.3em] font-medium"
+              className="w-full bg-transparent border-white/10 hover:border-white/40 hover:bg-white/5 text-white h-14 rounded-none text-[10px] uppercase tracking-[0.3em] font-medium"
               onClick={() => loginWithGoogle("/profile")} 
               disabled={isLoading}
             >

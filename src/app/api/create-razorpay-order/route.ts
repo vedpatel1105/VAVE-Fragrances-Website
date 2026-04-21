@@ -5,14 +5,22 @@ import { supabase } from '@/src/lib/supabaseClient';
 import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-    key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-    key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
-
 export async function POST(request: NextRequest) {
     try {
+        // Guard: ensure Razorpay keys are configured
+        if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+            return NextResponse.json(
+                { error: 'Payment gateway is not configured. Please contact support.' },
+                { status: 503 }
+            );
+        }
+
+        // Initialise Razorpay inside handler so missing keys never crash the module
+        const razorpay = new Razorpay({
+            key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET,
+        });
+
         // Get authorization token from header
         const headersList = headers();
         const authorization = (await headersList).get('authorization');

@@ -417,7 +417,7 @@ export default function LayeringPage() {
       {/* Popular Combinations Section */}
       <PopularCombination />
 
-      <Cart />
+      
     </div>
   )
 }

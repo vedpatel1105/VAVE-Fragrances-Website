@@ -4,13 +4,22 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
-const razorpay = new Razorpay({
-  key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
-
 export async function POST(request: NextRequest) {
   try {
+    // Check for Razorpay configuration
+    if (!process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+      return NextResponse.json(
+        { error: 'Payment verification service is not configured.' },
+        { status: 503 }
+      );
+    }
+
+    // Initialize Razorpay inside handler to avoid module-level crashes
+    const razorpay = new Razorpay({
+      key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
+    });
+
     // Check for authorization header
     const authHeader = request.headers.get('authorization');
     

@@ -367,7 +367,6 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
-      <Cart />
       <style jsx>{`
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(20px); }

@@ -267,9 +267,9 @@ export default function Cart() {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed right-0 top-0 h-full w-full max-w-md bg-zinc-950 border-l border-white/5 shadow-2xl z-50 overflow-y-auto text-white"
+            className="fixed right-0 top-0 h-[100dvh] w-full max-w-md flex flex-col bg-zinc-950 border-l border-white/5 shadow-2xl z-50 overflow-hidden text-white"
           >
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col h-full overflow-hidden">
               <div className="flex items-center justify-between p-6 border-b border-white/5">
                 <h2 className="text-[11px] uppercase tracking-[0.2em] font-bold text-white/70">Your Cart</h2>
                 <Button

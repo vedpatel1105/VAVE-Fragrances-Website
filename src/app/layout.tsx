@@ -9,6 +9,7 @@ import Script from "next/script"
 import { defaultMetadata } from "@/src/lib/metadata"
 import AnalyticsTracker from "@/src/components/AnalyticsTracker"
 import PageTransition from "./components/PageTransition"
+import GlobalCart from "@/src/app/components/GlobalCart"
 
 export const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
 export const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat" })
@@ -72,6 +73,7 @@ export default function RootLayout({
               <PageTransition>
                 {children}
               </PageTransition>
+              <GlobalCart />
           </AuthProvider>
         </ThemeProvider>
         <Toaster />

@@ -105,12 +105,19 @@ export const createRazorpayOrder = async (order: {
             }),
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to create Razorpay order');
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Non-JSON response received from API:', text.slice(0, 200));
+            throw new Error(`Server returned HTML instead of JSON (${response.status} ${response.statusText}). This usually means an API error occurred.`);
         }
 
         const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to create Razorpay order');
+        }
+
         return data as RazorpayOrderResponse;
     } catch (error) {
         console.error('Error creating Razorpay order:', error);
@@ -167,12 +174,19 @@ export const initializeRazorpayCheckout = async (
                         }),
                     });
 
-                    if (!verificationResponse.ok) {
-                        const errorData = await verificationResponse.json();
-                        throw new Error(errorData.error || 'Payment verification failed');
+                    const contentType = verificationResponse.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        const text = await verificationResponse.text();
+                        console.error('Non-JSON response received from verify API:', text.slice(0, 200));
+                        throw new Error(`Server returned HTML instead of JSON (${verificationResponse.status}). Payment might have gone through, please check your orders page.`);
                     }
 
                     const verificationData = await verificationResponse.json();
+
+                    if (!verificationResponse.ok) {
+                        throw new Error(verificationData.error || 'Payment verification failed');
+                    }
+
                     onSuccess(verificationData as PaymentVerificationResult);
                 } catch (error) {
                     console.error('Payment verification error:', error);

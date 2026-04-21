@@ -593,7 +593,7 @@ export default function ScentFinderPage() {
         </div>
       </main>
 
-      <Cart />
+      
       <Footer />
     </div>
   )
