@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import EnhancedProductCard from "./components/EnhancedProductCard"
 import { useToast } from "@/components/ui/use-toast"
 import Hero from "./components/Hero"
+import SafeHydration from "./components/SafeHydration"
 import { ProductInfo } from "@/src/data/product-info"
 import { useWishlistStore } from "@/src/store/wishlist"
 import { useCartStore } from "../lib/cartStore"
@@ -172,6 +173,7 @@ export default function Home() {
 
  
   return (
+    <SafeHydration>
     <main className="flex flex-col min-h-screen bg-zinc-950 text-white selection:bg-white selection:text-black overflow-x-hidden">
       <SimpleNavbar />
       <Hero />
@@ -375,5 +377,6 @@ export default function Home() {
         .animate-fadeInUp { animation: fadeInUp 0.6s ease-out; }
       `}</style>
     </main>
+    </SafeHydration>
   )
 }

@@ -1,136 +1,173 @@
 "use client"
 
-import Link from "next/link"
-import { motion, useScroll, useTransform } from "framer-motion"
 import { useRef } from "react"
+import Link from "next/link"
+import { motion, useScroll, useTransform, useSpring, useMotionValue } from "framer-motion"
+import Image from "next/image"
+import { ChevronDown } from "lucide-react"
 
 export default function Hero() {
-  const ref = useRef(null)
+  const containerRef = useRef<HTMLElement>(null)
   
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end start"],
-  })
+  // Mouse tracking for interaction
+  const mouseX = useMotionValue(0)
+  const mouseY = useMotionValue(0)
+  const springConfig = { damping: 30, stiffness: 100 }
 
-  // Cinematic Parallax & Scale
-  const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "30%"])
-  const scaleText = useTransform(scrollYProgress, [0, 1], [1, 1.1])
-  const opacityText = useTransform(scrollYProgress, [0, 0.5], [1, 0])
+  // 3D Tilt logic
+  const rawRotateX = useTransform(mouseY, [-0.5, 0.5], [7, -7])
+  const rawRotateY = useTransform(mouseX, [-0.5, 0.5], [-7, 7])
+  const rotateX = useSpring(rawRotateX, springConfig)
+  const rotateY = useSpring(rawRotateY, springConfig)
+
+  // Scroll parallax logic
+  const { scrollYProgress } = useScroll()
+  const yBottle = useTransform(scrollYProgress, [0, 0.3], ["0%", "15%"])
+  const scaleBottle = useTransform(scrollYProgress, [0, 0.3], [0.95, 1.1])
+  const opacityText = useTransform(scrollYProgress, [0, 0.2], [1, 0])
+  const bgTextY = useTransform(scrollYProgress, [0, 0.3], ["0%", "-20%"])
+  const lightOpacity = useTransform(scrollYProgress, [0, 0.2], [0.4, 0.1])
+
+  // Interactive light effects
+  const lightRotateX = useTransform(rotateX, (v) => (typeof v === 'number' ? -v * 0.5 : 0))
+  const lightRotateY = useTransform(rotateY, (v) => (typeof v === 'number' ? -v * 0.5 : 0))
+  
+  const rawLightLeakX = useTransform(mouseX, [-0.5, 0.5], [-300, 300])
+  const rawLightLeakY = useTransform(mouseY, [-0.5, 0.5], [-300, 300])
+  const lightLeakX = useSpring(rawLightLeakX, springConfig)
+  const lightLeakY = useSpring(rawLightLeakY, springConfig)
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!containerRef.current) return
+    const rect = containerRef.current.getBoundingClientRect()
+    const x = (e.clientX - rect.left) / rect.width - 0.5
+    const y = (e.clientY - rect.top) / rect.height - 0.5
+    mouseX.set(x)
+    mouseY.set(y)
+  }
 
   return (
-    <section ref={ref} className="relative w-full h-screen flex items-center justify-center overflow-hidden bg-zinc-950">
-      
-      {/* Signature Atmospheric Background */}
-      <motion.div 
-        style={{ y: yBg }}
-        className="absolute inset-0 z-0 w-full h-full overflow-hidden"
+    <section
+      ref={containerRef}
+      onMouseMove={handleMouseMove}
+      className="relative w-full h-screen bg-zinc-950 overflow-hidden flex items-center justify-center cursor-default"
+      style={{ isolation: "isolate" }}
+    >
+      {/* LAYER 1: Background Branding */}
+      <motion.div
+        style={{ y: bgTextY }}
+        className="absolute inset-0 flex items-center justify-center select-none pointer-events-none opacity-[0.03]"
       >
-        {/* Animated Shadow Voids */}
-        <div className="absolute inset-0 z-0">
-          <motion.div 
-            animate={{ 
-              opacity: [0.3, 0.5, 0.3],
-              scale: [1, 1.2, 1],
-              rotate: [0, 5, 0]
-            }}
-            transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -top-1/4 -left-1/4 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-900/40 via-transparent to-transparent blur-[150px]"
-          />
-          <motion.div 
-            animate={{ 
-              opacity: [0.2, 0.4, 0.2],
-              scale: [1.2, 1, 1.2],
-              rotate: [0, -5, 0]
-            }}
-            transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -bottom-1/4 -right-1/4 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-zinc-800/20 via-transparent to-transparent blur-[150px]"
-          />
-        </div>
-
-        {/* High-End Noise Grain */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay scale-150" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E")' }}></div>
+        <span className="font-playfair text-[40vw] font-bold leading-none uppercase text-white tracking-[0.1em]">
+          VAVE
+        </span>
       </motion.div>
 
-      {/* Frame / Border Structure */}
-      <div className="absolute inset-0 border-[1px] border-white/5 pointer-events-none z-10 m-8 md:m-12" />
-
-      {/* Content Interface */}
-      <motion.div 
-        style={{ opacity: opacityText, scale: scaleText }}
-        className="relative z-10 flex flex-col items-center text-center px-6"
-      >
-        <motion.div
-          initial={{ opacity: 0, letterSpacing: "0.2em" }}
-          animate={{ opacity: 1, letterSpacing: "0.6em" }}
-          transition={{ duration: 2, ease: [0.22, 1, 0.36, 1] }}
-          className="text-[9px] md:text-[10px] uppercase text-white/40 mb-12 font-mono"
-        >
-          Vave High Fragrance
-        </motion.div>
-
-        <h1 className="flex flex-col items-center gap-4 mb-16">
-           <div className="overflow-hidden">
-             <motion.span
-                initial={{ y: "100%" }}
-                animate={{ y: "0%" }}
-                transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-                className="block text-6xl md:text-8xl lg:text-[9rem] font-serif text-white leading-none tracking-tight"
-             >
-                Modern
-             </motion.span>
-           </div>
-           <div className="overflow-hidden">
-             <motion.span
-                initial={{ y: "100%" }}
-                animate={{ y: "0%" }}
-                transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
-                className="block text-6xl md:text-8xl lg:text-[9rem] font-serif text-white/20 italic leading-none tracking-tight"
-             >
-                Obsession
-             </motion.span>
-           </div>
-        </h1>
-
-        <motion.div
-           initial={{ opacity: 0, scale: 0.95 }}
-           animate={{ opacity: 1, scale: 1 }}
-           transition={{ duration: 2, delay: 1, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <Link href="/collection">
-            <button className="group relative px-12 py-5 bg-transparent overflow-hidden">
-               <div className="absolute inset-0 border border-white/10 group-hover:border-white/30 transition-colors duration-500" />
-               <motion.div 
-                 className="absolute inset-0 bg-white/5 -translate-x-full group-hover:translate-x-0 transition-transform duration-700 ease-[0.22,1,0.36,1]"
-               />
-               <span className="relative text-[10px] uppercase tracking-[0.4em] text-white font-bold group-hover:text-white transition-colors">
-                 Observe Collection
-               </span>
-            </button>
-          </Link>
-        </motion.div>
-      </motion.div>
-
-      {/* Vertical Navigation Bar Look */}
-      <div className="absolute left-8 md:left-12 top-1/2 -translate-y-1/2 hidden lg:flex flex-col gap-12 items-center z-10">
-         <div className="w-px h-24 bg-gradient-to-t from-white/20 to-transparent" />
-         <span className="text-[8px] uppercase tracking-[0.3em] rotate-180 [writing-mode:vertical-lr] text-white/20">The New Standard</span>
+      {/* LAYER 2: Ambient Atmosphere */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-zinc-800/20 blur-[150px] rounded-full" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-zinc-800/10 blur-[150px] rounded-full" />
+        <div className="absolute inset-0 bg-[#000] opacity-[0.02] pointer-events-none mix-blend-overlay" />
       </div>
 
-      {/* Scroll Trigger Indicator */}
+      {/* LAYER 3: The Bottle (Centerpiece) */}
+    
+
+      {/* LAYER 4: Foreground Typography */}
+      <motion.div
+        style={{ opacity: opacityText }}
+        className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none text-center"
+      >
+        <div className="mt-[20vh] md:mt-[25vh] lg:mt-[30vh] flex flex-col items-center pointer-events-auto">
+          <motion.div
+             initial={{ opacity: 0, letterSpacing: "0.5em" }}
+             animate={{ opacity: 1, letterSpacing: "1em" }}
+             transition={{ duration: 1.5, delay: 0.3, ease: "easeOut" }}
+             className="mb-8"
+          >
+            <span className="text-[9px] md:text-[11px] uppercase text-white/40 font-montserrat">
+              VAVE FRAGRANCES
+            </span>
+          </motion.div>
+
+          <div className="overflow-hidden mb-12">
+            <motion.h1
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              transition={{ duration: 1.2, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              className="font-playfair text-white leading-[0.95] tracking-tight uppercase text-5xl md:text-7xl lg:text-8xl"
+            >
+              Discover Your <br />
+              <span className="italic opacity-60 font-serif">Signature Scent.</span>
+            </motion.h1>
+          </div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.5, delay: 1 }}
+            className="text-white/30 text-[12px] md:text-[14px] font-light max-w-sm mb-12 font-montserrat leading-relaxed px-6"
+          >
+            Crafted for those who understand that true luxury never announces itself — it lingers.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 1.3 }}
+            className="flex flex-col items-center gap-8"
+          >
+            <Link href="/collection">
+              <button className="group relative px-12 py-5 bg-white text-black font-montserrat text-[10px] uppercase tracking-[0.5em] font-bold overflow-hidden transition-all duration-700 hover:px-16">
+                <span className="relative z-10">Explore Collection</span>
+                <div className="absolute inset-0 bg-zinc-200 translate-x-[-101%] group-hover:translate-x-0 transition-transform duration-700 ease-in-out" />
+              </button>
+            </Link>
+          </motion.div>
+        </div>
+      </motion.div>
+
+      {/* LAYER 5: Bottom Details & Scroll Indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 1 }}
-        className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-6 z-10"
+        transition={{ duration: 1.5, delay: 1.8 }}
+        className="absolute bottom-12 inset-x-0 px-8 flex justify-between items-end pointer-events-none"
       >
-        <div className="w-px h-16 bg-white/10 relative overflow-hidden">
-          <motion.div
-            animate={{ y: ["-100%", "200%"] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            className="absolute top-0 left-0 w-full h-1/2 bg-white"
-          />
+        <div className="hidden md:block">
+          <p className="text-[7px] uppercase tracking-widest text-white/20 mb-2">Heritage</p>
+          <p className="text-[9px] uppercase tracking-[0.3em] text-white/40 font-montserrat">Artisan Grafting</p>
+        </div>
+
+        <div className="flex flex-col items-center gap-4 text-white/20 absolute left-1/2 -translate-x-1/2">
+           <span className="text-[7px] uppercase tracking-[0.6em] font-montserrat">Scroll to Begin</span>
+           <motion.div
+             animate={{ y: [0, 6, 0] }}
+             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+           >
+             <ChevronDown size={14} strokeWidth={1} />
+           </motion.div>
+        </div>
+
+        <div className="hidden md:block text-right">
+          <p className="text-[7px] uppercase tracking-widest text-white/20 mb-2">Molecular</p>
+          <p className="text-[9px] uppercase tracking-[0.3em] text-white/40 font-montserrat">Pure Extraction</p>
         </div>
       </motion.div>
+
+      {/* LAYER 6: Interactive Light Leak */}
+      <motion.div 
+        style={{
+          x: lightLeakX,
+          y: lightLeakY,
+          opacity: lightOpacity
+        }}
+        className="absolute inset-0 z-0 blur-[180px] pointer-events-none"
+      >
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white/5 rounded-full" />
+      </motion.div>
+
+      <div className="absolute inset-0 border-[1px] border-white/5 pointer-events-none m-4 md:m-8" />
     </section>
   )
 }

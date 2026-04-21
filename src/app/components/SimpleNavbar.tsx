@@ -4,12 +4,11 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { ShoppingBag, Menu, X, User, LogOut, MessageCircle, Instagram, Heart } from "lucide-react"
+import { ShoppingBag, Menu, X, User, LogOut, Heart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuthStore } from "@/src/lib/auth"
 import { useCartStore } from "@/src/lib/cartStore"
 import { useWishlistStore } from "@/src/store/wishlist"
-import Cart from "@/src/app/components/Cart"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -22,12 +21,13 @@ import {
 import { createAvatar } from "@dicebear/core"
 import { initials } from "@dicebear/collection"
 import { ProductInfo } from "@/src/data/product-info"
+import { motion, AnimatePresence } from "framer-motion"
 
 export default function SimpleNavbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState<string>("")
   const pathname = usePathname()
   const { user, logout } = useAuthStore()
@@ -52,21 +52,36 @@ export default function SimpleNavbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0)
+      const currentScrollY = window.scrollY
+      
+      // Show navbar if scrolling up or at the very top
+      if (currentScrollY <= 0) {
+        setIsVisible(true)
+        setIsScrolled(false)
+      } else {
+        setIsScrolled(true)
+        if (currentScrollY > lastScrollY && currentScrollY > 100) {
+          // Scrolling down and past threshold - hide
+          setIsVisible(false)
+        } else {
+          // Scrolling up - show
+          setIsVisible(true)
+        }
+      }
+      
+      setLastScrollY(currentScrollY)
     }
-    window.addEventListener("scroll", handleScroll)
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+  }, [lastScrollY])
 
   const isActive = (path: string) => pathname === path
 
   const navLinks = [
-    { href: "/", label: "Home" },
     { href: "/collection", label: "Collection" },
     { href: "/layering", label: "Layering" },
     { href: "/scent-finder", label: "Scent Finder" },
-    // { href: "/find-store", label: "Find a Store" },
-    // { href: "/gallery", label: "Inspiration" },
     { href: "/about", label: "About" },
     { href: "/business", label: "Business" },
     { href: "/influencer-collaboration", label: "Collaborate" },
@@ -77,12 +92,17 @@ export default function SimpleNavbar() {
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? "bg-zinc-950/70 backdrop-blur-xl border-b border-white/5" : "bg-transparent border-b border-transparent"
-        }`}>
+      <motion.nav 
+        initial={{ y: 0 }}
+        animate={{ y: isVisible ? 0 : -100 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-500 ${
+          isScrolled ? "bg-zinc-950/80 backdrop-blur-2xl border-b border-white/5" : "bg-transparent border-b border-transparent"
+        }`}
+      >
         <div className="container mx-auto px-6">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="text-white font-bold text-xl">
-              {/* logo image */}
               <Image
                 src={`${ProductInfo.baseUrl}/logo/logo.png`}
                 alt="VAVE Logo"
@@ -114,7 +134,7 @@ export default function SimpleNavbar() {
               >
                 <Heart className="h-5 w-5" strokeWidth={1.5} />
                 {wishlistItems.length > 0 && (
-                  <span className="absolute 1 top-1.5 right-1.5 bg-white text-black rounded-full w-4 h-4 text-[10px] flex items-center justify-center font-bold">
+                  <span className="absolute top-1.5 right-1.5 bg-white text-black rounded-full w-4 h-4 text-[10px] flex items-center justify-center font-bold">
                     {wishlistItems.length}
                   </span>
                 )}
@@ -184,39 +204,43 @@ export default function SimpleNavbar() {
         </div>
 
         {/* Mobile menu - Luxury Aesthetic */}
-        <div className={`lg:hidden fixed inset-0 top-20 bg-zinc-950/95 backdrop-blur-2xl transition-all duration-500 ease-in-out z-40 overflow-hidden ${isMenuOpen ? "opacity-100 h-[calc(100vh-5rem)] border-t border-white/10" : "opacity-0 h-0 border-transparent overflow-hidden object-bottom"}`}>
-          <div className="container mx-auto px-8 h-full flex flex-col justify-center pb-20">
-            <div className="flex flex-col gap-6 items-center text-center">
-              {navLinks.map((link, i) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`transition-all duration-500 ${isMenuOpen ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"} ${isActive(link.href) ? "text-white" : "text-white/50 hover:text-white"
-                    }`}
-                  style={{ transitionDelay: `${i * 50}ms` }}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <span className="text-3xl font-serif italic tracking-wide">{link.label}</span>
-                </Link>
-              ))}
-              
-              {!user && (
-                <button
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    router.push("/auth/login");
-                  }}
-                  className={`mt-6 px-10 py-3 rounded-full border border-white/20 text-white hover:bg-white/10 backdrop-blur-md text-xs uppercase tracking-[0.2em] transition-all duration-500 ${isMenuOpen ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}
-                  style={{ transitionDelay: `${navLinks.length * 50}ms` }}
-                >
-                  Sign In
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
-      <Cart />
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="lg:hidden absolute top-20 left-0 right-0 bg-zinc-950/95 backdrop-blur-2xl border-t border-white/10 overflow-hidden"
+            >
+              <div className="container mx-auto px-8 py-10 flex flex-col gap-6 items-center text-center">
+                {navLinks.map((link, i) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`text-2xl font-serif italic tracking-wide transition-colors ${isActive(link.href) ? "text-white" : "text-white/50 hover:text-white"
+                      }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                
+                {!user && (
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      router.push("/auth/login");
+                    }}
+                    className="mt-6 px-10 py-3 rounded-full border border-white/20 text-white hover:bg-white/10 backdrop-blur-md text-xs uppercase tracking-[0.2em] transition-all duration-500"
+                  >
+                    Sign In
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.nav>
     </>
   )
 }
