@@ -19,6 +19,8 @@ import { ProductInfo } from "@/src/data/product-info"
 import { LoadingSpinner } from "@/src/components/ui/loading-spinner"
 import type { ShippingAddress } from "@/src/types/orders";
 import { useAuthStore } from "@/src/lib/auth"
+import { analytics } from "@/src/lib/analytics"
+import { notificationService } from "@/src/lib/notificationService"
 
 // Field helper component - Defined outside to prevent focus loss on re-render
 const FormField = ({
@@ -142,6 +144,16 @@ export default function Checkout() {
   const subtotalAmount = useMemo(() => {
     return checkoutItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   }, [checkoutItems]);
+
+  // Track beginning of checkout
+  useEffect(() => {
+    if (checkoutItems.length > 0) {
+      analytics.trackEvent('begin_checkout', {
+        items: checkoutItems.map(i => ({ name: i.name, price: i.price, quantity: i.quantity })),
+        total: subtotalAmount
+      });
+    }
+  }, [checkoutItems.length, subtotalAmount]);
 
   // Load user's saved addresses if available
   useEffect(() => {
@@ -337,6 +349,25 @@ export default function Checkout() {
             description: "Thank you for your purchase.",
           });
 
+          // Send Email Notification (Online)
+          notificationService.sendOrderNotification({
+            orderId: verificationData.orderId,
+            customerName: shippingAddress.name,
+            customerEmail: shippingAddress.email,
+            customerPhone: shippingAddress.phone,
+            items: checkoutItems.map(item => `${item.name} (${item.size}ml) x ${item.quantity}`).join(', '),
+            totalAmount: subtotalAmount + shippingCharge,
+            paymentMethod: 'Razorpay',
+            shippingAddress: `${shippingAddress.address}, ${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}`
+          });
+          
+          // Track Purchase
+          analytics.trackEvent('purchase', {
+            transaction_id: verificationData.orderId,
+            value: subtotalAmount + shippingCharge,
+            items: checkoutItems.map(i => i.name)
+          });
+
           router.push(`/order-success?orderId=${verificationData.orderId}`);
         },
         // Error callback
@@ -391,19 +422,26 @@ export default function Checkout() {
       const total = subtotalAmount + shippingCharge;
       
       const messageText = 
-        `*ORDER REQUEST - CASH ON DELIVERY*\n\n` +
-        `Hello Vave Fragrances! I'd like to place an order for:\n\n` +
-        `${itemsText}\n\n` +
-        `*Order Total:* ₹${total}\n\n` +
-        `*Customer Details:*\n` +
-        `Name: ${shippingAddress.name}\n` +
-        `Contact: ${shippingAddress.phone}\n` +
-        `Email: ${shippingAddress.email}\n\n` +
-        `*Shipping Address:*\n` +
-        `${shippingAddress.address}\n` +
-        `${shippingAddress.city}, ${shippingAddress.state}\n` +
         `PIN: ${shippingAddress.pincode}\n\n` +
         `Please confirm my COD order. Thank you!`;
+
+      // Send Email Notification (WhatsApp COD)
+      notificationService.sendOrderNotification({
+        orderId: 'COD-' + Date.now().toString().slice(-6),
+        customerName: shippingAddress.name,
+        customerEmail: shippingAddress.email,
+        customerPhone: shippingAddress.phone,
+        items: checkoutItems.map(item => `${item.name} (${item.size}ml) x ${item.quantity}`).join(', '),
+        totalAmount: subtotalAmount + shippingCharge,
+        paymentMethod: 'WhatsApp (COD)',
+        shippingAddress: `${shippingAddress.address}, ${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}`
+      });
+
+      // Track Potential Purchase
+      analytics.trackEvent('contact_click', {
+        type: 'whatsapp_cod',
+        value: subtotalAmount + shippingCharge
+      });
 
       const whatsappUrl = `https://wa.me/919328701508?text=${encodeURIComponent(messageText)}`;
       

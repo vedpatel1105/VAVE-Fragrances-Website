@@ -82,33 +82,68 @@ export default function EnhancedProductCard({
           sizes="(max-width: 768px) 100vw, 33vw"
         />
 
+        {/* Shine Animation */}
+        <motion.div 
+          className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full"
+          animate={isHovered ? { translateX: "200%" } : { translateX: "-100%" }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+        />
+
         {/* Dynamic Shadow Mask */}
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-1000" />
+
+        {/* Inventory Scarcity Badge */}
+        {((selectedSize === "30" && product.stock_30ml < 10) || (selectedSize === "50" && product.stock_50ml < 10)) && (
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="absolute top-6 left-6 z-20 flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/10 px-3 py-1.5 rounded-full"
+          >
+            <Zap className="w-3 h-3 text-gold fill-gold animate-pulse" />
+            <span className="text-[8px] uppercase tracking-[0.2em] font-bold text-white">
+              Scent selling fast
+            </span>
+          </motion.div>
+        )}
 
         {/* Hover Action Overlay */}
         <div className="absolute inset-0 flex flex-col justify-end p-6 translate-y-8 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-700 ease-[0.22,1,0.36,1]">
           <div className="space-y-3">
-             <button 
+             <motion.button 
                onClick={handleBuyNow}
-               className="w-full h-12 bg-white text-black text-[9px] uppercase tracking-[0.4em] font-bold hover:bg-zinc-200 transition-colors pointer-events-auto"
+               whileHover={{ scale: 1.02 }}
+               whileTap={{ scale: 0.98 }}
+               className="w-full h-12 bg-white text-black text-[9px] uppercase tracking-[0.4em] font-bold hover:bg-zinc-200 transition-colors pointer-events-auto shadow-2xl"
              >
-               Acquire Now
-             </button>
-             <button 
+               Buy Now
+             </motion.button>
+             <motion.button 
                onClick={handleAddToCart}
-               className="w-full h-12 bg-transparent border border-white/20 text-white text-[9px] uppercase tracking-[0.4em] font-bold hover:bg-white/5 transition-all pointer-events-auto"
+               whileHover={{ scale: 1.02 }}
+               whileTap={{ scale: 0.98 }}
+               className="w-full h-12 bg-transparent border border-white/20 text-white text-[9px] uppercase tracking-[0.4em] font-bold hover:bg-white/5 transition-all pointer-events-auto backdrop-blur-sm"
              >
-               Add to Archive
-             </button>
+               Add to Cart
+             </motion.button>
           </div>
         </div>
 
-        {/* Minimal Badges */}
-        <div className="absolute top-6 left-6 flex flex-col gap-2">
-          {product.isNew && (
-             <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
-          )}
-        </div>
+        {/* Minimal Selection Dot */}
+        {!((selectedSize === "30" && product.stock_30ml < 10) || (selectedSize === "50" && product.stock_50ml < 10)) && (
+          <div className="absolute top-6 left-6 flex flex-col gap-2">
+            {product.isNew && (
+              <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
+            )}
+          </div>
+        )}
+
+        {/* Premium Bestseller Badge */}
+        {product.isBestseller && (
+           <div className="absolute bottom-6 right-6 flex items-center gap-2 text-white/40">
+              <Star className="w-3 h-3 fill-white/20" />
+              <span className="text-[8px] uppercase tracking-[0.3em]">Bestseller</span>
+           </div>
+        )}
 
         {/* Quick Wishlist */}
         <button 
@@ -126,7 +161,7 @@ export default function EnhancedProductCard({
             {product.name}
           </h3>
           <p className="text-[10px] uppercase tracking-[0.5em] text-white/30 font-mono italic">
-            {product.tagline || "High Perfumery"}
+            {product.tagline || "Premium Perfumes"}
           </p>
         </div>
 

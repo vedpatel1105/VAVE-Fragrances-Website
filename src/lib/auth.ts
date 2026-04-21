@@ -19,6 +19,8 @@ export interface AuthState {
     login: (email: string, password: string) => Promise<{ success: boolean; user?: User; error?: string }>;
     loginWithGoogle: (redirectPath: string) => Promise<{ success: boolean; error?: string }>;
     register: (email: string, password: string, full_name: string, phone: string) => Promise<{ success: boolean; user?: User; error?: string }>;
+    signInWithPhone: (phone: string) => Promise<{ success: boolean; error?: string }>;
+    verifyPhoneOtp: (phone: string, token: string) => Promise<{ success: boolean; user?: User; error?: string }>;
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
     updateUserMetadata: (metadata: Partial<{ full_name: string; phone: string; role: string }>) => Promise<{ success: boolean; error?: string }>;
@@ -152,6 +154,68 @@ export const useAuthStore = create<AuthState>()(
                     return {
                         success: false,
                         error: error.message || "An error occurred during registration"
+                    };
+                }
+            },
+            
+            signInWithPhone: async (phone) => {
+                try {
+                    set({ isLoading: true });
+                    const { error } = await supabase.auth.signInWithOtp({
+                        phone: phone.startsWith('+') ? phone : `+91${phone}`, // Default to India if no code
+                    });
+                    
+                    if (error) throw error;
+                    set({ isLoading: false });
+                    return { success: true };
+                } catch (error: any) {
+                    console.error("Phone signin error:", error);
+                    set({ isLoading: false });
+                    return { 
+                        success: false, 
+                        error: error.message || "Failed to send OTP" 
+                    };
+                }
+            },
+
+            verifyPhoneOtp: async (phone, token) => {
+                try {
+                    set({ isLoading: true });
+                    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
+                    const { data: authData, error: authError } = await supabase.auth.verifyOtp({
+                        phone: formattedPhone,
+                        token,
+                        type: 'sms'
+                    });
+
+                    if (authError) throw authError;
+
+                    if (authData.user) {
+                        const newUser: User = {
+                            id: authData.user.id,
+                            email: authData.user.email || "",
+                            full_name: authData.user.user_metadata?.full_name || "",
+                            role: authData.user.user_metadata?.role,
+                            phone: authData.user.phone || formattedPhone,
+                            user_metadata: authData.user.user_metadata
+                        };
+
+                        set({
+                            user: newUser,
+                            isAuthenticated: true,
+                            isLoading: false,
+                        });
+
+                        return { success: true, user: newUser };
+                    } else {
+                        throw new Error("Verification failed - no user data received");
+                    }
+                } catch (error: any) {
+                    console.error("OTP verification error:", error);
+                    set({ isLoading: false });
+                    return {
+                        success: false,
+                        error: error.message || "Invalid OTP code"
                     };
                 }
             },

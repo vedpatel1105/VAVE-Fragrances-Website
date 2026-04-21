@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Menu, X, Package, ShoppingBag, Users, LogOut } from "lucide-react"
+import { Menu, X, Package, ShoppingBag, Users, LogOut, BarChart3 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useToast } from "@/components/ui/use-toast"
 import { adminService } from "@/src/lib/adminService"
@@ -33,11 +33,18 @@ export default function AdminNavbar() {
     }
   }
 
+  const [userRole, setUserRole] = useState<'user' | 'admin' | 'viewer'>('user')
+
+  useEffect(() => {
+    adminService.getCurrentUserRole().then(role => setUserRole(role))
+  }, [])
+
   const navItems = [
-    { href: "/admin/orders", label: "Orders", icon: Package },
-    { href: "/admin/products", label: "Products", icon: ShoppingBag },
-    { href: "/admin/users", label: "Users", icon: Users },
-  ]
+    { href: "/admin/analytics", label: "Analytics", icon: BarChart3, roles: ['admin', 'viewer'] },
+    { href: "/admin/orders", label: "Orders", icon: Package, roles: ['admin'] },
+    { href: "/admin/products", label: "Products", icon: ShoppingBag, roles: ['admin'] },
+    { href: "/admin/users", label: "Users", icon: Users, roles: ['admin'] },
+  ].filter(item => item.roles.includes(userRole))
 
   return (
     <motion.nav

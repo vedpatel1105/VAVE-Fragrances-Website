@@ -23,13 +23,16 @@ export default function AdminUsersPage() {
     const checkAdmin = async () => {
       try {
         const isAdmin = await adminService.isAdmin()
+        const isViewer = await adminService.isViewer()
+
+        if (isViewer && !isAdmin) {
+          router.push('/admin/analytics')
+          return
+        }
+
         if (!isAdmin) {
           router.push('/')
-          toast({
-            title: "Access Denied",
-            description: "You don't have permission to access this page",
-            variant: "destructive"
-          })
+          return
         }
       } catch (error) {
         console.error('Error checking admin status:', error)
@@ -38,7 +41,7 @@ export default function AdminUsersPage() {
     }
 
     checkAdmin()
-  }, [])
+  }, [router])
 
   // Load users
   useEffect(() => {

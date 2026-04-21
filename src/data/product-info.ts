@@ -689,6 +689,8 @@ export namespace ProductInfo {
                     ...staticProd,
                     price: dbProd.price_30ml || staticProd?.price || 400,
                     priceXL: dbProd.price_50ml || staticProd?.priceXL || 500,
+                    stock_30ml: dbProd.stock_30ml ?? 100,
+                    stock_50ml: dbProd.stock_50ml ?? 100,
                     id: dbProd.id,
                 } as Product;
             });
@@ -831,6 +833,8 @@ export namespace ProductInfo {
         tagline: string;
         price: number;
         priceXL: number;
+        stock_30ml: number;
+        stock_50ml: number;
         images: {
             "30": string[];
             "50": string[];

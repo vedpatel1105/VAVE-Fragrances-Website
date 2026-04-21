@@ -190,11 +190,10 @@ export default function Home() {
               transition={{ duration: 0.8 }}
               className="text-center mb-20 relative z-10"
             >
-              <h2 className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-4">Signature Collection</h2>
+              <h2 className="text-[10px] uppercase tracking-[0.3em] text-white/40 mb-4">Our Best Collection</h2>
               <h3 className="text-4xl md:text-5xl font-serif text-white mb-8 tracking-wide">Featured Fragrances</h3>
               <p className="text-white/40 max-w-2xl mx-auto font-light leading-relaxed text-sm">
-                Discover our curated selection of premium fragrances, each crafted to evoke unique emotions and
-                memories.
+                Explore our best perfumes, each made to bring back special memories and feelings.
               </p>
             </motion.div>
 
@@ -353,14 +352,14 @@ export default function Home() {
                       setIsQuickViewOpen(false)
                     }}
                   >
-                    Acquire Essence
+                    Add to Cart
                   </Button>
                   <Button
                     variant="ghost"
                     className="h-14 border border-white/5 text-white/40 hover:text-white rounded-none text-[9px] uppercase tracking-[0.3em]"
                     onClick={() => router.push(`/product/${selectedProduct.id}`)}
                   >
-                    View Manifest
+                    View Details
                   </Button>
                 </div>
               </div>

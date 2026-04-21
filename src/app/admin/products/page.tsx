@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import {
   Search, Plus, Pencil, Trash2, Eye, EyeOff,
   Package, AlertCircle, CheckCircle, X, Save,
-  ChevronDown
+  ChevronDown, Image as ImageIcon, Info, DollarSign, 
+  Beaker, Sparkles, Wand2, ArrowLeft
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,11 +20,14 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
 import { productService, type DBProduct, type ProductUpdateInput } from "@/src/lib/productService"
 import { adminService } from "@/src/lib/adminService"
 import { formatCurrency } from "@/lib/utils"
 import AdminNavbar from "@/src/app/components/AdminNavbar"
+import ProductImageUpload from "../components/ProductImageUpload"
+import { useRouter } from "next/navigation"
 
 // Categories used across the site
 const CATEGORIES = ["Eau de Parfum", "Eau de Toilette", "Body Mist", "Attar", "Gift Set"] as const
@@ -45,11 +49,11 @@ interface ProductFormData {
   is_hidden: boolean
   discount: number | null
   ingredients: string
-  notes_top: string
-  notes_heart: string
-  notes_base: string
-  images_30: string
-  images_50: string
+  notes_top: string[]
+  notes_heart: string[]
+  notes_base: string[]
+  images_30: string[]
+  images_50: string[]
   images_label: string
 }
 
@@ -70,11 +74,11 @@ const emptyFormData: ProductFormData = {
   is_hidden: false,
   discount: null,
   ingredients: "",
-  notes_top: "",
-  notes_heart: "",
-  notes_base: "",
-  images_30: "",
-  images_50: "",
+  notes_top: [],
+  notes_heart: [],
+  notes_base: [],
+  images_30: [],
+  images_50: [],
   images_label: "",
 }
 
@@ -96,58 +100,23 @@ function productToFormData(product: DBProduct): ProductFormData {
     is_hidden: product.is_hidden ?? false,
     discount: product.discount,
     ingredients: product.ingredients?.join(", ") || "",
-    notes_top: product.notes?.top?.join(", ") || "",
-    notes_heart: product.notes?.heart?.join(", ") || "",
-    notes_base: product.notes?.base?.join(", ") || "",
-    images_30: product.images?.["30"]?.join("\n") || "",
-    images_50: product.images?.["50"]?.join("\n") || "",
+    notes_top: product.notes?.top || [],
+    notes_heart: product.notes?.heart || [],
+    notes_base: product.notes?.base || [],
+    images_30: product.images?.["30"] || [],
+    images_50: product.images?.["50"] || [],
     images_label: product.images?.label || "",
-  }
-}
-
-function formDataToProductUpdate(form: ProductFormData): ProductUpdateInput {
-  return {
-    name: form.name,
-    slug: form.slug,
-    category: form.category,
-    tagline: form.tagline,
-    description: form.description,
-    long_description: form.long_description || null,
-    price_30ml: form.price_30ml,
-    price_50ml: form.price_50ml,
-    stock_30ml: form.stock_30ml,
-    stock_50ml: form.stock_50ml,
-    is_new: form.is_new,
-    is_bestseller: form.is_bestseller,
-    is_limited: form.is_limited,
-    is_hidden: form.is_hidden,
-    discount: form.discount,
-    ingredients: form.ingredients
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean),
-    notes: {
-      top: form.notes_top.split(",").map((s) => s.trim()).filter(Boolean),
-      heart: form.notes_heart.split(",").map((s) => s.trim()).filter(Boolean),
-      base: form.notes_base.split(",").map((s) => s.trim()).filter(Boolean),
-    },
-    images: {
-      "30": form.images_30.split("\n").map((s) => s.trim()).filter(Boolean),
-      "50": form.images_50.split("\n").map((s) => s.trim()).filter(Boolean),
-      label: form.images_label,
-    },
   }
 }
 
 export default function AdminProductsPage() {
   const { toast } = useToast()
+  const router = useRouter()
   const [products, setProducts] = useState<DBProduct[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
-  const [visibilityFilter, setVisibilityFilter] = useState("all")
-  const [stockFilter, setStockFilter] = useState("all")
-
+  
   // Dialog states
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -159,7 +128,6 @@ export default function AdminProductsPage() {
   // Form state
   const [formData, setFormData] = useState<ProductFormData>(emptyFormData)
 
-  // Load products
   const loadProducts = useCallback(async () => {
     try {
       const data = await productService.getAllProductsAdmin()
@@ -180,104 +148,68 @@ export default function AdminProductsPage() {
     const init = async () => {
       try {
         const isAdmin = await adminService.isAdmin()
+        const isViewer = await adminService.isViewer()
+
+        if (isViewer && !isAdmin) {
+          router.push('/admin/analytics')
+          return
+        }
+
         if (!isAdmin) {
-          toast({
-            title: "Access Denied",
-            description: "You don't have permission to access this page",
-            variant: "destructive",
-          })
+          router.push('/admin')
           return
         }
         await loadProducts()
       } catch (error) {
         console.error("Error:", error)
+        router.push('/admin')
       }
     }
     init()
-  }, [loadProducts, toast])
+  }, [loadProducts, router])
 
-  // Filter products
-  const filteredProducts = products.filter((product) => {
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase()
-      if (
-        !product.name.toLowerCase().includes(q) &&
-        !product.category.toLowerCase().includes(q) &&
-        !product.slug.toLowerCase().includes(q)
-      )
-        return false
-    }
-    if (categoryFilter !== "all" && product.category !== categoryFilter) return false
-    if (visibilityFilter === "visible" && product.is_hidden) return false
-    if (visibilityFilter === "hidden" && !product.is_hidden) return false
-    if (stockFilter === "low") {
-      if (product.stock_30ml > 5 && product.stock_50ml > 5) return false
-    }
-    if (stockFilter === "out") {
-      if (product.stock_30ml > 0 || product.stock_50ml > 0) return false
-    }
-    return true
-  })
-
-  // Open edit dialog
-  const handleEdit = (product: DBProduct) => {
-    setEditingProduct(product)
-    setFormData(productToFormData(product))
-    setIsCreating(false)
-    setIsEditDialogOpen(true)
-  }
-
-  // Open create dialog
-  const handleCreate = () => {
-    setEditingProduct(null)
-    setFormData(emptyFormData)
-    setIsCreating(true)
-    setIsEditDialogOpen(true)
-  }
-
-  // Save product (create or update)
   const handleSave = async () => {
     if (!formData.name.trim()) {
       toast({ title: "Error", description: "Product name is required", variant: "destructive" })
       return
     }
-    if (!formData.slug.trim()) {
-      toast({ title: "Error", description: "Product slug is required", variant: "destructive" })
-      return
-    }
-    if (!formData.category) {
-      toast({ title: "Error", description: "Category is required", variant: "destructive" })
-      return
-    }
 
     setIsSaving(true)
     try {
-      const productData = formDataToProductUpdate(formData)
+      const payload: any = {
+        name: formData.name,
+        slug: formData.slug,
+        category: formData.category,
+        tagline: formData.tagline,
+        description: formData.description,
+        long_description: formData.long_description || null,
+        price_30ml: formData.price_30ml,
+        price_50ml: formData.price_50ml,
+        stock_30ml: formData.stock_30ml,
+        stock_50ml: formData.stock_50ml,
+        is_new: formData.is_new,
+        is_bestseller: formData.is_bestseller,
+        is_limited: formData.is_limited,
+        is_hidden: formData.is_hidden,
+        discount: formData.discount,
+        ingredients: formData.ingredients.split(",").map(s => s.trim()).filter(Boolean),
+        notes: {
+          top: formData.notes_top,
+          heart: formData.notes_heart,
+          base: formData.notes_base
+        },
+        images: {
+          "30": formData.images_30,
+          "50": formData.images_50,
+          label: formData.images_label
+        }
+      }
+
       if (isCreating) {
-        await productService.createProduct({
-          ...productData,
-          name: formData.name,
-          slug: formData.slug,
-          category: formData.category,
-          tagline: formData.tagline,
-          description: formData.description,
-          long_description: formData.long_description || null,
-          price_30ml: formData.price_30ml,
-          price_50ml: formData.price_50ml,
-          stock_30ml: formData.stock_30ml,
-          stock_50ml: formData.stock_50ml,
-          is_new: formData.is_new,
-          is_bestseller: formData.is_bestseller,
-          is_limited: formData.is_limited,
-          is_hidden: formData.is_hidden,
-          discount: formData.discount,
-          ingredients: productData.ingredients || [],
-          notes: productData.notes || { top: [], heart: [], base: [] },
-          images: productData.images || { "30": [], "50": [], label: "" },
-        } as any)
+        await productService.createProduct(payload)
         toast({ title: "Success", description: "Product created successfully" })
       } else if (editingProduct) {
-        await productService.updateProduct(editingProduct.id, productData)
+        await productService.updateProduct(editingProduct.id, payload)
         toast({ title: "Success", description: "Product updated successfully" })
       }
       setIsEditDialogOpen(false)
@@ -293,25 +225,20 @@ export default function AdminProductsPage() {
     }
   }
 
-  // Toggle visibility
-  const handleToggleVisibility = async (product: DBProduct) => {
-    try {
-      await productService.toggleProductVisibility(product.id, !product.is_hidden)
-      await loadProducts()
-      toast({
-        title: "Success",
-        description: `Product ${product.is_hidden ? "shown" : "hidden"} successfully`,
-      })
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update visibility",
-        variant: "destructive",
-      })
-    }
+  const handleEdit = (product: DBProduct) => {
+    setEditingProduct(product)
+    setFormData(productToFormData(product))
+    setIsCreating(false)
+    setIsEditDialogOpen(true)
   }
 
-  // Delete product
+  const handleCreate = () => {
+    setEditingProduct(null)
+    setFormData(emptyFormData)
+    setIsCreating(true)
+    setIsEditDialogOpen(true)
+  }
+
   const handleDelete = async () => {
     if (!deletingProduct) return
     try {
@@ -321,11 +248,7 @@ export default function AdminProductsPage() {
       await loadProducts()
       toast({ title: "Success", description: "Product deleted successfully" })
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete product",
-        variant: "destructive",
-      })
+      toast({ title: "Error", description: error.message || "Failed to delete", variant: "destructive" })
     }
   }
 
@@ -333,553 +256,345 @@ export default function AdminProductsPage() {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  // Get unique categories from products
-  const categories = [...new Set(products.map((p) => p.category))].sort()
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+    (categoryFilter === "all" || p.category === categoryFilter)
+  )
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <AdminNavbar />
-        <div className="container mx-auto py-8 px-4 pt-24">
-          <div className="text-center">Loading products...</div>
-        </div>
-      </div>
-    )
-  }
+  if (isLoading) return <div className="p-8 text-center">Loading Management Suite...</div>
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
       <AdminNavbar />
       <div className="container mx-auto py-8 px-4 pt-24">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-            <div>
-              <h1 className="text-3xl font-bold">Product Management</h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-1">
-                {products.length} products · {products.filter((p) => p.is_hidden).length} hidden
-              </p>
-            </div>
-            <Button onClick={handleCreate} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Add Product
-            </Button>
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white font-serif">
+              Product CMS
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-2">
+              Manage your fragrance collection, inventory, and premium media.
+            </p>
           </div>
+          <Button 
+            onClick={handleCreate} 
+            className="bg-gold hover:bg-gold/90 text-dark font-semibold px-6 py-6 rounded-xl shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+          >
+            <Plus className="h-5 w-5" />
+            Add New Fragrance
+          </Button>
+        </div>
 
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Input
-                type="text"
-                placeholder="Search by name, slug, or category..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            </div>
-
-            <select
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-              className="px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 text-sm"
-            >
-              <option value="all">All Categories</option>
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={visibilityFilter}
-              onChange={(e) => setVisibilityFilter(e.target.value)}
-              className="px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 text-sm"
-            >
-              <option value="all">All Visibility</option>
-              <option value="visible">Visible</option>
-              <option value="hidden">Hidden</option>
-            </select>
-
-            <select
-              value={stockFilter}
-              onChange={(e) => setStockFilter(e.target.value)}
-              className="px-3 py-2 border rounded-lg bg-white dark:bg-gray-800 text-sm"
-            >
-              <option value="all">All Stock</option>
-              <option value="low">Low Stock (≤5)</option>
-              <option value="out">Out of Stock</option>
-            </select>
+        {/* Filter Bar */}
+        <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl shadow-sm border border-border mb-8 flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input 
+              placeholder="Search by name, category or slug..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-gray-50 dark:bg-gray-800 border-none rounded-xl"
+            />
           </div>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-[200px] bg-gray-50 dark:bg-gray-800 border-none rounded-xl">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {CATEGORIES.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
 
-          {/* Product List */}
-          {filteredProducts.length === 0 ? (
-            <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg">
-              <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">No products found</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredProducts.map((product) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm p-5 border-l-4 ${
-                    product.is_hidden
-                      ? "border-l-gray-400 opacity-75"
-                      : "border-l-green-500"
-                  }`}
-                >
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    {/* Product Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-bold text-lg truncate">{product.name}</h3>
-                        {product.is_hidden && (
-                          <Badge variant="outline" className="text-xs border-gray-400 text-gray-500">
-                            Hidden
-                          </Badge>
-                        )}
-                        {product.is_new && (
-                          <Badge className="bg-blue-500 text-xs">New</Badge>
-                        )}
-                        {product.is_bestseller && (
-                          <Badge className="bg-amber-500 text-xs">Bestseller</Badge>
-                        )}
-                        {product.is_limited && (
-                          <Badge className="bg-purple-500 text-xs">Limited</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {product.category} · /{product.slug}
-                      </p>
-                    </div>
-
-                    {/* Pricing */}
-                    <div className="flex gap-6 text-sm">
-                      <div>
-                        <p className="text-gray-500 dark:text-gray-400">30ml</p>
-                        <p className="font-semibold">{formatCurrency(product.price_30ml)}</p>
-                        <p className={`text-xs ${product.stock_30ml <= 5 ? "text-red-500 font-medium" : "text-gray-400"}`}>
-                          Stock: {product.stock_30ml}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 dark:text-gray-400">50ml</p>
-                        <p className="font-semibold">{formatCurrency(product.price_50ml)}</p>
-                        <p className={`text-xs ${product.stock_50ml <= 5 ? "text-red-500 font-medium" : "text-gray-400"}`}>
-                          Stock: {product.stock_50ml}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleToggleVisibility(product)}
-                        title={product.is_hidden ? "Show product" : "Hide product"}
-                      >
-                        {product.is_hidden ? (
-                          <Eye className="h-4 w-4" />
-                        ) : (
-                          <EyeOff className="h-4 w-4" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(product)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                        onClick={() => {
-                          setDeletingProduct(product)
-                          setIsDeleteDialogOpen(true)
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </motion.div>
-
-        {/* Edit / Create Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {isCreating ? "Add New Product" : `Edit: ${editingProduct?.name}`}
-              </DialogTitle>
-              <DialogDescription>
-                {isCreating
-                  ? "Fill in the details to create a new product."
-                  : "Update the product details below."}
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="space-y-6 py-4">
-              {/* Basic Info */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-sm uppercase tracking-wider text-gray-500">
-                  Basic Information
-                </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Product Name *</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => {
-                        updateField("name", e.target.value)
-                        if (isCreating) {
-                          updateField(
-                            "slug",
-                            e.target.value
-                              .toLowerCase()
-                              .replace(/[^a-z0-9]+/g, "-")
-                              .replace(/(^-|-$)/g, "")
-                          )
-                        }
-                      }}
-                      placeholder="Product name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="slug">Slug *</Label>
-                    <Input
-                      id="slug"
-                      value={formData.slug}
-                      onChange={(e) => updateField("slug", e.target.value)}
-                      placeholder="product-slug"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="category">Category *</Label>
-                    <Select
-                      value={formData.category}
-                      onValueChange={(v) => updateField("category", v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map((cat) => (
-                          <SelectItem key={cat} value={cat}>
-                            {cat}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="tagline">Tagline</Label>
-                    <Input
-                      id="tagline"
-                      value={formData.tagline}
-                      onChange={(e) => updateField("tagline", e.target.value)}
-                      placeholder="Short tagline"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
-                  <textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => updateField("description", e.target.value)}
-                    placeholder="Product description"
-                    className="w-full px-3 py-2 border rounded-lg bg-transparent text-sm min-h-[80px] resize-y"
+        {/* Product Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProducts.map((product) => (
+            <motion.div
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              key={product.id}
+              className="group bg-white dark:bg-gray-900 rounded-3xl overflow-hidden border border-border shadow-md hover:shadow-xl transition-all duration-300 relative"
+            >
+              <div className="aspect-[4/3] relative overflow-hidden bg-gray-100 dark:bg-gray-800">
+                {product.images?.label ? (
+                  <img 
+                    src={product.images.label} 
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="long_description">Long Description</Label>
-                  <textarea
-                    id="long_description"
-                    value={formData.long_description}
-                    onChange={(e) => updateField("long_description", e.target.value)}
-                    placeholder="Detailed description"
-                    className="w-full px-3 py-2 border rounded-lg bg-transparent text-sm min-h-[80px] resize-y"
-                  />
-                </div>
-              </div>
-
-              {/* Pricing & Stock */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-sm uppercase tracking-wider text-gray-500">
-                  Pricing & Stock
-                </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="price_30ml">Price 30ml (₹)</Label>
-                    <Input
-                      id="price_30ml"
-                      type="number"
-                      min="0"
-                      value={formData.price_30ml}
-                      onChange={(e) =>
-                        updateField("price_30ml", parseFloat(e.target.value) || 0)
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="price_50ml">Price 50ml (₹)</Label>
-                    <Input
-                      id="price_50ml"
-                      type="number"
-                      min="0"
-                      value={formData.price_50ml}
-                      onChange={(e) =>
-                        updateField("price_50ml", parseFloat(e.target.value) || 0)
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="stock_30ml">Stock 30ml</Label>
-                    <Input
-                      id="stock_30ml"
-                      type="number"
-                      min="0"
-                      value={formData.stock_30ml}
-                      onChange={(e) =>
-                        updateField("stock_30ml", parseInt(e.target.value) || 0)
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="stock_50ml">Stock 50ml</Label>
-                    <Input
-                      id="stock_50ml"
-                      type="number"
-                      min="0"
-                      value={formData.stock_50ml}
-                      onChange={(e) =>
-                        updateField("stock_50ml", parseInt(e.target.value) || 0)
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="discount">Discount (%)</Label>
-                  <Input
-                    id="discount"
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={formData.discount ?? ""}
-                    onChange={(e) =>
-                      updateField(
-                        "discount",
-                        e.target.value ? parseFloat(e.target.value) : null
-                      )
-                    }
-                    placeholder="Leave empty for no discount"
-                  />
-                </div>
-              </div>
-
-              {/* Fragrance Notes */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-sm uppercase tracking-wider text-gray-500">
-                  Fragrance Notes
-                </h4>
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="notes_top">Top Notes (comma-separated)</Label>
-                    <Input
-                      id="notes_top"
-                      value={formData.notes_top}
-                      onChange={(e) => updateField("notes_top", e.target.value)}
-                      placeholder="e.g. Bergamot, Lemon, Pink Pepper"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="notes_heart">Heart Notes (comma-separated)</Label>
-                    <Input
-                      id="notes_heart"
-                      value={formData.notes_heart}
-                      onChange={(e) => updateField("notes_heart", e.target.value)}
-                      placeholder="e.g. Rose, Jasmine, Iris"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="notes_base">Base Notes (comma-separated)</Label>
-                    <Input
-                      id="notes_base"
-                      value={formData.notes_base}
-                      onChange={(e) => updateField("notes_base", e.target.value)}
-                      placeholder="e.g. Sandalwood, Musk, Amber"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Ingredients */}
-              <div className="space-y-2">
-                <Label htmlFor="ingredients">Ingredients (comma-separated)</Label>
-                <textarea
-                  id="ingredients"
-                  value={formData.ingredients}
-                  onChange={(e) => updateField("ingredients", e.target.value)}
-                  placeholder="e.g. Alcohol Denat, Aqua, Parfum, ..."
-                  className="w-full px-3 py-2 border rounded-lg bg-transparent text-sm min-h-[60px] resize-y"
-                />
-              </div>
-
-              {/* Images */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-sm uppercase tracking-wider text-gray-500">
-                  Images
-                </h4>
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="images_label">Label Image URL</Label>
-                    <Input
-                      id="images_label"
-                      value={formData.images_label}
-                      onChange={(e) => updateField("images_label", e.target.value)}
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="images_30">30ml Image URLs (one per line)</Label>
-                    <textarea
-                      id="images_30"
-                      value={formData.images_30}
-                      onChange={(e) => updateField("images_30", e.target.value)}
-                      placeholder="One URL per line"
-                      className="w-full px-3 py-2 border rounded-lg bg-transparent text-sm min-h-[60px] resize-y"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="images_50">50ml Image URLs (one per line)</Label>
-                    <textarea
-                      id="images_50"
-                      value={formData.images_50}
-                      onChange={(e) => updateField("images_50", e.target.value)}
-                      placeholder="One URL per line"
-                      className="w-full px-3 py-2 border rounded-lg bg-transparent text-sm min-h-[60px] resize-y"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Flags */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-sm uppercase tracking-wider text-gray-500">
-                  Product Flags
-                </h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <Label htmlFor="is_new" className="cursor-pointer">New Arrival</Label>
-                    <Switch
-                      id="is_new"
-                      checked={formData.is_new}
-                      onCheckedChange={(v) => updateField("is_new", v)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <Label htmlFor="is_bestseller" className="cursor-pointer">Bestseller</Label>
-                    <Switch
-                      id="is_bestseller"
-                      checked={formData.is_bestseller}
-                      onCheckedChange={(v) => updateField("is_bestseller", v)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <Label htmlFor="is_limited" className="cursor-pointer">Limited Edition</Label>
-                    <Switch
-                      id="is_limited"
-                      checked={formData.is_limited}
-                      onCheckedChange={(v) => updateField("is_limited", v)}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <Label htmlFor="is_hidden" className="cursor-pointer">Hidden</Label>
-                    <Switch
-                      id="is_hidden"
-                      checked={formData.is_hidden}
-                      onCheckedChange={(v) => updateField("is_hidden", v)}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave} disabled={isSaving}>
-                {isSaving ? (
-                  <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Saving...
-                  </span>
                 ) : (
-                  <span className="flex items-center gap-2">
-                    <Save className="h-4 w-4" />
-                    {isCreating ? "Create Product" : "Save Changes"}
-                  </span>
+                  <div className="w-full h-full flex items-center justify-center text-gray-400">
+                    <ImageIcon className="h-12 w-12 opacity-20" />
+                  </div>
                 )}
-              </Button>
-            </DialogFooter>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                  <div className="flex gap-2 w-full">
+                    <Button 
+                      variant="secondary" 
+                      className="flex-1 rounded-xl bg-white/20 backdrop-blur-md border-white/30 text-white hover:bg-white/40"
+                      onClick={() => handleEdit(product)}
+                    >
+                      <Pencil className="h-4 w-4 mr-2" /> Edit
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      className="rounded-xl"
+                      onClick={() => {
+                        setDeletingProduct(product)
+                        setIsDeleteDialogOpen(true)
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-bold text-xl truncate">{product.name}</h3>
+                  <Badge variant={product.is_hidden ? "outline" : "default"} className={product.is_hidden ? "text-gray-400" : "bg-green-500/10 text-green-500"}>
+                    {product.is_hidden ? "Hidden" : "Public"}
+                  </Badge>
+                </div>
+                <p className="text-gray-500 text-sm mb-4">{product.category}</p>
+                <div className="flex justify-between items-center pt-4 border-t border-border">
+                  <div className="text-sm">
+                    <span className="text-gray-400">Stock:</span>
+                    <span className={`ml-2 font-semibold ${product.stock_30ml + product.stock_50ml < 10 ? 'text-red-500' : ''}`}>
+                      {product.stock_30ml + product.stock_50ml} units
+                    </span>
+                  </div>
+                  <div className="font-bold text-lg text-gold">
+                    {formatCurrency(product.price_30ml)}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Large Editor Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden p-0 rounded-3xl border-none bg-white dark:bg-gray-900 shadow-2xl">
+            <div className="flex flex-col h-full">
+              <div className="p-6 border-b border-border flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+                <div>
+                  <DialogTitle className="text-2xl font-serif">
+                    {isCreating ? "Craft New Fragrance" : `Refining: ${editingProduct?.name}`}
+                  </DialogTitle>
+                  <p className="text-sm text-muted-foreground mt-1">Fill in the olfactory architecture and product details.</p>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setIsEditDialogOpen(false)} className="rounded-full">
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6">
+                <Tabs defaultValue="general" className="w-full">
+                  <TabsList className="grid grid-cols-4 mb-8 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl h-14">
+                    <TabsTrigger value="general" className="rounded-xl flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm">
+                      <Info className="h-4 w-4" /> General
+                    </TabsTrigger>
+                    <TabsTrigger value="pricing" className="rounded-xl flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm">
+                      <DollarSign className="h-4 w-4" /> Pricing & Stock
+                    </TabsTrigger>
+                    <TabsTrigger value="notes" className="rounded-xl flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm">
+                      <Beaker className="h-4 w-4" /> Fragrance
+                    </TabsTrigger>
+                    <TabsTrigger value="media" className="rounded-xl flex items-center gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700 data-[state=active]:shadow-sm">
+                      <ImageIcon className="h-4 w-4" /> Media
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="general" className="space-y-6">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <Label>Name *</Label>
+                        <Input 
+                          value={formData.name} 
+                          onChange={(e) => {
+                            updateField("name", e.target.value)
+                            if (isCreating) updateField("slug", e.target.value.toLowerCase().replace(/ /g, '-'))
+                          }} 
+                          placeholder="e.g. Royal Oud"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Slug (URL Friendly) *</Label>
+                        <Input value={formData.slug} onChange={(e) => updateField("slug", e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Category *</Label>
+                      <Select value={formData.category} onValueChange={(v) => updateField("category", v)}>
+                        <SelectTrigger className="rounded-xl">
+                          <SelectValue placeholder="Select Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CATEGORIES.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Tagline</Label>
+                      <Input value={formData.tagline} onChange={(e) => updateField("tagline", e.target.value)} placeholder="e.g. A journey through ancient woods" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Brief Description</Label>
+                      <textarea 
+                        className="w-full min-h-[100px] p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-gold"
+                        value={formData.description}
+                        onChange={(e) => updateField("description", e.target.value)}
+                        placeholder="Tell the story of this scent..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Long Description (Marketing Story)</Label>
+                      <textarea 
+                        className="w-full min-h-[150px] p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none focus:ring-2 focus:ring-gold font-sans"
+                        value={formData.long_description}
+                        onChange={(e) => updateField("long_description", e.target.value)}
+                        placeholder="Detailed marketing story, notes, and characteristics..."
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="pricing" className="space-y-8">
+                    <div className="grid grid-cols-2 gap-8">
+                      <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-3xl">
+                        <h4 className="font-bold flex items-center gap-2"><Sparkles className="h-4 w-4 text-gold" /> 30ml Variant</h4>
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-xs uppercase text-gray-400">Price (₹)</Label>
+                            <Input type="number" value={formData.price_30ml} onChange={(e) => updateField("price_30ml", Number(e.target.value))} />
+                          </div>
+                          <div>
+                            <Label className="text-xs uppercase text-gray-400">Stock Count</Label>
+                            <Input type="number" value={formData.stock_30ml} onChange={(e) => updateField("stock_30ml", Number(e.target.value))} />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-3xl">
+                        <h4 className="font-bold flex items-center gap-2"><Sparkles className="h-4 w-4 text-gold" /> 50ml Variant</h4>
+                        <div className="space-y-4">
+                          <div>
+                            <Label className="text-xs uppercase text-gray-400">Price (₹)</Label>
+                            <Input type="number" value={formData.price_50ml} onChange={(e) => updateField("price_50ml", Number(e.target.value))} />
+                          </div>
+                          <div>
+                            <Label className="text-xs uppercase text-gray-400">Stock Count</Label>
+                            <Input type="number" value={formData.stock_50ml} onChange={(e) => updateField("stock_50ml", Number(e.target.value))} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-6 border rounded-3xl bg-gold/5 border-gold/10">
+                      <div>
+                        <Label className="font-bold">Public Visibility</Label>
+                        <p className="text-sm text-muted-foreground">Hide this product from the store while you work on it.</p>
+                      </div>
+                      <Switch checked={!formData.is_hidden} onCheckedChange={(v) => updateField("is_hidden", !v)} />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="notes" className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2"><Wand2 className="h-4 w-4 text-blue-400" /> Top Notes</Label>
+                        <textarea 
+                          className="w-full min-h-[150px] p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none"
+                          value={formData.notes_top.join("\n")}
+                          onChange={(e) => updateField("notes_top", e.target.value.split("\n"))}
+                          placeholder="One note per line..."
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2"><Wand2 className="h-4 w-4 text-pink-400" /> Heart Notes</Label>
+                        <textarea 
+                          className="w-full min-h-[150px] p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none"
+                          value={formData.notes_heart.join("\n")}
+                          onChange={(e) => updateField("notes_heart", e.target.value.split("\n"))}
+                          placeholder="One note per line..."
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2"><Wand2 className="h-4 w-4 text-amber-400" /> Base Notes</Label>
+                        <textarea 
+                          className="w-full min-h-[150px] p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none"
+                          value={formData.notes_base.join("\n")}
+                          onChange={(e) => updateField("notes_base", e.target.value.split("\n"))}
+                          placeholder="One note per line..."
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Ingredients (Comma-separated)</Label>
+                      <textarea 
+                        className="w-full min-h-[80px] p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border-none"
+                        value={formData.ingredients}
+                        onChange={(e) => updateField("ingredients", e.target.value)}
+                        placeholder="Alcohol Denat., Aqua, Parfum..."
+                      />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="media" className="space-y-8">
+                    <ProductImageUpload 
+                      label="Main Label Image" 
+                      images={formData.images_label ? [formData.images_label] : []}
+                      onImagesChange={(urls) => updateField("images_label", urls[0] || "")}
+                      folder="labels"
+                      maxImages={1}
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <ProductImageUpload 
+                        label="30ml Showcase" 
+                        images={formData.images_30}
+                        onImagesChange={(urls) => updateField("images_30", urls)}
+                        folder="bottle_30ml"
+                        maxImages={4}
+                      />
+                      <ProductImageUpload 
+                        label="50ml Showcase" 
+                        images={formData.images_50}
+                        onImagesChange={(urls) => updateField("images_50", urls)}
+                        folder="bottle_50ml"
+                        maxImages={4}
+                      />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
+
+              <div className="p-6 border-t border-border flex justify-end gap-4 bg-gray-50 dark:bg-gray-800/50">
+                <Button variant="ghost" onClick={() => setIsEditDialogOpen(false)} className="rounded-xl px-8">Discard</Button>
+                <Button 
+                  onClick={handleSave} 
+                  disabled={isSaving}
+                  className="bg-gold hover:bg-gold/90 text-dark font-bold rounded-xl px-12 shadow-lg hover:shadow-gold/20"
+                >
+                  {isSaving ? "Saving Masterpiece..." : (isCreating ? "Create Fragrance" : "Update Masterpiece")}
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
+        {/* Delete Confirmation */}
         <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete Product</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete &quot;{deletingProduct?.name}&quot;? This action cannot
-                be undone. Consider hiding the product instead if you might need it later.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="gap-2">
-              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (deletingProduct) {
-                    handleToggleVisibility(deletingProduct)
-                    setIsDeleteDialogOpen(false)
-                  }
-                }}
-              >
-                <EyeOff className="h-4 w-4 mr-2" />
-                Hide Instead
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Permanently
-              </Button>
-            </DialogFooter>
+          <DialogContent className="rounded-3xl border-none shadow-2xl p-8 max-w-sm text-center">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="h-8 w-8" />
+            </div>
+            <DialogTitle className="text-2xl mb-2">Are you sure?</DialogTitle>
+            <p className="text-muted-foreground mb-8">This will permanently delete <span className="font-bold text-foreground">{deletingProduct?.name}</span> and remove all its notes from the store.</p>
+            <div className="flex gap-4">
+              <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setIsDeleteDialogOpen(false)}>Wait, Go Back</Button>
+              <Button variant="destructive" className="flex-1 rounded-xl" onClick={() => handleDelete()}>Yes, Delete</Button>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

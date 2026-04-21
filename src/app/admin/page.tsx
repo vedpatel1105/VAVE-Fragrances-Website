@@ -37,21 +37,27 @@ export default function AdminLoginPage() {
         throw new Error("Failed to establish session")
       }
 
-      // Then check if the user is an admin
+      // Then check if the user is an admin or viewer
       const isAdmin = await adminService.isAdmin()
-      if (!isAdmin) {
+      const isViewer = await adminService.isViewer()
+
+      if (!isViewer) {
         await supabase.auth.signOut()
-        throw new Error("You don't have admin privileges")
+        throw new Error("You don't have permission to access the admin area")
       }
 
       toast({
         title: "Login Successful",
-        description: "Welcome to the admin dashboard!",
+        description: `Welcome back!`,
       })
 
-      // Redirect to orders page
-      router.push('/admin/orders')
-      router.refresh() // Force a refresh to ensure new session is picked up
+      // Redirect based on role
+      if (isAdmin) {
+        router.push('/admin/orders')
+      } else {
+        router.push('/admin/analytics')
+      }
+      router.refresh()
     } catch (error: any) {
       toast({
         title: "Login Failed",

@@ -39,29 +39,28 @@ export default function AdminOrdersPage() {
     const checkAdminAndLoadOrders = async () => {
       try {
         const isAdmin = await adminService.isAdmin()
+        const isViewer = await adminService.isViewer()
+
+        if (isViewer && !isAdmin) {
+          router.push('/admin/analytics')
+          return
+        }
+
         if (!isAdmin) {
-          toast({
-            title: "Access Denied",
-            description: "You don't have permission to access this page",
-            variant: "destructive"
-          })
+          router.push('/admin')
           return
         }
         await loadOrders()
       } catch (error) {
         console.error('Error checking admin status:', error)
-        toast({
-          title: "Error",
-          description: "Failed to verify admin status",
-          variant: "destructive"
-        })
+        router.push('/admin')
       } finally {
         setIsLoading(false)
       }
     }
 
     checkAdminAndLoadOrders()
-  }, [])
+  }, [router])
 
   const loadOrders = async () => {
     try {

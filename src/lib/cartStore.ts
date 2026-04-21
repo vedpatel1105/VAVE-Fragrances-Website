@@ -1,5 +1,5 @@
-import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { analytics } from './analytics'
 
 export interface CartItem {
   id: string
@@ -45,6 +45,15 @@ export const useCartStore = create<CartState>()(
         } else {
           set({ items: [...currentItems, item] })
         }
+
+        // Tracking
+        analytics.trackEvent('add_to_cart', {
+          item_id: item.id,
+          item_name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          size: item.size
+        })
       },
       removeItem: (id, size, color) => {
         set({

@@ -108,7 +108,7 @@ export default function Hero() {
             transition={{ duration: 1.5, delay: 1 }}
             className="text-white/30 text-[12px] md:text-[14px] font-light max-w-sm mb-12 font-montserrat leading-relaxed px-6"
           >
-            Crafted for those who understand that true luxury never announces itself — it lingers.
+            Luxury perfumes that leave a lasting impression.
           </motion.p>
 
           <motion.div
@@ -136,7 +136,7 @@ export default function Hero() {
       >
         <div className="hidden md:block">
           <p className="text-[7px] uppercase tracking-widest text-white/20 mb-2">Heritage</p>
-          <p className="text-[9px] uppercase tracking-[0.3em] text-white/40 font-montserrat">Artisan Grafting</p>
+          <p className="text-[9px] uppercase tracking-[0.3em] text-white/40 font-montserrat">Expertly Made</p>
         </div>
 
         <div className="flex flex-col items-center gap-4 text-white/20 absolute left-1/2 -translate-x-1/2">
@@ -151,7 +151,7 @@ export default function Hero() {
 
         <div className="hidden md:block text-right">
           <p className="text-[7px] uppercase tracking-widest text-white/20 mb-2">Molecular</p>
-          <p className="text-[9px] uppercase tracking-[0.3em] text-white/40 font-montserrat">Pure Extraction</p>
+          <p className="text-[9px] uppercase tracking-[0.3em] text-white/40 font-montserrat">Pure Quality</p>
         </div>
       </motion.div>
 
