@@ -574,84 +574,86 @@ export default function Checkout() {
                     </div>
                   )}
 
-                  <div className="space-y-6">
-                    <div className="space-y-4">
-                      <h3 className="text-sm font-medium text-white/60">Basic Contact Details</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <FormField
-                          label="Full Name"
-                          name="name"
-                          placeholder="First and last name"
-                          value={shippingAddress.name}
-                          onChange={handleInputChange}
-                          error={fieldErrors.name}
-                        />
-                        <FormField
-                          label="Phone Number"
-                          name="phone"
-                          placeholder="10-digit mobile number"
-                          value={shippingAddress.phone}
-                          onChange={handleInputChange}
-                          error={fieldErrors.phone}
-                        />
-                      </div>
-                      <FormField
-                        label="Email Address"
-                        name="email"
-                        type="email"
-                        placeholder="your@email.com"
-                        value={shippingAddress.email}
-                        onChange={handleInputChange}
-                        error={fieldErrors.email}
-                      />
-                    </div>
-
                     {(!isAuthenticated || savedAddresses.length === 0 || selectedAddressId === 'new') && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
-                        className="space-y-4 pt-4 border-t border-white/5"
+                        className="space-y-6 pt-4 border-t border-white/5"
                       >
-                        <h3 className="text-sm font-medium text-white/60">Delivery Address</h3>
-                        <FormField
-                          label="Street Address"
-                          name="address"
-                          placeholder="Flat/House No, Street, Landmark"
-                          value={shippingAddress.address}
-                          onChange={handleInputChange}
-                          error={fieldErrors.address}
-                        />
-
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-4">
+                          <h3 className="text-sm font-medium text-white/60">Basic Contact Details</h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField
+                              label="Full Name"
+                              name="name"
+                              placeholder="First and last name"
+                              value={shippingAddress.name}
+                              onChange={handleInputChange}
+                              error={fieldErrors.name}
+                            />
+                            <FormField
+                              label="Phone Number"
+                              name="phone"
+                              placeholder="10-digit mobile number"
+                              value={shippingAddress.phone}
+                              onChange={handleInputChange}
+                              error={fieldErrors.phone}
+                            />
+                          </div>
                           <FormField
-                            label="City"
-                            name="city"
-                            placeholder="City"
-                            value={shippingAddress.city}
+                            label="Email Address"
+                            name="email"
+                            type="email"
+                            placeholder="your@email.com"
+                            value={shippingAddress.email}
                             onChange={handleInputChange}
-                            error={fieldErrors.city}
-                          />
-                          <FormField
-                            label="State"
-                            name="state"
-                            placeholder="State"
-                            value={shippingAddress.state}
-                            onChange={handleInputChange}
-                            error={fieldErrors.state}
+                            error={fieldErrors.email}
                           />
                         </div>
 
-                        <FormField
-                          label="PIN Code"
-                          name="pincode"
-                          placeholder="6-digit PIN code"
-                          value={shippingAddress.pincode}
-                          onChange={handleInputChange}
-                          error={fieldErrors.pincode}
-                        />
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                          <h3 className="text-sm font-medium text-white/60">Delivery Address</h3>
+                          <FormField
+                            label="Street Address"
+                            name="address"
+                            placeholder="Flat/House No, Street, Landmark"
+                            value={shippingAddress.address}
+                            onChange={handleInputChange}
+                            error={fieldErrors.address}
+                          />
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              label="City"
+                              name="city"
+                              placeholder="City"
+                              value={shippingAddress.city}
+                              onChange={handleInputChange}
+                              error={fieldErrors.city}
+                            />
+                            <FormField
+                              label="State"
+                              name="state"
+                              placeholder="State"
+                              value={shippingAddress.state}
+                              onChange={handleInputChange}
+                              error={fieldErrors.state}
+                            />
+                          </div>
+
+                          <FormField
+                            label="PIN Code"
+                            name="pincode"
+                            placeholder="6-digit PIN code"
+                            value={shippingAddress.pincode}
+                            onChange={handleInputChange}
+                            error={fieldErrors.pincode}
+                          />
+                        </div>
                       </motion.div>
                     )}
                   </div>
+
                 </div>
               </div>
 
