@@ -1,23 +1,52 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { adminService } from './adminService';
 
+export interface ProductVariant {
+    id?: string;
+    size: string;
+    price: number;
+    stock: number;
+    sku?: string;
+}
+
+export interface ProductImageV2 {
+    url: string;
+    is_primary: boolean;
+    order: number;
+    alt?: string;
+}
+
 export interface DBProduct {
-    price: number | undefined;
-    priceXL: number | undefined;
     id: string;
     name: string;
     slug: string;
     category: string;
     tagline: string;
+    description: string;
+    long_description: string | null;
+    
+    // Advanced Metadata
+    brand?: string;
+    gender?: 'men' | 'women' | 'unisex' | 'other';
+    strength?: string;
+    collection?: string;
+    sku?: string;
+    
+    // Core Data (Legacy support)
     price_30ml: number;
     price_50ml: number;
+    stock_30ml: number;
+    stock_50ml: number;
     images: {
         "30": string[];
         "50": string[];
         label: string;
     };
-    description: string;
-    long_description: string | null;
+
+    // Modern Data (v2)
+    variants?: ProductVariant[];
+    images_v2?: ProductImageV2[];
+    
     rating: number | null;
     reviews_count: number;
     is_new: boolean;
@@ -31,8 +60,9 @@ export interface DBProduct {
         heart: string[];
         base: string[];
     };
-    stock_30ml: number;
-    stock_50ml: number;
+
+    // Computed properties (client side)
+    price?: number;
 }
 
 export type ProductCreateInput = Omit<DBProduct, 'id' | 'price' | 'priceXL' | 'rating' | 'reviews_count'> & {

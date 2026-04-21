@@ -7,7 +7,7 @@ declare global {
   }
 }
 
-export type EventName = 'add_to_cart' | 'remove_from_cart' | 'begin_checkout' | 'purchase' | 'page_view' | 'contact_click' | 'login' | 'signup'
+export type EventName = 'add_to_cart' | 'remove_from_cart' | 'add_to_wishlist' | 'begin_checkout' | 'purchase' | 'page_view' | 'contact_click' | 'login' | 'signup'
 
 export const analytics = {
   /**

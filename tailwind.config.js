@@ -65,6 +65,11 @@ module.exports = {
           900: "#312e81",
           950: "#1e1b4b",
         },
+        gold: {
+          DEFAULT: "#D4AF37",
+          light: "#E5C158",
+          dark: "#B8962E",
+        }
       },
       borderRadius: {
         lg: "var(--radius)",

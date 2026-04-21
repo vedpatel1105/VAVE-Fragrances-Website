@@ -8,6 +8,7 @@ import { Heart, ShoppingBag, Zap, Star } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ProductInfo } from "@/src/data/product-info"
+import { analytics } from "@/src/lib/analytics"
 
 interface EnhancedProductCardProps {
   product: ProductInfo.Product
@@ -32,6 +33,12 @@ export default function EnhancedProductCard({
   const handleAddToWishlist = (e: React.MouseEvent) => {
     e.stopPropagation()
     onAddToWishlist(product)
+    
+    // Tracking intent
+    analytics.trackEvent('add_to_wishlist', {
+      item_id: product.id,
+      item_name: product.name
+    })
   }
 
   const handleAddToCart = (e: React.MouseEvent) => {

@@ -69,6 +69,11 @@
   }
 }
 
+::selection {
+  background: #D4AF37;
+  color: black;
+}
+
 @layer utilities {
   .text-\[9px\] { font-size: 11px !important; }
   .text-\[10px\] { font-size: 12px !important; }
@@ -76,6 +81,20 @@
   .text-\[12px\] { font-size: 14px !important; }
   .text-xs { font-size: 0.85rem !important; }
   .text-sm { font-size: 0.95rem !important; }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.2);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 175, 55, 0.5);
+  }
 }
 
 @layer base {
@@ -83,6 +102,6 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-zinc-950 text-white;
   }
 }

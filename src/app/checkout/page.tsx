@@ -416,13 +416,22 @@ export default function Checkout() {
 
     try {
       const itemsText = checkoutItems
-        .map((item) => `*${item.name}*\n  Size: ${item.size}ml\n  Qty: ${item.quantity}\n  Price: ₹${item.price}`)
-        .join("\n\n");
+        .map((item) => `• *${item.name}* (${item.size}ml) x ${item.quantity} - ₹${item.price * item.quantity}`)
+        .join("\n");
 
       const total = subtotalAmount + shippingCharge;
       
       const messageText = 
-        `PIN: ${shippingAddress.pincode}\n\n` +
+        `🛍️ *NEW COD ORDER CONFIRMATION*\n\n` +
+        `👤 *Customer Details:*\n` +
+        `Name: ${shippingAddress.name}\n` +
+        `Phone: ${shippingAddress.phone}\n\n` +
+        `📦 *Order Details:*\n` +
+        `${itemsText}\n\n` +
+        `💰 *Total Amount:* ₹${total}\n\n` +
+        `📍 *Delivery Address:*\n` +
+        `${shippingAddress.address}\n` +
+        `${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}\n\n` +
         `Please confirm my COD order. Thank you!`;
 
       // Send Email Notification (WhatsApp COD)

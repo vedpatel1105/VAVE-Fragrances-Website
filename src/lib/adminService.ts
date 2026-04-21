@@ -175,18 +175,29 @@ export const adminService = {
 
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
-      .select('total_amount, status, created_at')
+      .select('total_amount, status, created_at, user_id, items')
       .gte('created_at', startISO)
       .lte('created_at', endISO)
     if (ordersError) throw ordersError
 
+    const paidOrders = orders.filter(o => o.status === 'paid')
+    const totalRevenue = paidOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0)
+    
+    // Calculate Returning Customer Rate
+    const uniqueBuyers = new Set(paidOrders.map(o => o.user_id)).size
+    const returningBuyers = paidOrders.length - uniqueBuyers
+
     return {
       totalViews: events.filter(e => e.event_name === 'page_view').length,
       totalCarts: events.filter(e => e.event_name === 'add_to_cart').length,
+      totalWishlist: events.filter(e => e.event_name === 'add_to_wishlist').length,
       checkoutStarts: events.filter(e => e.event_name === 'begin_checkout').length,
-      totalPurchases: orders.filter(o => o.status === 'paid').length,
-      totalRevenue: orders.filter(o => o.status === 'paid').reduce((sum, o) => sum + (o.total_amount || 0), 0),
+      totalPurchases: paidOrders.length,
+      totalRevenue: totalRevenue,
+      returningRate: paidOrders.length > 0 ? ((returningBuyers / paidOrders.length) * 100).toFixed(1) : 0,
       topProducts: this.aggregateTopProducts(events.filter(e => e.event_name === 'add_to_cart')),
+      wishlistPopularity: this.aggregateTopProducts(events.filter(e => e.event_name === 'add_to_wishlist')),
+      revenueProducts: this.aggregateRevenueProducts(paidOrders),
       timeline: this.groupEventsByDate(events, orders, start, end)
     }
   },
@@ -199,6 +210,20 @@ export const adminService = {
       products[name].count++
     })
     return Object.values(products).sort((a, b) => b.count - a.count).slice(0, 5)
+  },
+
+  aggregateRevenueProducts(paidOrders: any[]) {
+    const products: Record<string, { name: string, revenue: number, count: number }> = {}
+    paidOrders.forEach(order => {
+      const items = Array.isArray(order.items) ? order.items : []
+      items.forEach((item: any) => {
+        const name = item.name || 'Unknown'
+        if (!products[name]) products[name] = { name, revenue: 0, count: 0 }
+        products[name].revenue += (Number(item.price) * Number(item.quantity || 1))
+        products[name].count += Number(item.quantity || 1)
+      })
+    })
+    return Object.values(products).sort((a, b) => b.revenue - a.revenue).slice(0, 5)
   },
 
   groupEventsByDate(events: any[], orders: any[], start: Date, end: Date) {
@@ -218,6 +243,107 @@ export const adminService = {
       if (timeline[ds] && o.status === 'paid') timeline[ds].orders++
     })
     return Object.values(timeline)
+  },
+  
+  async getLiveActivity() {
+    const supabase = this.getSupabase()
+    if (!supabase) return []
+
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) throw new Error('Not authenticated')
+
+    const isAdmin = await this.isViewer()
+    if (!isAdmin) throw new Error('Not authorized')
+
+    // Fetch last 50 intent events
+    const { data: events, error } = await supabase
+      .from('vave_analytics')
+      .select(`
+        *,
+        users (
+          full_name,
+          email,
+          phone
+        )
+      `)
+      .in('event_name', ['add_to_cart', 'begin_checkout', 'add_to_wishlist'])
+      .order('created_at', { ascending: false })
+      .limit(50)
+
+    if (error) throw error
+
+    return events.map(e => ({
+      user: e.users?.full_name || 'Guest',
+      email: e.users?.email,
+      phone: e.users?.phone,
+      product: e.event_data?.item_name || e.event_data?.items?.[0]?.name || 'Unknown',
+      action: e.event_name === 'add_to_cart' ? 'Added to Cart' : 
+              e.event_name === 'add_to_wishlist' ? 'Added to Wishlist' : 
+              'Started Checkout',
+      time: e.created_at,
+      raw: e.event_data
+    }))
+  },
+
+  async getAudienceIntelligence(startDate?: Date, endDate?: Date) {
+    const supabase = this.getSupabase()
+    if (!supabase) return { pagePerformance: [], leads: [] }
+
+    const end = endDate || new Date()
+    const start = startDate || new Date(new Date().setDate(end.getDate() - 30))
+
+    // 1. Page Performance (Grouping for Traffic Heatmap)
+    const { data: pageEvents } = await supabase
+      .from('vave_analytics')
+      .select('url')
+      .eq('event_name', 'page_view')
+      .gte('created_at', start.toISOString())
+      .lte('created_at', end.toISOString())
+
+    const pageStats: Record<string, number> = {}
+    pageEvents?.forEach(e => {
+      const path = e.url || '/'
+      pageStats[path] = (pageStats[path] || 0) + 1
+    })
+
+    const pagePerformance = Object.entries(pageStats)
+      .map(([path, views]) => ({ path, views }))
+      .sort((a, b) => b.views - a.views)
+      .slice(0, 10)
+
+    // 2. Recovery Leads (Checkout Abandonment)
+    const { data: checkouts } = await supabase
+      .from('vave_analytics')
+      .select(`
+        *,
+        users (full_name, email, phone)
+      `)
+      .eq('event_name', 'begin_checkout')
+      .gte('created_at', start.toISOString())
+      .order('created_at', { ascending: false })
+
+    const { data: paidOrders } = await supabase
+      .from('orders')
+      .select('user_id')
+      .eq('status', 'paid')
+      .gte('created_at', start.toISOString())
+
+    const paidUserIds = new Set(paidOrders?.map(o => o.user_id) || [])
+    
+    const recoveryLeads = checkouts?.filter(c => c.user_id && !paidUserIds.has(c.user_id))
+      .map(c => ({
+        user: c.users?.full_name || 'Valued Patron',
+        email: c.users?.email,
+        phone: c.users?.phone,
+        product: c.event_data?.item_name || 'Selected Scents',
+        time: c.created_at,
+        daysAgo: Math.floor((new Date().getTime() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24))
+      })).slice(0, 10)
+
+    return {
+      pagePerformance,
+      recoveryLeads
+    }
   }
 }
  
