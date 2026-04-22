@@ -24,6 +24,7 @@ export interface AuthState {
     logout: () => Promise<void>;
     checkAuth: () => Promise<void>;
     updateUserMetadata: (metadata: Partial<{ full_name: string; phone: string; role: string }>) => Promise<{ success: boolean; error?: string }>;
+    resetPassword: (password: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -248,6 +249,27 @@ export const useAuthStore = create<AuthState>()(
                     return {
                         success: false,
                         error: error.message || "Failed to update user metadata"
+                    };
+                }
+            },
+
+            resetPassword: async (password: string) => {
+                try {
+                    set({ isLoading: true });
+                    const { error } = await supabase.auth.updateUser({
+                        password: password
+                    });
+
+                    if (error) throw error;
+
+                    set({ isLoading: false });
+                    return { success: true };
+                } catch (error: any) {
+                    console.error("Reset password error:", error);
+                    set({ isLoading: false });
+                    return {
+                        success: false,
+                        error: error.message || "Failed to reset password"
                     };
                 }
             },

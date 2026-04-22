@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,6 +21,7 @@ import type { ShippingAddress } from "@/src/types/orders";
 import { useAuthStore } from "@/src/lib/auth"
 import { analytics } from "@/src/lib/analytics"
 import { notificationService } from "@/src/lib/notificationService"
+import { couponService, type Coupon } from "@/src/lib/couponService"
 
 // Field helper component - Defined outside to prevent focus loss on re-render
 const FormField = ({
@@ -70,7 +71,7 @@ const FormField = ({
   </div>
 );
 
-export default function Checkout() {
+function CheckoutContent() {
   const router = useRouter()
   const { toast } = useToast()
   const [isProcessing, setIsProcessing] = useState(false)
@@ -100,6 +101,13 @@ export default function Checkout() {
   const [paymentStep, setPaymentStep] = useState<'form' | 'processing' | 'payment'>('form');
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | 'new'>('new');
+
+  // Coupon State
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [couponError, setCouponError] = useState("");
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+  const [discountAmount, setDiscountAmount] = useState(0);
 
   // Initialize checkout items
   useEffect(() => {
@@ -243,6 +251,47 @@ export default function Checkout() {
     }
   }, [savedAddresses]);
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    
+    setIsValidatingCoupon(true);
+    setCouponError("");
+    
+    try {
+      const result = await couponService.validateCoupon(couponCode, subtotalAmount, checkoutItems);
+      if (result.success && result.coupon) {
+        setAppliedCoupon(result.coupon);
+        const discount = couponService.calculateDiscount(result.coupon, checkoutItems);
+        setDiscountAmount(discount);
+        toast({
+          title: "Coupon Applied",
+          description: `${result.coupon.code} applied successfully!`,
+        });
+      } else {
+        setCouponError(result.error || "Failed to validate coupon");
+      }
+    } catch (err) {
+      setCouponError("An error occurred");
+    } finally {
+      setIsValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setDiscountAmount(0);
+    setCouponCode("");
+    setCouponError("");
+  };
+
+  // Recalculate discount if items change
+  useEffect(() => {
+    if (appliedCoupon) {
+      const discount = couponService.calculateDiscount(appliedCoupon, checkoutItems);
+      setDiscountAmount(discount);
+    }
+  }, [appliedCoupon, checkoutItems]);
+
   const validateForm = (): boolean => {
     const errors: Partial<Record<keyof ShippingAddress, string>> = {};
 
@@ -313,7 +362,9 @@ export default function Checkout() {
           size: item.size ?? "",
           image: item.image,
         })),
-        total: subtotalAmount + shippingCharge,
+        total: subtotalAmount + shippingCharge - discountAmount,
+        discount: discountAmount,
+        coupon_code: appliedCoupon?.code,
         shipping_address: shippingAddress,
         payment_method: 'razorpay' as const,
       };
@@ -428,7 +479,8 @@ export default function Checkout() {
         `Phone: ${shippingAddress.phone}\n\n` +
         `📦 *Order Details:*\n` +
         `${itemsText}\n\n` +
-        `💰 *Total Amount:* ₹${total}\n\n` +
+        (appliedCoupon ? `🎟️ *Coupon:* ${appliedCoupon.code} (-₹${discountAmount})\n` : '') +
+        `💰 *Total Amount:* ₹${subtotalAmount + shippingCharge - discountAmount}\n\n` +
         `📍 *Delivery Address:*\n` +
         `${shippingAddress.address}\n` +
         `${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}\n\n` +
@@ -700,14 +752,65 @@ export default function Checkout() {
                         <span>Shipping</span>
                         <span>{shippingCharge === 0 ? 'Free' : `₹${shippingCharge}`}</span>
                       </div>
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-sm text-green-400">
+                          <span>Discount ({appliedCoupon?.code})</span>
+                          <span>-₹{discountAmount}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between font-medium text-lg pt-2 border-t border-white/10">
                         <span>Total</span>
-                        <span>₹{subtotalAmount + shippingCharge}</span>
+                        <span>₹{subtotalAmount + shippingCharge - discountAmount}</span>
                       </div>
                       <div className="flex items-center gap-2 text-xs text-gray-400">
                         <BadgePercent className="h-3 w-3" />
                         <span>GST is included in the displayed prices</span>
                       </div>
+                    </div>
+
+                    {/* Coupon Section */}
+                    <div className="pt-4 border-t border-white/10 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <Label className="text-xs uppercase tracking-widest text-white/40">Coupon Code</Label>
+                        {appliedCoupon && (
+                          <button 
+                            onClick={handleRemoveCoupon}
+                            className="text-[10px] text-red-400 hover:text-red-300 uppercase tracking-tighter"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      
+                      {!appliedCoupon ? (
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="VAVE10, FIRSTORDER"
+                            value={couponCode}
+                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                            className="bg-white/5 border-white/10 h-10 rounded-none text-xs tracking-widest"
+                          />
+                          <Button 
+                            onClick={handleApplyCoupon}
+                            disabled={isValidatingCoupon || !couponCode.trim()}
+                            className="bg-white text-black hover:bg-zinc-200 px-4 h-10 rounded-none text-[10px] uppercase tracking-widest font-bold"
+                          >
+                            {isValidatingCoupon ? "..." : "Apply"}
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-none flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <BadgePercent className="h-4 w-4 text-green-400" />
+                            <span className="text-xs font-bold text-green-400 tracking-widest">{appliedCoupon.code}</span>
+                          </div>
+                          <span className="text-[10px] text-green-400/60 uppercase">{appliedCoupon.description}</span>
+                        </div>
+                      )}
+                      
+                      {couponError && (
+                        <p className="text-[10px] text-red-400 uppercase tracking-widest">{couponError}</p>
+                      )}
                     </div>
                   </div>
 
@@ -738,7 +841,7 @@ export default function Checkout() {
                             ) : (
                               <span className="flex items-center gap-2">
                                 <CreditCard className="h-5 w-5" />
-                                Pay ₹{subtotalAmount + shippingCharge} Online
+                                Pay ₹{subtotalAmount + shippingCharge - discountAmount} Online
                               </span>
                             )}
                           </Button>
@@ -779,5 +882,17 @@ export default function Checkout() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Checkout() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
+        <LoadingSpinner size="lg" />
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   );
 }

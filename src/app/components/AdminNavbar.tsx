@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Menu, X, Package, ShoppingBag, Users, LogOut, BarChart3, Command } from "lucide-react"
+import { Menu, X, Package, ShoppingBag, Users, LogOut, BarChart3, Command, Ticket } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useToast } from "@/components/ui/use-toast"
 import { adminService } from "@/src/lib/adminService"
@@ -44,6 +44,7 @@ export default function AdminNavbar() {
     { href: "/admin/analytics", label: "Analytics", icon: BarChart3, roles: ['admin', 'viewer'] },
     { href: "/admin/orders", label: "Orders", icon: Package, roles: ['admin'] },
     { href: "/admin/products", label: "Products", icon: ShoppingBag, roles: ['admin'] },
+    { href: "/admin/coupons", label: "Coupons", icon: Ticket, roles: ['admin'] },
     { href: "/admin/users", label: "Users", icon: Users, roles: ['admin'] },
   ].filter(item => item.roles.includes(userRole))
 

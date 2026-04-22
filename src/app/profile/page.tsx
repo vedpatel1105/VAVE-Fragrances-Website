@@ -14,7 +14,7 @@ import {
   CheckCircle2, Clock, Truck, XCircle, AlertTriangle,
   ChevronRight, Trash2, Key, Shield, ShoppingBag,
   ChevronDown, ChevronUp, Menu, X, Star, Plus,
-  ArrowRight, CreditCard,
+  ArrowRight, CreditCard, Download, Smartphone
 } from "lucide-react"
 import { profileService, type UserProfile, type Address, type UserOrder } from "@/src/lib/profileService"
 import { useToast } from "@/components/ui/use-toast"
@@ -98,6 +98,29 @@ export default function ProfilePage() {
   })
   const [addresses, setAddresses] = useState<Address[]>([])
   const [orders, setOrders] = useState<UserOrder[]>([])
+
+  // PWA State for Profile
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+      setIsInstalled(true);
+    }
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') setDeferredPrompt(null);
+  };
 
   useEffect(() => {
     const gen = async () => {
@@ -709,6 +732,43 @@ export default function ProfilePage() {
                     className="bg-transparent border-white/20 text-white hover:bg-white hover:text-zinc-950 rounded-xl h-11 px-8 text-sm font-semibold transition-all shrink-0">
                     Sign Out
                   </Button>
+                </Card>
+
+                {/* Download App Section */}
+                <Card className="bg-gradient-to-br from-zinc-900 to-zinc-950 border-white/10">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                    <div className="flex gap-4">
+                      <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                        <Smartphone className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <SectionLabel icon={Download}>Vave Mobile Experience</SectionLabel>
+                        <p className="text-sm text-zinc-400 -mt-3">
+                          {isInstalled 
+                            ? "You've already installed the Vave App. Enjoy the cinematic experience!" 
+                            : "Get the full boutique experience on your home screen with our official app."}
+                        </p>
+                      </div>
+                    </div>
+                    {!isInstalled && deferredPrompt && (
+                      <Button 
+                        onClick={handleInstallApp}
+                        className="bg-white text-zinc-950 hover:bg-zinc-100 rounded-xl h-11 px-8 text-sm font-bold shadow-lg shadow-white/10 transition-all shrink-0"
+                      >
+                        Install App
+                      </Button>
+                    )}
+                    {isInstalled && (
+                      <div className="px-6 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-widest">
+                        Installed
+                      </div>
+                    )}
+                    {!isInstalled && !deferredPrompt && (
+                        <p className="text-[10px] text-zinc-600 uppercase tracking-widest italic max-w-[150px] text-right">
+                            Already installed or not supported on this browser
+                        </p>
+                    )}
+                  </div>
                 </Card>
 
                 {/* Danger zone */}

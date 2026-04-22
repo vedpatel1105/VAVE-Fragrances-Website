@@ -1,4 +1,4 @@
-import type React from "react"
+import React, { Suspense } from "react"
 import type { Metadata } from "next"
 import { Playfair_Display, Montserrat } from "next/font/google"
 import "./globals.css"
@@ -10,6 +10,7 @@ import { defaultMetadata } from "@/src/lib/metadata"
 import AnalyticsTracker from "@/src/components/AnalyticsTracker"
 import PageTransition from "./components/PageTransition"
 import GlobalCart from "@/src/app/components/GlobalCart"
+import InstallPWA from "./components/InstallPWA"
 
 export const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
 export const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat" })
@@ -31,7 +32,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png" />
-        <link rel="manifest" href="/favicon/site.webmanifest" />
+        <link rel="manifest" href="/manifest.json" />
         <link rel="shortcut icon" href="/favicon/favicon.ico" />
         <Script async src="https://www.googletagmanager.com/gtag/js?id=G-KFF48VFPD2"></Script>
         <Script
@@ -69,11 +70,14 @@ export default function RootLayout({
       <body className={`${playfair.variable} ${montserrat.variable} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
-              <AnalyticsTracker />
+              <React.Suspense fallback={null}>
+                <AnalyticsTracker />
+              </React.Suspense>
               <PageTransition>
                 {children}
               </PageTransition>
               <GlobalCart />
+              <InstallPWA />
           </AuthProvider>
         </ThemeProvider>
         <Toaster />
