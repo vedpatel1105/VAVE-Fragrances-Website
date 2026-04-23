@@ -271,9 +271,7 @@ export default function Home() {
           </div>
         </section>
       </div>
-      <div className="mt-40">
-        <CompactLayeringAwareness />
-      </div>
+      {/* Removed Layering Section */}
       <div className="mt-40">
         <CompactScentFinderAwareness />
       </div>
