@@ -657,50 +657,61 @@ export default function ProductDetailPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-zinc-950 flex items-center justify-center p-8 md:p-20"
+            className="fixed inset-0 z-[60] bg-black flex items-center justify-center overflow-hidden"
           >
+            {/* Close button with higher z-index and clear visibility */}
             <button 
               onClick={() => setIsFullscreenGallery(false)}
-              className="absolute top-10 right-10 p-6 text-white/20 hover:text-white transition-colors z-[70] group"
+              className="absolute top-10 right-10 p-4 text-white/50 hover:text-white transition-all z-[80] bg-white/5 backdrop-blur-md rounded-full border border-white/10"
             >
-              <X size={32} strokeWidth={1} className="group-hover:rotate-90 transition-transform duration-500" />
+              <X size={24} strokeWidth={1.5} />
             </button>
 
-            <div className="relative w-full h-full flex items-center justify-center">
+            {/* Main Image Container */}
+            <div className="relative w-full h-full max-w-5xl max-h-[80vh] mx-auto px-4 flex items-center justify-center">
                <motion.div 
                  key={currentImage}
-                 initial={{ opacity: 0, scale: 0.98 }}
+                 initial={{ opacity: 0, scale: 0.95 }}
                  animate={{ opacity: 1, scale: 1 }}
-                 transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                 exit={{ opacity: 0, scale: 1.05 }}
+                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
                  className="relative w-full h-full"
                >
                  <Image
                     src={imagesForSelectedSize[currentImage]}
-                    alt=""
+                    alt={`${product.name} gallery image ${currentImage + 1}`}
                     fill
                     className="object-contain"
+                    priority
+                    sizes="100vw"
                  />
                </motion.div>
 
                {/* Navigation Interface */}
-               <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 md:px-10">
-                  <button onClick={handlePrevImage} className="p-4 md:p-6 bg-white/5 hover:bg-white/10 rounded-none border border-white/5 transition-all group">
-                    <ArrowLeft size={24} strokeWidth={1} />
+               <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-2 md:-mx-20 z-[70]">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handlePrevImage(); }} 
+                    className="p-4 bg-white/5 hover:bg-white/10 border border-white/5 transition-all group backdrop-blur-sm"
+                  >
+                    <ArrowLeft size={20} strokeWidth={1.5} />
                   </button>
-                  <button onClick={handleNextImage} className="p-4 md:p-6 bg-white/5 hover:bg-white/10 rounded-none border border-white/5 transition-all group">
-                    <ArrowRight size={24} strokeWidth={1} />
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleNextImage(); }} 
+                    className="p-4 bg-white/5 hover:bg-white/10 border border-white/5 transition-all group backdrop-blur-sm"
+                  >
+                    <ArrowRight size={20} strokeWidth={1.5} />
                   </button>
                </div>
 
-               {/* Modular Indicator */}
-               <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex gap-6">
+               {/* Progress Indicators */}
+               <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex gap-4 z-[70]">
                   {imagesForSelectedSize.map((_, idx) => (
                     <button 
                       key={idx}
-                      onClick={() => setCurrentImage(idx)}
-                      className="group py-8"
+                      onClick={(e) => { e.stopPropagation(); setCurrentImage(idx); }}
+                      className="group py-4"
                     >
-                       <div className={`w-12 h-px transition-all duration-1000 ${idx === currentImage ? 'bg-white' : 'bg-white/10'}`} />
+                       <div className={`w-8 h-0.5 transition-all duration-500 ${idx === currentImage ? 'bg-white' : 'bg-white/10'}`} />
                     </button>
                   ))}
                </div>

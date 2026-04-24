@@ -86,7 +86,7 @@ function LoginForm() {
         return
       }
       toast({ title: "Welcome back!", description: "Signed in successfully." })
-      window.location.replace(redirectTo)
+      router.replace(redirectTo)
     } catch (error: any) {
       setLoginError(error.message || "An unexpected error occurred")
     } finally {

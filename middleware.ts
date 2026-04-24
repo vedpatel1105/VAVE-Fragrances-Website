@@ -63,15 +63,15 @@ export async function middleware(request: NextRequest) {
     }
 
     // Special handling for admin routes
-    if (pathname.startsWith('/admin')) {
+    if (pathname.startsWith('/admin') && pathname !== '/admin') {
       const { data } = await supabase
-        .from('profiles')
+        .from('user_roles')
         .select('role')
-        .eq('id', session.user.id)
+        .eq('user_id', session.user.id)
         .single()
 
-      if (!data || data.role !== 'admin') {
-        return NextResponse.redirect(new URL('/', request.url))
+      if (!data || (data.role !== 'admin' && data.role !== 'viewer')) {
+        return NextResponse.redirect(new URL('/admin', request.url))
       }
     }
   }

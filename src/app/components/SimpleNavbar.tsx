@@ -184,7 +184,7 @@ export default function SimpleNavbar() {
                 </DropdownMenu>
               ) : (
                 <button
-                  onClick={() => router.push("/auth/login")}
+                  onClick={() => router.push(`/auth/login?redirect=${encodeURIComponent(pathname)}`)}
                   className="hidden lg:block ml-2 px-6 py-2 rounded-full border border-white/20 text-white/80 hover:text-white hover:bg-white/10 backdrop-blur-md text-[10px] uppercase tracking-widest transition-all duration-300"
                 >
                   Sign In
@@ -229,7 +229,7 @@ export default function SimpleNavbar() {
                   <button
                     onClick={() => {
                       setIsMenuOpen(false);
-                      router.push("/auth/login");
+                      router.push(`/auth/login?redirect=${encodeURIComponent(pathname)}`);
                     }}
                     className="mt-6 px-10 py-3 rounded-full border border-white/20 text-white hover:bg-white/10 backdrop-blur-md text-xs uppercase tracking-[0.2em] transition-all duration-500"
                   >
