@@ -657,64 +657,76 @@ export default function ProductDetailPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-black flex items-center justify-center overflow-hidden"
+            className="fixed inset-0 z-[60] bg-black/95 flex flex-col items-center justify-center overflow-hidden"
+            onClick={() => setIsFullscreenGallery(false)}
           >
-            {/* Close button with higher z-index and clear visibility */}
+            {/* Close button */}
             <button 
               onClick={() => setIsFullscreenGallery(false)}
-              className="absolute top-10 right-10 p-4 text-white/50 hover:text-white transition-all z-[80] bg-white/5 backdrop-blur-md rounded-full border border-white/10"
+              className="absolute top-6 right-6 p-3 text-white/60 hover:text-white transition-all z-[80] bg-white/10 backdrop-blur-md rounded-full border border-white/10 hover:bg-white/20"
             >
-              <X size={24} strokeWidth={1.5} />
+              <X size={22} strokeWidth={1.5} />
             </button>
 
-            {/* Main Image Container */}
-            <div className="relative w-[90vw] h-[80vh] max-w-5xl mx-auto flex items-center justify-center">
-               <motion.div 
-                 key={currentImage}
-                 initial={{ opacity: 0, scale: 0.95 }}
-                 animate={{ opacity: 1, scale: 1 }}
-                 exit={{ opacity: 0, scale: 1.05 }}
-                 transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-                 className="relative w-full h-full"
-               >
-                 <Image
-                    src={imagesForSelectedSize[currentImage]}
-                    alt={`${product.name} gallery image ${currentImage + 1}`}
-                    fill
-                    className="object-contain"
-                    priority
-                    sizes="100vw"
-                 />
-               </motion.div>
+            {/* Counter */}
+            <div className="absolute top-6 left-6 z-[80] text-[11px] tracking-[0.4em] text-white/40 font-mono">
+              {currentImage + 1} / {imagesForSelectedSize.length}
+            </div>
 
-               {/* Navigation Interface */}
-               <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-2 md:-mx-20 z-[70]">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); handlePrevImage(); }} 
-                    className="p-4 bg-white/5 hover:bg-white/10 border border-white/5 transition-all group backdrop-blur-sm"
-                  >
-                    <ArrowLeft size={20} strokeWidth={1.5} />
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); handleNextImage(); }} 
-                    className="p-4 bg-white/5 hover:bg-white/10 border border-white/5 transition-all group backdrop-blur-sm"
-                  >
-                    <ArrowRight size={20} strokeWidth={1.5} />
-                  </button>
-               </div>
+            {/* Main Image — plain img avoids next/image fill collapse inside AnimatePresence */}
+            <motion.div
+              key={currentImage}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="flex items-center justify-center w-full px-16"
+              onClick={(e) => e.stopPropagation()}
+              style={{ height: "80vh" }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imagesForSelectedSize[currentImage]}
+                alt={`${product.name} — image ${currentImage + 1}`}
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "80vh",
+                  width: "auto",
+                  height: "auto",
+                  objectFit: "contain",
+                  display: "block",
+                }}
+              />
+            </motion.div>
 
-               {/* Progress Indicators */}
-               <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex gap-4 z-[70]">
-                  {imagesForSelectedSize.map((_, idx) => (
-                    <button 
-                      key={idx}
-                      onClick={(e) => { e.stopPropagation(); setCurrentImage(idx); }}
-                      className="group py-4"
-                    >
-                       <div className={`w-8 h-0.5 transition-all duration-500 ${idx === currentImage ? 'bg-white' : 'bg-white/10'}`} />
-                    </button>
-                  ))}
-               </div>
+            {/* Navigation arrows */}
+            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 z-[70] pointer-events-none">
+              <button
+                onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
+                className="pointer-events-auto p-4 bg-white/5 hover:bg-white/15 border border-white/10 transition-all backdrop-blur-sm"
+              >
+                <ArrowLeft size={20} strokeWidth={1.5} />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); handleNextImage(); }}
+                className="pointer-events-auto p-4 bg-white/5 hover:bg-white/15 border border-white/10 transition-all backdrop-blur-sm"
+              >
+                <ArrowRight size={20} strokeWidth={1.5} />
+              </button>
+            </div>
+
+            {/* Thumbnail strip at the bottom */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-[70]" onClick={(e) => e.stopPropagation()}>
+              {imagesForSelectedSize.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentImage(idx)}
+                  className={`w-12 h-12 border overflow-hidden transition-all duration-300 ${idx === currentImage ? "border-white opacity-100" : "border-white/10 opacity-40 hover:opacity-70"}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                </button>
+              ))}
             </div>
           </motion.div>
         )}
