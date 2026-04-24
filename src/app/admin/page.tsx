@@ -7,9 +7,8 @@ import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Terminal, ClipboardIc
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { adminService } from "@/src/lib/adminService"
-import { isSupabaseConfigured } from "@/src/lib/supabaseClient"
+import { supabase, isSupabaseConfigured } from "@/src/lib/supabaseClient"
 
 export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -83,7 +82,6 @@ export default function AdminLoginPage() {
 
   // Only initialize when configured to prevent runtime throw
   // @ts-ignore
-  const supabase = createClientComponentClient()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

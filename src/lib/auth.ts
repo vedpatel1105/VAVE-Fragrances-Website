@@ -35,8 +35,8 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             isLoading: true,
             
-            // Internal supabase client that handles cookies
-            _supabase: createClientComponentClient(),
+            // Shared supabase client
+            _supabase: supabase,
 
             setUser: (user) => set({ user, isAuthenticated: !!user }),
             
@@ -341,20 +341,30 @@ export const useAuthStore = create<AuthState>()(
                                     isAuthenticated: true,
                                     isLoading: false,
                                 });
-                            } else {
+                            } else if (!get().user) {
+                                // Only set to false if we don't already have a user (to avoid race conditions)
                                 set({
                                     user: null,
                                     isAuthenticated: false,
                                     isLoading: false,
                                 });
+                            } else {
+                                // We have a user in store but getSession returned null? 
+                                // This could be a temporary issue. Don't clear immediately, just stop loading.
+                                set({ isLoading: false });
                             }
                         } catch (error) {
                             console.error("Auth check error:", error);
-                            set({
-                                user: null,
+                            // Only clear on error if we don't have a user
+                            if (!get().user) {
+                                set({
+                                    user: null,
                                     isAuthenticated: false,
                                     isLoading: false,
                                 });
+                            } else {
+                                set({ isLoading: false });
+                            }
                         }
                     })();
                     

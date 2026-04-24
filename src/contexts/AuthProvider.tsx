@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect } from 'react';
 import { useAuthStore } from '@/src/lib/auth';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/src/lib/supabaseClient';
 import { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 const AuthContext = createContext<ReturnType<typeof useAuthStore> | null>(null);
@@ -17,7 +17,6 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const auth = useAuthStore();
-    const supabase = createClientComponentClient();
 
     useEffect(() => {
         // Initial auth check

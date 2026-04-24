@@ -26,11 +26,13 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useToast } from "@/components/ui/use-toast"
 import { adminService } from "@/src/lib/adminService"
 import { supabase } from "@/src/lib/supabaseClient"
+import { useAuthStore } from "@/src/lib/auth"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const { toast } = useToast()
+  const { user, isAuthenticated, isLoading: authLoading } = useAuthStore()
   const [mounted, setMounted] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -40,9 +42,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     // Check if user is admin
     const checkAdmin = async () => {
+      // If auth is still loading, wait
+      if (authLoading) return
+
       try {
         const adminStatus = await adminService.isAdmin()
         setIsAdmin(adminStatus)
+        
+        // Only redirect if auth is finished and user is not admin
         if (!adminStatus && pathname !== "/admin") {
           router.push('/admin')
           toast({
@@ -53,14 +60,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         }
       } catch (error) {
         console.error('Error checking admin status:', error)
-        router.push('/admin')
+        if (pathname !== "/admin") {
+          router.push('/admin')
+        }
       } finally {
         setIsLoading(false)
       }
     }
 
     checkAdmin()
-  }, [pathname, router])
+  }, [pathname, router, authLoading, isAuthenticated])
 
   const handleLogout = async () => {
     try {

@@ -112,7 +112,7 @@ function LoginForm() {
         const result = await verifyPhoneOtp(phoneForm.phone, phoneForm.otp)
         if (result.success) {
           toast({ title: "Success", description: "Identity verified successfully." })
-          window.location.replace(redirectTo)
+          router.replace(redirectTo)
         } else {
           setLoginError(result.error || "Invalid OTP")
         }

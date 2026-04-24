@@ -1,5 +1,4 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { isSupabaseConfigured } from './supabaseClient'
+import { supabase, isSupabaseConfigured } from './supabaseClient'
 
 export interface User {
   id: string
@@ -12,12 +11,7 @@ export interface User {
 
 export const adminService = {
   getSupabase() {
-    if (!isSupabaseConfigured) return null
-    try {
-      return createClientComponentClient()
-    } catch {
-      return null
-    }
+    return supabase
   },
 
   async getCurrentUserRole(): Promise<'user' | 'admin' | 'viewer'> {
