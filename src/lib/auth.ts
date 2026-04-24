@@ -91,6 +91,12 @@ export const useAuthStore = create<AuthState>()(
                     const supabase = get()._supabase;
                     set({ isLoading: true });
                     const origin = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || "https://vavefragrances.com");
+                    
+                    // Store redirect path in a cookie to ensure it survives the OAuth flow
+                    if (typeof document !== 'undefined' && redirectPath) {
+                        document.cookie = `redirect_to=${encodeURIComponent(redirectPath)}; path=/; max-age=300`; // 5 mins
+                    }
+
                     const { error } = await supabase.auth.signInWithOAuth({
                         provider: 'google',
                         options: {

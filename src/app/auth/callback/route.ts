@@ -112,7 +112,8 @@ export async function GET(request: Request) {
     }
 
     // Safe redirect (prevent open redirect)
-    let redirectTo = requestUrl.searchParams.get("redirect") || "/profile";
+    const cookieRedirect = cookieStore.get("redirect_to")?.value;
+    let redirectTo = requestUrl.searchParams.get("redirect") || cookieRedirect || "/profile";
     try {
       const safe = new URL(redirectTo, origin);
       if (safe.origin !== origin) redirectTo = "/profile";
