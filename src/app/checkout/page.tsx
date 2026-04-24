@@ -366,7 +366,7 @@ function CheckoutContent() {
         discount: discountAmount,
         coupon_code: appliedCoupon?.code,
         shipping_address: shippingAddress,
-        payment_method: 'razorpay' as const,
+        payment_method: 'razorpay' as 'razorpay' | 'cod',
       };
 
       const razorpayOrder = await createRazorpayOrder(order);
@@ -466,60 +466,107 @@ function CheckoutContent() {
     }
 
     try {
+      setIsProcessing(true);
+      setPaymentStep('processing');
+
       const itemsText = checkoutItems
         .map((item) => `• *${item.name}* (${item.size}ml) x ${item.quantity} - ₹${item.price * item.quantity}`)
         .join("\n");
 
-      const total = subtotalAmount + shippingCharge;
+      const total = subtotalAmount + shippingCharge - discountAmount;
       
+      // 1. Save order to Supabase first to get the actual ID
+      const orderData = {
+        user_id: user?.id || null,
+        items: checkoutItems.map(item => ({
+          product_id: item.product_id || item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          size: item.size ?? "",
+          image: item.image,
+        })),
+        total_amount: total, // Using total_amount to match schema in order-success
+        discount_amount: discountAmount,
+        coupon_code: appliedCoupon?.code,
+        shipping_address: JSON.stringify(shippingAddress),
+        payment_method: 'cod',
+        status: 'pending',
+        created_at: new Date().toISOString()
+      };
+
+      const { data: savedOrder, error: dbError } = await supabase
+        .from('orders')
+        .insert(orderData)
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error('Error saving COD order:', dbError);
+        throw new Error("Failed to record order. Please try again.");
+      }
+
+      const orderId = savedOrder.id;
+      const displayId = typeof orderId === 'string' && orderId.includes('-') ? orderId.slice(-8).toUpperCase() : orderId;
+
       const messageText = 
         `🛍️ *NEW COD ORDER CONFIRMATION*\n\n` +
+        `🆔 *Order ID:* #${displayId}\n` +
         `👤 *Customer Details:*\n` +
         `Name: ${shippingAddress.name}\n` +
         `Phone: ${shippingAddress.phone}\n\n` +
         `📦 *Order Details:*\n` +
         `${itemsText}\n\n` +
         (appliedCoupon ? `🎟️ *Coupon:* ${appliedCoupon.code} (-₹${discountAmount})\n` : '') +
-        `💰 *Total Amount:* ₹${subtotalAmount + shippingCharge - discountAmount}\n\n` +
+        `💰 *Total Amount:* ₹${total}\n\n` +
         `📍 *Delivery Address:*\n` +
         `${shippingAddress.address}\n` +
         `${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}\n\n` +
         `Please confirm my COD order. Thank you!`;
 
-      // Send Email Notification (WhatsApp COD)
+      // 2. Send Email Notification
       notificationService.sendOrderNotification({
-        orderId: 'COD-' + Date.now().toString().slice(-6),
+        orderId: orderId,
         customerName: shippingAddress.name,
         customerEmail: shippingAddress.email,
         customerPhone: shippingAddress.phone,
         items: checkoutItems.map(item => `${item.name} (${item.size}ml) x ${item.quantity}`).join(', '),
-        totalAmount: subtotalAmount + shippingCharge,
+        totalAmount: total,
         paymentMethod: 'WhatsApp (COD)',
         shippingAddress: `${shippingAddress.address}, ${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}`
       });
 
-      // Track Potential Purchase
+      // 3. Track Potential Purchase
       analytics.trackEvent('contact_click', {
         type: 'whatsapp_cod',
-        value: subtotalAmount + shippingCharge
+        value: total
       });
 
       const whatsappUrl = `https://wa.me/919328701508?text=${encodeURIComponent(messageText)}`;
       
-      // Log to console for debugging if needed
-      console.log('Opening WhatsApp with URL:', whatsappUrl);
-      
-      // Use window.open with a small delay or directly to avoid popup blockers
+      setIsProcessing(false);
+      setPaymentStep('form');
+      clearCart();
+
+      // Open WhatsApp
       const newWindow = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
       if (!newWindow) {
-        // Fallback if window.open is blocked
         window.location.href = whatsappUrl;
       }
-    } catch (err) {
-      console.error('Error generating WhatsApp link:', err);
+
       toast({
-        title: "Error",
-        description: "Could not generate WhatsApp link. Please check your connection.",
+        title: "Order Request Sent",
+        description: "Your order has been recorded and details sent via WhatsApp.",
+      });
+
+      router.push(`/order-success?orderId=${orderId}&method=cod`);
+    } catch (err) {
+      console.error('Error in COD flow:', err);
+      setIsProcessing(false);
+      setPaymentStep('form');
+      toast({
+        title: "Order Failed",
+        description: err instanceof Error ? err.message : "Could not process your COD order. Please try again.",
         variant: "destructive"
       });
     }

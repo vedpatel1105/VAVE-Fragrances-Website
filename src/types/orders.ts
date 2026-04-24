@@ -24,7 +24,7 @@ export interface Order {
   total: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   shipping_address: string;
-  payment_method: 'razorpay';
+  payment_method: 'razorpay' | 'cod';
   razorpay_order_id?: string;
   coupon_code?: string;
   discount_amount?: number;

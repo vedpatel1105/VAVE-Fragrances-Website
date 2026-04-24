@@ -168,7 +168,7 @@ export default function SimpleNavbar() {
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-white hover:text-white/80 hover:bg-transparent hidden lg:flex">
+                    <Button variant="ghost" size="icon" className="text-white hover:text-white/80 hover:bg-transparent flex">
                       <Avatar className="h-8 w-8 border border-white/20">
                         <AvatarImage src={avatarUrl} />
                         <AvatarFallback className="bg-zinc-800 text-xs">{user.full_name?.[0]}</AvatarFallback>
@@ -262,7 +262,7 @@ export default function SimpleNavbar() {
                       isActive(link.href) ? "text-white" : "text-white/50 hover:text-white"
                     }`}
                   >
-                    <span className="text-xl font-serif italic">{link.label}</span>
+                    <span className="text-lg uppercase tracking-[0.2em] font-medium">{link.label}</span>
                     <ChevronRight className={`h-4 w-4 transition-transform group-hover:translate-x-1 ${isActive(link.href) ? "text-white" : "text-white/20"}`} />
                   </Link>
                 </motion.div>
