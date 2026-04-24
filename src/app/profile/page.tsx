@@ -328,7 +328,7 @@ export default function ProfilePage() {
 
 
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 lg:py-16 flex gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pt-28 pb-12 lg:py-16 flex gap-10">
 
         {/* ── Desktop Sidebar ── */}
         <aside className="hidden lg:block w-72 shrink-0 sticky top-28 self-start h-fit">
