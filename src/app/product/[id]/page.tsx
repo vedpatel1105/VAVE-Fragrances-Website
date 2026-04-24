@@ -236,9 +236,13 @@ export default function ProductDetailPage() {
 
   // Compute images for the selected size (3 bottle images + 1 label image)
   const imagesForSelectedSize = [
-    ...product.images[selectedSize as "30" | "50"],
-    product.images.label
-  ]
+    ...(product.images[selectedSize as "30" | "50"] || []),
+    product.images.label || ""
+  ].filter(img => typeof img === 'string' && img.length > 0)
+
+  // Use a fallback image if no images are found
+  const fallbackImage = "/placeholder.svg"
+  const activeImage = imagesForSelectedSize[currentImage] || fallbackImage
 
   return (
     <motion.div
@@ -277,11 +281,15 @@ export default function ProductDetailPage() {
               onClick={() => setIsFullscreenGallery(true)}
             >
               <Image
-                src={imagesForSelectedSize[currentImage]}
-                alt={`${product.name} - ${imageLabels[currentImage]}`}
+                src={activeImage}
+                alt={`${product.name} - ${imageLabels[currentImage] || "Product Image"}`}
                 fill
                 className="object-cover transition-transform duration-[2000ms] group-hover:scale-105"
                 priority
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = fallbackImage;
+                }}
               />
 
               {/* Badges - Editorial Style */}
@@ -686,8 +694,12 @@ export default function ProductDetailPage() {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={imagesForSelectedSize[currentImage]}
+                src={activeImage}
                 alt={`${product.name} — image ${currentImage + 1}`}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = fallbackImage;
+                }}
                 style={{
                   maxWidth: "100%",
                   maxHeight: "80vh",
