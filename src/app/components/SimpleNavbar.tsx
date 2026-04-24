@@ -262,7 +262,7 @@ export default function SimpleNavbar() {
                       isActive(link.href) ? "text-white" : "text-white/50 hover:text-white"
                     }`}
                   >
-                    <span className="text-lg uppercase tracking-[0.2em] font-medium">{link.label}</span>
+                    <span className={`text-[11px] uppercase tracking-[0.25em] font-sans transition-colors ${isActive(link.href) ? "text-white font-bold" : "text-white/60"}`}>{link.label}</span>
                     <ChevronRight className={`h-4 w-4 transition-transform group-hover:translate-x-1 ${isActive(link.href) ? "text-white" : "text-white/20"}`} />
                   </Link>
                 </motion.div>

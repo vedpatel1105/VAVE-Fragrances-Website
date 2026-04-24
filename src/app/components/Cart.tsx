@@ -197,7 +197,7 @@ export default function Cart() {
     }
   }
 
-  const handleWhatsAppCheckout = () => {
+  const handleWhatsAppCheckout = async () => {
     if (items.length === 0) return
 
     // Validate if any field is missing
@@ -215,30 +215,94 @@ export default function Cart() {
       return
     }
 
-    const itemsText = items
-      .map((item) => `*${item.name}*\n  Size: ${item.size}ml\n  Qty: ${item.quantity}\n  Price: ₹${item.price}`)
-      .join("\n\n")
+    try {
+      setIsPlacingOrder(true)
+      
+      const itemsText = items
+        .map((item) => `• *${item.name}* (${item.size}ml) x ${item.quantity} - ₹${item.price * item.quantity}`)
+        .join("\n")
 
-    const total = grandTotal
-    
-    const message = encodeURIComponent(
-      `*ORDER REQUEST - CASH ON DELIVERY*\n\n` +
-      `Hello Vave Fragrances! I'd like to place an order for:\n\n` +
-      `${itemsText}\n\n` +
-      `*Order Total:* ₹${total}\n\n` +
-      `*Customer Details:*\n` +
-      `Name: ${shippingAddress.name}\n` +
-      `Contact: ${shippingAddress.phone}\n` +
-      `Email: ${shippingAddress.email}\n\n` +
-      `*Shipping Address:*\n` +
-      `${shippingAddress.address}\n` +
-      `${shippingAddress.city}, ${shippingAddress.state}\n` +
-      `PIN: ${shippingAddress.pincode}\n\n` +
-      `Please confirm my COD order. Thank you!`
-    )
+      const total = grandTotal
+      
+      // 1. Record order in database
+      const orderData = {
+        user_id: user?.id || null,
+        items: items.map(item => ({
+          product_id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          size: item.size ?? "",
+          image: item.image,
+        })),
+        total_amount: total,
+        subtotal_amount: getTotalPrice(),
+        shipping_amount: shippingCost,
+        shipping_address: JSON.stringify(shippingAddress),
+        payment_method: 'cod',
+        status: 'pending',
+        created_at: new Date().toISOString()
+      }
 
-    window.open(`https://wa.me/919328701508?text=${message}`, "_blank")
-    setShowWhatsAppModal(false)
+      const { data: savedOrder, error: dbError } = await supabase
+        .from('orders')
+        .insert(orderData)
+        .select()
+        .single()
+
+      if (dbError) {
+        console.error('Error saving COD order from cart:', dbError)
+      }
+
+      const orderId = savedOrder?.id || ('COD-' + Date.now().toString().slice(-6))
+      const displayId = typeof orderId === 'string' && orderId.includes('-') ? orderId.slice(-8).toUpperCase() : orderId
+
+      const messageText = 
+        `🛍️ *NEW COD ORDER CONFIRMATION*\n\n` +
+        `🆔 *Order ID:* #${displayId}\n` +
+        `👤 *Customer Details:*\n` +
+        `Name: ${shippingAddress.name}\n` +
+        `Phone: ${shippingAddress.phone}\n\n` +
+        `📦 *Order Details:*\n` +
+        `${itemsText}\n\n` +
+        `💰 *Total Amount:* ₹${total}\n\n` +
+        `📍 *Delivery Address:*\n` +
+        `${shippingAddress.address}\n` +
+        `${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}\n\n` +
+        `Please confirm my COD order. Thank you!`;
+
+      // 2. Send WhatsApp link
+      const whatsappUrl = `https://wa.me/919328701508?text=${encodeURIComponent(messageText)}`;
+      
+      // 3. Cleanup
+      clearCart()
+      setIsOpen(false)
+      setShowWhatsAppModal(false)
+      
+      toast({
+        title: "Order Request Sent",
+        description: "Your order has been recorded and details sent via WhatsApp.",
+      })
+
+      // 4. Open WhatsApp with fallback
+      const newWindow = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+      if (!newWindow) {
+        window.location.href = whatsappUrl;
+      }
+
+      // 5. Redirect to success page
+      router.push(`/order-success?orderId=${orderId}&method=cod`)
+
+    } catch (error) {
+      console.error('Error in WhatsApp COD flow:', error)
+      toast({
+        title: "Error",
+        description: "Could not process your WhatsApp order. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsPlacingOrder(false)
+    }
   }
 
   // Calculate shipping cost
