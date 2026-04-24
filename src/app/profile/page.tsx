@@ -258,7 +258,7 @@ export default function ProfilePage() {
           return (
             <button
               key={item.id}
-              onClick={() => { setActiveTab(item.id); setDrawerOpen(false) }}
+              onClick={() => setActiveTab(item.id)}
               className={`w-full group flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                 active
                   ? "bg-white text-zinc-950 shadow-lg shadow-white/5"
@@ -295,7 +295,7 @@ export default function ProfilePage() {
           </div>
           <div className="space-y-1.5">
             {completionSteps.filter(s => !s.done).map(s => (
-              <button key={s.label} onClick={() => { setActiveTab(s.tab); setDrawerOpen(false) }}
+              <button key={s.label} onClick={() => setActiveTab(s.tab)}
                 className="flex items-center gap-2 text-xs text-zinc-400 hover:text-white w-full transition-colors">
                 <div className="h-1.5 w-1.5 rounded-full bg-amber-400/60 shrink-0" />
                 {s.label}
@@ -772,22 +772,33 @@ export default function ProfilePage() {
       </div>
 
       {/* ── Mobile bottom tab bar ── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-zinc-950/95 backdrop-blur-xl border-t border-white/10 flex items-stretch">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/90 backdrop-blur-2xl border-t border-white/5 flex items-stretch px-2 pb-safe">
         {NAV.map(item => {
           const active = activeTab === item.id
+          const badge = item.id === "orders" ? orders.length : item.id === "wishlist" ? wishlistItems.length : 0
           return (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors ${
-                active ? "text-white" : "text-zinc-600 hover:text-zinc-400"
-              }`}
+              className="flex-1 flex flex-col items-center justify-center py-3.5 relative"
             >
-              <item.icon className={`h-5 w-5 transition-colors ${active ? "text-white" : "text-zinc-600"}`} />
-              <span className={`text-[9px] uppercase tracking-widest font-medium transition-colors ${active ? "text-white" : "text-zinc-600"}`}>
+              <div className="relative">
+                <item.icon className={`h-5 w-5 transition-all duration-300 ${active ? "text-white scale-110" : "text-zinc-500"}`} />
+                {badge > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-[8px] font-bold text-black ring-2 ring-zinc-950">
+                    {badge}
+                  </span>
+                )}
+              </div>
+              <span className={`text-[8px] uppercase tracking-[0.2em] font-bold mt-1.5 transition-colors ${active ? "text-white" : "text-zinc-600"}`}>
                 {item.label}
               </span>
-              {active && <span className="absolute bottom-0 w-8 h-0.5 bg-white rounded-full" />}
+              {active && (
+                <motion.div 
+                  layoutId="activeTabIndicator"
+                  className="absolute bottom-1 w-8 h-0.5 bg-white rounded-full" 
+                />
+              )}
             </button>
           )
         })}
