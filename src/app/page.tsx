@@ -18,6 +18,8 @@ import { useWishlistStore } from "@/src/store/wishlist"
 import { useCartStore } from "../lib/cartStore"
 import SimpleInstagramFeed from "./components/SimpleInstagramFeed"
 import CompactLayeringAwareness from "./components/CompactLayeringAwareness"
+import ScentFinder from "./components/ScentFinder"
+import ProductGallery from "./components/ProductGallery"
 import CompactScentFinderAwareness from "./components/CompactScentFinderAwareness"
 
 const SimpleNavbar = dynamic(() => import("@/src/app/components/SimpleNavbar"), { ssr: false })
@@ -271,9 +273,11 @@ export default function Home() {
           </div>
         </section>
       </div>
-      {/* Removed Layering Section */}
       <div className="mt-40">
         <CompactScentFinderAwareness />
+      </div>
+      <div className="mt-40">
+        <ProductGallery />
       </div>
 
       {/* Instagram Feed Section */}

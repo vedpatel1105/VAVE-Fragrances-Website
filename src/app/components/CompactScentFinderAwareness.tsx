@@ -49,7 +49,7 @@ export default function CompactScentFinderAwareness() {
                 </div>
                 <h2 className="text-5xl md:text-8xl font-serif text-white mb-8 tracking-tighter leading-[0.9]">
                   Find Your <br />
-                  <span className="italic text-white/40">Soul Scent.</span>
+                  <span className="italic text-white/40">Scent.</span>
                 </h2>
                 <p className="text-white/30 max-w-lg mx-auto lg:mx-0 font-light text-lg md:text-xl leading-relaxed">
                   Confused by 100s of options? Our smart quiz finds your perfect match in just 60 seconds. Simple. Fast. Accurate.

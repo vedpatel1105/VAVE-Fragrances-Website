@@ -26,6 +26,8 @@ export interface Order {
   shipping_address: string;
   payment_method: 'razorpay';
   razorpay_order_id?: string;
+  coupon_code?: string;
+  discount_amount?: number;
   created_at?: string;
 }
 

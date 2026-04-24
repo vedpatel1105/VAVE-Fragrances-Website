@@ -4,13 +4,21 @@ import { Instagram, Heart, MessageCircle } from 'lucide-react'
 import Image from 'next/image'
 import { ProductInfo } from '@/src/data/product-info'
 import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { siteSettingsService, type SiteSettings } from '@/src/lib/siteSettingsService'
 
 interface SimpleInstagramFeedProps {
     maxPosts?: number
 }
 
 export default function SimpleInstagramFeed({ maxPosts = 0 }: SimpleInstagramFeedProps) {
-    const username = "vavefragrances"
+    const [settings, setSettings] = useState<SiteSettings>({ instagram_handle: 'vavefragrances', instagram_widget_code: null })
+
+    useEffect(() => {
+        siteSettingsService.getSettings().then(setSettings)
+    }, [])
+
+    const username = settings.instagram_handle
     
     // Create mock posts using product images
     const posts = ProductInfo.getAllProductItems().flatMap(product => {
@@ -62,53 +70,60 @@ export default function SimpleInstagramFeed({ maxPosts = 0 }: SimpleInstagramFee
                     </a>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                    {posts.map((post, index) => (
-                        <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: (index % 4) * 0.1 }}
-                        >
-                            <a
-                                href={`https://instagram.com/${username}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="group relative block aspect-square overflow-hidden bg-zinc-900 border border-white/5"
-                            >
-                                <Image 
-                                    src={post.image} 
-                                    alt={`Instagram post ${index}`} 
-                                    fill 
-                                    className="object-cover transition-transform duration-[2s] group-hover:scale-110"
-                                />
-                                
-                                {/* Overlay on Hover */}
-                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col items-center justify-center backdrop-blur-sm">
-                                    <div className="flex gap-6 text-white scale-90 group-hover:scale-100 transition-transform duration-500">
-                                        <div className="flex items-center gap-2">
-                                            <Heart className="w-5 h-5 fill-white" />
-                                            <span className="text-sm font-bold">{post.likes}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <MessageCircle className="w-5 h-5 fill-white" />
-                                            <span className="text-sm font-bold">{post.comments}</span>
-                                        </div>
-                                    </div>
-                                    <div className="mt-8 px-6 py-2 border border-white/20 text-white text-[8px] uppercase tracking-[0.3em] font-bold">
-                                        View on Instagram
-                                    </div>
-                                </div>
+                {settings.instagram_widget_code ? (
+                  <div 
+                    className="w-full min-h-[400px]"
+                    dangerouslySetInnerHTML={{ __html: settings.instagram_widget_code }} 
+                  />
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                      {posts.map((post, index) => (
+                          <motion.div
+                              key={index}
+                              initial={{ opacity: 0, y: 20 }}
+                              whileInView={{ opacity: 1, y: 0 }}
+                              viewport={{ once: true }}
+                              transition={{ delay: (index % 4) * 0.1 }}
+                          >
+                              <a
+                                  href={`https://instagram.com/${username}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="group relative block aspect-square overflow-hidden bg-zinc-900 border border-white/5"
+                              >
+                                  <Image 
+                                      src={post.image} 
+                                      alt={`Instagram post ${index}`} 
+                                      fill 
+                                      className="object-cover transition-transform duration-[2s] group-hover:scale-110"
+                                  />
+                                  
+                                  {/* Overlay on Hover */}
+                                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col items-center justify-center backdrop-blur-sm">
+                                      <div className="flex gap-6 text-white scale-90 group-hover:scale-100 transition-transform duration-500">
+                                          <div className="flex items-center gap-2">
+                                              <Heart className="w-5 h-5 fill-white" />
+                                              <span className="text-sm font-bold">{post.likes}</span>
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                              <MessageCircle className="w-5 h-5 fill-white" />
+                                              <span className="text-sm font-bold">{post.comments}</span>
+                                          </div>
+                                      </div>
+                                      <div className="mt-8 px-6 py-2 border border-white/20 text-white text-[8px] uppercase tracking-[0.3em] font-bold">
+                                          View on Instagram
+                                      </div>
+                                  </div>
 
-                                {/* Subtle Logo Overlay */}
-                                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                                    <Instagram className="w-4 h-4 text-white/50" />
-                                </div>
-                            </a>
-                        </motion.div>
-                    ))}
-                </div>
+                                  {/* Subtle Logo Overlay */}
+                                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                                      <Instagram className="w-4 h-4 text-white/50" />
+                                  </div>
+                              </a>
+                          </motion.div>
+                      ))}
+                  </div>
+                )}
 
             </div>
         </section>

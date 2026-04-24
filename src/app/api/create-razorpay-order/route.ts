@@ -49,10 +49,10 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        const { items, total, shipping_address, payment_method } = await request.json();
+        const { items, total, shipping_address, payment_method, coupon_code, discount } = await request.json();
 
         // Validate required fields
-        if (!items?.length || !total || !shipping_address || payment_method !== 'razorpay') {
+        if (!items?.length || total === undefined || !shipping_address || payment_method !== 'razorpay') {
             return NextResponse.json(
                 { error: 'Invalid order data' },
                 { status: 400 }
@@ -123,27 +123,75 @@ export async function POST(request: NextRequest) {
             calculatedSubtotal += price * item.quantity;
         }
 
+        // Handle Coupon/Discount validation
+        let serverCalculatedDiscount = 0;
+        if (coupon_code) {
+            const { data: coupon, error: couponError } = await supabaseClient
+                .from('coupons')
+                .select('*')
+                .eq('code', coupon_code.toUpperCase())
+                .eq('is_active', true)
+                .single();
+
+            if (!couponError && coupon) {
+                // Check expiry
+                const isExpired = coupon.expiry_date && new Date(coupon.expiry_date) < new Date();
+                const isMinAmountMet = !coupon.min_amount || calculatedSubtotal >= coupon.min_amount;
+
+                if (!isExpired && isMinAmountMet) {
+                    // Check applies_to
+                    let applicableSubtotal = calculatedSubtotal;
+                    if (coupon.applies_to && coupon.applies_to.length > 0) {
+                        applicableSubtotal = items
+                            .filter((item: any) => coupon.applies_to.includes(item.product_id?.toString()))
+                            .reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0);
+                    }
+
+                    if (applicableSubtotal > 0) {
+                        if (coupon.type === 'percentage') {
+                            serverCalculatedDiscount = Math.round((applicableSubtotal * coupon.value) / 100);
+                            if (coupon.max_discount) {
+                                serverCalculatedDiscount = Math.min(serverCalculatedDiscount, coupon.max_discount);
+                            }
+                        } else {
+                            serverCalculatedDiscount = Math.min(coupon.value, applicableSubtotal);
+                        }
+                    }
+                }
+            }
+
+            // Verify provided discount matches server calculated discount
+            if (discount !== undefined && discount !== serverCalculatedDiscount) {
+                return NextResponse.json(
+                    { error: 'Discount amount mismatch' },
+                    { status: 400 }
+                );
+            }
+        }
+
         // Compute shipping charge: ₹30 for orders below ₹1000
         const shippingCharge = calculatedSubtotal < 1000 ? 30 : 0;
-        const computedOrderTotal = calculatedSubtotal + shippingCharge;
+        const computedOrderTotal = Math.max(0, calculatedSubtotal + shippingCharge - serverCalculatedDiscount);
 
         // Validate client provided total matches server computed total
-        if (typeof total !== 'number' || total !== computedOrderTotal) {
+        // We use Math.abs comparison for floating point safety if needed, but here it's integers mostly
+        if (typeof total !== 'number' || Math.abs(total - computedOrderTotal) > 1) {
             return NextResponse.json(
-                { error: 'Order total mismatch' },
+                { error: `Order total mismatch. Expected ${computedOrderTotal}, got ${total}` },
                 { status: 400 }
             );
         }
 
         // Create Razorpay order
         const razorpayOrder = await razorpay.orders.create({
-            amount: computedOrderTotal * 100, // Convert to paise
+            amount: Math.round(computedOrderTotal * 100), // Convert to paise and ensure integer
             currency: 'INR',
             receipt: `order_${Date.now()}`,
             notes: {
                 user_id: user?.id || 'guest',
-                // Keep lightweight notes; sensitive validation remains server-side
                 shipping_inr: String(shippingCharge),
+                discount_inr: String(serverCalculatedDiscount),
+                coupon_code: coupon_code || 'none'
             },
         });
 
@@ -157,6 +205,8 @@ export async function POST(request: NextRequest) {
                     total_amount: computedOrderTotal,
                     subtotal_amount: calculatedSubtotal,
                     shipping_amount: shippingCharge,
+                    discount_amount: serverCalculatedDiscount,
+                    coupon_code: coupon_code || null,
                     shipping_address: JSON.stringify(parsedAddress),
                     payment_method: 'razorpay',
                     status: 'pending',

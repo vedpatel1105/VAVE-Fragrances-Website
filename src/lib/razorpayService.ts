@@ -101,7 +101,9 @@ export const createRazorpayOrder = async (order: {
                 items: order.items,
                 total: order.total,
                 shipping_address: order.shipping_address,
-                payment_method: order.payment_method
+                payment_method: order.payment_method,
+                coupon_code: (order as any).coupon_code,
+                discount: (order as any).discount
             }),
         });
 
