@@ -244,32 +244,7 @@ export default function SimpleNavbar() {
             {/* Spacer for the fixed navbar */}
             <div className="h-16 shrink-0" />
 
-            {/* User info block (if logged in) */}
-            {user && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 }}
-                className="mx-5 mt-5 rounded-2xl bg-white/[0.04] border border-white/10 p-4 flex items-center gap-3"
-              >
-                <Avatar className="h-12 w-12 border border-white/20 shrink-0">
-                  <AvatarImage src={avatarUrl} />
-                  <AvatarFallback className="bg-zinc-800 text-sm font-serif">
-                    {(user.full_name || user.email || "V")[0].toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-white truncate">{user.full_name || "Welcome back"}</p>
-                  <p className="text-xs text-zinc-500 truncate">{user.email}</p>
-                </div>
-                <button
-                  onClick={() => { setIsMenuOpen(false); router.push("/profile") }}
-                  className="ml-auto shrink-0 text-[10px] uppercase tracking-widest text-zinc-500 hover:text-white transition-colors border border-white/10 rounded-lg px-3 py-1.5"
-                >
-                  Profile
-                </button>
-              </motion.div>
-            )}
+
 
             {/* Nav links */}
             <nav className="flex-1 px-5 py-6 space-y-1">
