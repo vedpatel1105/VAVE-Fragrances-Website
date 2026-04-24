@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import { profileService, type UserProfile, type Address, type UserOrder } from "@/src/lib/profileService"
 import { useToast } from "@/components/ui/use-toast"
+import { useSearchParams } from "next/navigation"
 import { AddAddressModal } from "@/src/app/components/AddAddressModal"
 import { createAvatar } from "@dicebear/core"
 import { initials } from "@dicebear/collection"
@@ -86,6 +87,10 @@ export default function ProfilePage() {
   const { items: wishlistItems, removeFromWishlist } = useWishlistStore()
   const { addItem, setIsOpen } = useCartStore()
 
+  const searchParams = useSearchParams()
+  const redirectPath = searchParams.get('redirect')
+  const isFromCart = redirectPath === 'cart'
+
   const [activeTab, setActiveTab] = useState<Tab>("overview")
   const [isSaving, setIsSaving] = useState(false)
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
@@ -98,6 +103,16 @@ export default function ProfilePage() {
   })
   const [addresses, setAddresses] = useState<Address[]>([])
   const [orders, setOrders] = useState<UserOrder[]>([])
+
+  // Redirect logic: If from cart and profile becomes complete, maybe notify user
+  useEffect(() => {
+    if (isFromCart && pct === 100) {
+      toast({
+        title: "Profile Complete!",
+        description: "You can now return to your cart to finish your order.",
+      })
+    }
+  }, [pct, isFromCart])
 
   // PWA State for Profile
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -358,6 +373,41 @@ export default function ProfilePage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Return to Cart/Checkout Banner */}
+                {redirectPath && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={`p-5 rounded-2xl border flex flex-col sm:flex-row items-center justify-between gap-4 ${
+                      pct === 100 
+                        ? 'bg-white text-black border-white shadow-xl' 
+                        : 'bg-zinc-900 border-white/10 text-white'
+                    }`}
+                  >
+                    <div>
+                      <h3 className="font-bold text-sm uppercase tracking-widest">
+                        {pct === 100 ? 'Profile Complete' : 'Complete your profile'}
+                      </h3>
+                      <p className="text-xs opacity-70 mt-1">
+                        {pct === 100 
+                          ? `Ready to finish your ${redirectPath}?` 
+                          : `You need a phone number and address to proceed with ${redirectPath === 'cart' ? 'COD' : 'checkout'}.`}
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={() => router.push(redirectPath === 'cart' ? '/?openCart=true' : '/checkout')}
+                      disabled={pct < 100}
+                      className={`rounded-full px-8 ${
+                        pct === 100 
+                          ? 'bg-black text-white hover:bg-zinc-800' 
+                          : 'bg-white/10 text-white/40 cursor-not-allowed'
+                      }`}
+                    >
+                      Return to {redirectPath.charAt(0).toUpperCase() + redirectPath.slice(1)} <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </motion.div>
+                )}
 
                 {/* Quick Stats Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

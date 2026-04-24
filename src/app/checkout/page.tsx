@@ -349,6 +349,21 @@ function CheckoutContent() {
       // Check auth - Optional now
       await checkAuth();
 
+      // If authenticated, enforce complete profile for better order data
+      if (user && isAuthenticated) {
+        const hasPhone = !!user.user_metadata?.phone;
+        const hasAddress = savedAddresses.length > 0;
+        
+        if (!hasPhone || !hasAddress) {
+          toast({
+            title: "Profile Incomplete",
+            description: "Please complete your profile details before checking out.",
+          });
+          router.push(`/profile?redirect=checkout&reason=incomplete`);
+          return;
+        }
+      }
+
       setIsProcessing(true);
       setPaymentStep('processing');
 
@@ -466,6 +481,21 @@ function CheckoutContent() {
     }
 
     try {
+      // If authenticated, enforce complete profile
+      if (user && isAuthenticated) {
+        const hasPhone = !!user.user_metadata?.phone;
+        const hasAddress = savedAddresses.length > 0;
+        
+        if (!hasPhone || !hasAddress) {
+          toast({
+            title: "Profile Incomplete",
+            description: "Please complete your profile details before placing a COD order.",
+          });
+          router.push(`/profile?redirect=checkout&reason=incomplete`);
+          return;
+        }
+      }
+
       setIsProcessing(true);
       setPaymentStep('processing');
 

@@ -216,6 +216,22 @@ export default function Cart() {
     }
 
     try {
+      // 1. If authenticated, check if profile is complete (needs phone and at least one address)
+      if (isAuthenticated && user) {
+        const hasPhone = !!user.user_metadata?.phone;
+        const hasAddress = savedAddresses.length > 0;
+        
+        if (!hasPhone || !hasAddress) {
+          toast({
+            title: "Profile Incomplete",
+            description: "Please add your phone number and address to your profile first.",
+          });
+          setIsOpen(false);
+          router.push(`/profile?redirect=cart&reason=incomplete`);
+          return;
+        }
+      }
+
       setIsPlacingOrder(true)
       
       const itemsText = items
