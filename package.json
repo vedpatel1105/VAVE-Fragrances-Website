@@ -63,6 +63,7 @@
     "react-dom": "^19",
     "react-easy-crop": "^5.5.7",
     "react-hook-form": "^7.71.2",
+    "react-is": "^19.2.5",
     "react-resizable-panels": "^4.7.1",
     "react-social-media-embed": "^2.5.18",
     "recharts": "latest",

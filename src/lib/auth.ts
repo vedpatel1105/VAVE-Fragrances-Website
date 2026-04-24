@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { isSupabaseConfigured } from "./supabaseClient";
+import { isSupabaseConfigured, supabase } from "./supabaseClient";
 
 interface User {
     user_metadata: any;
