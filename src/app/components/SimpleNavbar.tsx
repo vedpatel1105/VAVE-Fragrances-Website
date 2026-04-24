@@ -227,24 +227,8 @@ export default function SimpleNavbar() {
             transition={{ duration: 0.25 }}
             className="fixed inset-0 z-[45] lg:hidden bg-zinc-950 flex flex-col overflow-y-auto"
           >
-            {/* Header row inside overlay */}
-            <div className="flex items-center justify-between px-6 h-16 border-b border-white/5 shrink-0">
-              <Link href="/" onClick={() => setIsMenuOpen(false)}>
-                <Image
-                  src={`${ProductInfo.baseUrl}/logo/logo.png`}
-                  alt="VAVE Logo"
-                  width={100}
-                  height={34}
-                  className="h-7 w-auto"
-                />
-              </Link>
-              <button
-                onClick={() => setIsMenuOpen(false)}
-                className="p-2 rounded-full hover:bg-white/10 transition-colors"
-              >
-                <X className="h-5 w-5 text-white" strokeWidth={1.5} />
-              </button>
-            </div>
+            {/* Spacer for the fixed navbar */}
+            <div className="h-16 shrink-0" />
 
             {/* User info block (if logged in) */}
             {user && (
