@@ -113,8 +113,8 @@ export default function EnhancedProductCard({
           </motion.div>
         )}
 
-        {/* Hover Action Overlay */}
-        <div className="absolute inset-0 flex flex-col justify-end p-6 translate-y-8 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-700 ease-[0.22,1,0.36,1]">
+        {/* Hover Action Overlay - Desktop Only */}
+        <div className="absolute inset-0 hidden lg:flex flex-col justify-end p-6 translate-y-8 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-700 ease-[0.22,1,0.36,1]">
           <div className="space-y-3">
              <motion.button 
                onClick={handleBuyNow}
@@ -192,6 +192,23 @@ export default function EnhancedProductCard({
               )}
             </button>
           ))}
+        </div>
+
+        {/* Mobile Action Area */}
+        <div className="grid grid-cols-2 gap-3 pt-4 lg:hidden">
+          <Button
+            onClick={handleBuyNow}
+            className="h-11 bg-white text-black text-[8px] uppercase tracking-[0.2em] font-bold rounded-none"
+          >
+            Buy Now
+          </Button>
+          <Button
+            onClick={handleAddToCart}
+            variant="outline"
+            className="h-11 border-white/20 text-white text-[8px] uppercase tracking-[0.2em] font-bold rounded-none hover:bg-white/5"
+          >
+            Add to Cart
+          </Button>
         </div>
       </div>
     </motion.div>

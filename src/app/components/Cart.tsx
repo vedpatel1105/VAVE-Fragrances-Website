@@ -343,9 +343,9 @@ export default function Cart() {
                           </div>
                         </div>
                         
-                        {/* Absolute Trash Button for cleaner UI */}
+                        {/* Absolute Trash Button - Always visible on mobile, hover on desktop */}
                         <button
-                          className="absolute top-4 right-4 text-white/20 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                          className="absolute top-4 right-4 text-white/20 hover:text-red-400 transition-colors lg:opacity-0 lg:group-hover:opacity-100"
                           onClick={() => removeItem(item.id, item.size, item.color)}
                         >
                           <Trash2 className="h-4 w-4" strokeWidth={1.5} />
