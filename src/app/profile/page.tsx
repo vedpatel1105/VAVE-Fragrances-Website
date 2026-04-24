@@ -31,7 +31,7 @@ import { supabase } from "@/src/lib/supabaseClient"
 const SimpleNavbar = dynamic(() => import("@/src/app/components/SimpleNavbar"), { ssr: false })
 
 interface ExtendedUserProfile extends UserProfile { avatarUrl?: string }
-type Tab = "profile" | "orders" | "wishlist" | "settings"
+type Tab = "overview" | "profile" | "orders" | "wishlist" | "settings"
 
 const statusConfig: Record<string, { icon: React.ElementType; textColor: string; bgColor: string; label: string }> = {
   pending:    { icon: Clock,         textColor: "text-amber-300",   bgColor: "bg-amber-500/15",   label: "Pending" },
@@ -43,10 +43,11 @@ const statusConfig: Record<string, { icon: React.ElementType; textColor: string;
 }
 
 const NAV: { id: Tab; label: string; icon: React.ElementType }[] = [
-  { id: "profile",  label: "Profile",  icon: User },
-  { id: "orders",   label: "Orders",   icon: Package },
-  { id: "wishlist", label: "Wishlist", icon: Heart },
-  { id: "settings", label: "Settings", icon: Settings },
+  { id: "overview", label: "Dashboard", icon: Package },
+  { id: "profile",  label: "Profile",   icon: User },
+  { id: "orders",   label: "Orders",    icon: Package },
+  { id: "wishlist", label: "Wishlist",  icon: Heart },
+  { id: "settings", label: "Settings",  icon: Settings },
 ]
 
 // ─── Reusable Card ─────────────────────────────────────────────
@@ -85,7 +86,7 @@ export default function ProfilePage() {
   const { items: wishlistItems, removeFromWishlist } = useWishlistStore()
   const { addItem, setIsOpen } = useCartStore()
 
-  const [activeTab, setActiveTab] = useState<Tab>("profile")
+  const [activeTab, setActiveTab] = useState<Tab>("overview")
   const [isSaving, setIsSaving] = useState(false)
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
   const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({})
@@ -352,6 +353,115 @@ export default function ProfilePage() {
         {/* ── Main Content ── */}
         <main className="flex-1 min-w-0 pb-28 lg:pb-0">
           <AnimatePresence mode="wait">
+
+            {/* ════════════ OVERVIEW (DASHBOARD) ════════════ */}
+            {activeTab === "overview" && (
+              <motion.div key="overview" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-8">
+                
+                {/* Mobile Welcome Header */}
+                <div className="lg:hidden flex flex-col gap-4 mb-2">
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-14 w-14 border border-white/10 ring-4 ring-white/5">
+                      <AvatarImage src={profile.avatarUrl} />
+                      <AvatarFallback className="bg-zinc-800 text-white font-serif text-lg">
+                        {(profile.full_name || user?.email || "V").charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h1 className="text-2xl font-serif text-white">Hello, {profile.full_name?.split(' ')[0] || "there"}</h1>
+                      <p className="text-xs text-zinc-500">{profile.email || user?.email}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Stats Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {[
+                    { label: "Orders",    value: orders.length,    icon: Package, color: "text-blue-400" },
+                    { label: "Wishlist",  value: wishlistItems.length, icon: Heart, color: "text-rose-400" },
+                    { label: "Addresses", value: addresses.length, icon: MapPin, color: "text-emerald-400" },
+                    { label: "Savings",   value: "₹0", icon: CreditCard, color: "text-amber-400" },
+                  ].map(stat => (
+                    <div key={stat.label} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex flex-col gap-1">
+                      <stat.icon className={`h-4 w-4 ${stat.color} mb-1`} strokeWidth={1.5} />
+                      <span className="text-xl font-serif text-white">{stat.value}</span>
+                      <span className="text-[10px] uppercase tracking-widest text-zinc-600">{stat.label}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Dashboard Options Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { id: "profile" as Tab, label: "Profile Settings", desc: "Manage your name, phone, and addresses", icon: User },
+                    { id: "orders" as Tab, label: "Order History", desc: "Track, return, or buy items again", icon: ShoppingBag },
+                    { id: "wishlist" as Tab, label: "My Wishlist", desc: "View items you've saved for later", icon: Heart },
+                    { id: "settings" as Tab, label: "Security", desc: "Update your password and preferences", icon: Shield },
+                  ].map(option => (
+                    <button
+                      key={option.id}
+                      onClick={() => setActiveTab(option.id)}
+                      className="group flex items-start gap-4 p-5 bg-white/[0.04] border border-white/10 rounded-2xl hover:bg-white/[0.07] transition-all text-left"
+                    >
+                      <div className="h-12 w-12 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <option.icon className="h-5 w-5 text-white/40 group-hover:text-white transition-colors" strokeWidth={1.5} />
+                      </div>
+                      <div className="flex-1 min-w-0 py-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-semibold text-white">{option.label}</p>
+                          <ChevronRight className="h-4 w-4 text-zinc-700 group-hover:text-white transition-colors" />
+                        </div>
+                        <p className="text-xs text-zinc-500 mt-1 line-clamp-1">{option.desc}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Completion Progress (Mobile Only) */}
+                {pct < 100 && (
+                  <div className="lg:hidden">
+                    <Card className="bg-amber-500/5 border-amber-500/10">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-8 rounded-full bg-amber-500/10 flex items-center justify-center">
+                            <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-amber-200">Complete your profile</p>
+                            <p className="text-[10px] text-amber-500/60 uppercase tracking-widest">{100-pct}% remaining</p>
+                          </div>
+                        </div>
+                        <span className="text-xl font-serif text-amber-400">{pct}%</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-zinc-900 rounded-full overflow-hidden mb-4">
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} className="h-full bg-amber-500" />
+                      </div>
+                      <div className="space-y-2">
+                         {completionSteps.filter(s => !s.done).map(s => (
+                           <button key={s.label} onClick={() => setActiveTab(s.tab)} className="flex items-center gap-3 w-full text-left py-2 group">
+                              <div className="h-4 w-4 rounded-full border border-amber-500/30 flex items-center justify-center group-hover:border-amber-500">
+                                <div className="h-1.5 w-1.5 rounded-full bg-amber-500/40" />
+                              </div>
+                              <span className="text-xs text-zinc-400 group-hover:text-white transition-colors">{s.label}</span>
+                           </button>
+                         ))}
+                      </div>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Logout Card */}
+                <div className="lg:hidden pt-4">
+                   <button 
+                     onClick={handleLogout}
+                     className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-zinc-900 border border-rose-500/20 text-rose-400 text-sm font-medium hover:bg-rose-500/5 transition-all"
+                   >
+                     <LogOut className="h-4 w-4" />
+                     Sign Out of Account
+                   </button>
+                </div>
+              </motion.div>
+            )}
 
             {/* ════════════ PROFILE ════════════ */}
             {activeTab === "profile" && (

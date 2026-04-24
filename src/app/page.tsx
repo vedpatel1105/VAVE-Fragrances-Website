@@ -11,7 +11,7 @@ import Footer from "@/src/app/components/Footer"
 import { motion, AnimatePresence } from "framer-motion"
 import EnhancedProductCard from "./components/EnhancedProductCard"
 import { useToast } from "@/components/ui/use-toast"
-import BoutiqueHero from "./components/BoutiqueHero"
+import Hero from "./components/Hero"
 import SafeHydration from "./components/SafeHydration"
 import { ProductInfo } from "@/src/data/product-info"
 import { useWishlistStore } from "@/src/store/wishlist"
@@ -178,7 +178,7 @@ export default function Home() {
     <SafeHydration>
     <main className="flex flex-col min-h-screen bg-zinc-950 text-white selection:bg-white selection:text-black overflow-x-hidden">
       <SimpleNavbar />
-      <BoutiqueHero />
+      <Hero />
       <div className="container mx-auto px-6 md:px-12 xl:px-20">
         {/* Featured Products Section */}
         <section id="featured" className="w-full py-32 relative">

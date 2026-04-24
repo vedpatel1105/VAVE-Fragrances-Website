@@ -71,31 +71,53 @@ export default function Hero() {
       </div>
 
       {/* LAYER 3: The Bottle (Centerpiece) */}
-    
+      <motion.div
+        style={{ 
+          y: yBottle,
+          scale: scaleBottle,
+          rotateX,
+          rotateY
+        }}
+        className="relative z-10 w-[280px] md:w-[450px] lg:w-[550px] aspect-square flex items-center justify-center transition-all duration-1000"
+      >
+        <Image
+          src="/vave-boutique-hero.png"
+          alt="Vave Luxury Fragrance"
+          fill
+          priority
+          className="object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+        />
+        
+        {/* Dynamic Highlight */}
+        <motion.div 
+          style={{ rotateX: lightRotateX, rotateY: lightRotateY }}
+          className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-30 pointer-events-none" 
+        />
+      </motion.div>
 
       {/* LAYER 4: Foreground Typography */}
       <motion.div
         style={{ opacity: opacityText }}
         className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none text-center"
       >
-        <div className="mt-[20vh] md:mt-[25vh] lg:mt-[30vh] flex flex-col items-center pointer-events-auto">
+        <div className="flex flex-col items-center pointer-events-auto w-full px-6">
           <motion.div
              initial={{ opacity: 0, letterSpacing: "0.5em" }}
              animate={{ opacity: 1, letterSpacing: "1em" }}
              transition={{ duration: 1.5, delay: 0.3, ease: "easeOut" }}
-             className="mb-8"
+             className="mb-6 md:mb-10"
           >
-            <span className="text-[9px] md:text-[11px] uppercase text-white/40 font-montserrat">
+            <span className="text-[8px] md:text-[11px] uppercase text-white/40 font-montserrat tracking-[1em]">
               VAVE FRAGRANCES
             </span>
           </motion.div>
 
-          <div className="overflow-hidden mb-12">
+          <div className="overflow-hidden mb-8 md:mb-12">
             <motion.h1
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               transition={{ duration: 1.2, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="font-playfair text-white leading-[0.95] tracking-tight uppercase text-5xl md:text-7xl lg:text-8xl"
+              className="font-playfair text-white leading-[0.95] tracking-tight uppercase text-4xl sm:text-5xl md:text-7xl lg:text-8xl"
             >
               Discover Your <br />
               <span className="italic opacity-60 font-serif">Signature Scent.</span>
@@ -106,19 +128,19 @@ export default function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1.5, delay: 1 }}
-            className="text-white/30 text-[12px] md:text-[14px] font-light max-w-sm mb-12 font-montserrat leading-relaxed px-6"
+            className="text-white/30 text-[11px] md:text-[14px] font-light max-w-sm mb-10 md:mb-14 font-montserrat leading-relaxed"
           >
-            Luxury perfumes that leave a lasting impression.
+            Luxury perfumes that leave a lasting impression, crafted for the modern connoisseur.
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 1.3 }}
-            className="flex flex-col items-center gap-8"
+            className="flex flex-col items-center gap-8 w-full"
           >
-            <Link href="/collection">
-              <button className="group relative px-12 py-5 bg-white text-black font-montserrat text-[10px] uppercase tracking-[0.5em] font-bold overflow-hidden transition-all duration-700 hover:px-16">
+            <Link href="/collection" className="w-full sm:w-auto">
+              <button className="group relative w-full sm:w-auto px-12 py-5 bg-white text-black font-montserrat text-[10px] uppercase tracking-[0.5em] font-bold overflow-hidden transition-all duration-700 hover:px-16 active:scale-95">
                 <span className="relative z-10">Explore Collection</span>
                 <div className="absolute inset-0 bg-zinc-200 translate-x-[-101%] group-hover:translate-x-0 transition-transform duration-700 ease-in-out" />
               </button>

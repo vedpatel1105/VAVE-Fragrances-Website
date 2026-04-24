@@ -87,6 +87,10 @@ export default function EnhancedProductCard({
           fill
           className="object-cover scale-110 group-hover:scale-100 transition-transform duration-[2.5s] ease-[0.22,1,0.36,1]"
           sizes="(max-width: 768px) 100vw, 33vw"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.src = "/placeholder.svg";
+          }}
         />
 
         {/* Shine Animation */}
