@@ -13,7 +13,7 @@ import {
   User, Package, Heart, Settings, LogOut, MapPin,
   CheckCircle2, Clock, Truck, XCircle, AlertTriangle,
   ChevronRight, Trash2, Key, Shield, ShoppingBag,
-  ChevronDown, ChevronUp, Menu, X, Star, Plus,
+  ChevronDown, ChevronUp, Star, Plus,
   ArrowRight, CreditCard, Download, Smartphone
 } from "lucide-react"
 import { profileService, type UserProfile, type Address, type UserOrder } from "@/src/lib/profileService"
@@ -86,7 +86,6 @@ export default function ProfilePage() {
   const { addItem, setIsOpen } = useCartStore()
 
   const [activeTab, setActiveTab] = useState<Tab>("profile")
-  const [drawerOpen, setDrawerOpen] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null)
   const [selectedSizes, setSelectedSizes] = useState<Record<string, string>>({})
@@ -326,42 +325,24 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-zinc-950 text-white selection:bg-white selection:text-black">
       <SimpleNavbar />
 
-      {/* ── Mobile top bar ── */}
-      <div className="lg:hidden sticky top-16 z-30 bg-zinc-950/90 backdrop-blur border-b border-white/5 flex items-center px-4 py-3 gap-3">
-        <button onClick={() => setDrawerOpen(true)} className="p-2 rounded-xl bg-zinc-900 border border-white/10">
-          <Menu className="h-4 w-4 text-white" />
-        </button>
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-white capitalize">{activeTab}</p>
-        </div>
-        <Avatar className="h-8 w-8">
+      {/* ── Mobile top bar: mini profile header ── */}
+      <div className="lg:hidden sticky top-16 z-30 bg-zinc-950/95 backdrop-blur border-b border-white/5 flex items-center px-5 py-3 gap-3">
+        <Avatar className="h-9 w-9 border border-white/10 shrink-0">
           <AvatarImage src={profile.avatarUrl} />
           <AvatarFallback className="bg-zinc-800 text-white text-xs font-serif">
             {(profile.full_name || "V").charAt(0).toUpperCase()}
           </AvatarFallback>
         </Avatar>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-white truncate leading-none">{profile.full_name || "My Account"}</p>
+          <p className="text-xs text-zinc-500 truncate mt-0.5">{profile.email || user?.email}</p>
+        </div>
+        <button onClick={handleLogout} className="shrink-0 p-2 rounded-xl hover:bg-rose-500/10 text-zinc-500 hover:text-rose-400 transition-colors">
+          <LogOut className="h-4 w-4" />
+        </button>
       </div>
 
-      {/* ── Mobile Drawer ── */}
-      <AnimatePresence>
-        {drawerOpen && (
-          <>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              onClick={() => setDrawerOpen(false)}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden" />
-            <motion.aside
-              initial={{ x: -320 }} animate={{ x: 0 }} exit={{ x: -320 }} transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed left-0 top-0 bottom-0 z-50 w-80 bg-zinc-950 border-r border-white/10 p-6 overflow-y-auto lg:hidden">
-              <button onClick={() => setDrawerOpen(false)} className="absolute top-4 right-4 p-2 rounded-xl hover:bg-white/5">
-                <X className="h-4 w-4 text-zinc-400" />
-              </button>
-              <div className="mt-4"><SidebarContent /></div>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-16 flex gap-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 lg:py-16 flex gap-10">
 
         {/* ── Desktop Sidebar ── */}
         <aside className="hidden lg:block w-72 shrink-0 sticky top-28 self-start h-fit">
@@ -369,7 +350,7 @@ export default function ProfilePage() {
         </aside>
 
         {/* ── Main Content ── */}
-        <main className="flex-1 min-w-0">
+        <main className="flex-1 min-w-0 pb-28 lg:pb-0">
           <AnimatePresence mode="wait">
 
             {/* ════════════ PROFILE ════════════ */}
@@ -640,7 +621,7 @@ export default function ProfilePage() {
                             {product && (
                               <Button size="sm"
                                 onClick={() => handleAddToCart(product, selectedSizes[item.id] || product.sizeOptions[0].size)}
-                                className="bg-white text-zinc-950 hover:bg-zinc-100 rounded-lg text-xs h-9 px-4 font-semibold hidden sm:flex">
+                                className="bg-white text-zinc-950 hover:bg-zinc-100 rounded-lg text-xs h-9 px-4 font-semibold flex">
                                 Add to Cart
                               </Button>
                             )}
@@ -788,6 +769,28 @@ export default function ProfilePage() {
 
           </AnimatePresence>
         </main>
+      </div>
+
+      {/* ── Mobile bottom tab bar ── */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-zinc-950/95 backdrop-blur-xl border-t border-white/10 flex items-stretch">
+        {NAV.map(item => {
+          const active = activeTab === item.id
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors ${
+                active ? "text-white" : "text-zinc-600 hover:text-zinc-400"
+              }`}
+            >
+              <item.icon className={`h-5 w-5 transition-colors ${active ? "text-white" : "text-zinc-600"}`} />
+              <span className={`text-[9px] uppercase tracking-widest font-medium transition-colors ${active ? "text-white" : "text-zinc-600"}`}>
+                {item.label}
+              </span>
+              {active && <span className="absolute bottom-0 w-8 h-0.5 bg-white rounded-full" />}
+            </button>
+          )
+        })}
       </div>
 
       <Footer />

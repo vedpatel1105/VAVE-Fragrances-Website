@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname, useRouter } from "next/navigation"
-import { ShoppingBag, Menu, X, User, LogOut, Heart } from "lucide-react"
+import { ShoppingBag, Menu, X, User, LogOut, Heart, Package, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAuthStore } from "@/src/lib/auth"
 import { useCartStore } from "@/src/lib/cartStore"
@@ -53,46 +53,50 @@ export default function SimpleNavbar() {
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
-      
-      // Show navbar if scrolling up or at the very top
       if (currentScrollY <= 0) {
         setIsVisible(true)
         setIsScrolled(false)
       } else {
         setIsScrolled(true)
         if (currentScrollY > lastScrollY && currentScrollY > 100) {
-          // Scrolling down and past threshold - hide
           setIsVisible(false)
         } else {
-          // Scrolling up - show
           setIsVisible(true)
         }
       }
-      
       setLastScrollY(currentScrollY)
     }
-
     window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [lastScrollY])
 
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = ""
+    }
+    return () => { document.body.style.overflow = "" }
+  }, [isMenuOpen])
+
   const isActive = (path: string) => pathname === path
 
   const navLinks = [
-    { href: "/collection", label: "Collection" },
-    { href: "/layering", label: "Layering" },
-    { href: "/scent-finder", label: "Scent Finder" },
-    { href: "/about", label: "About" },
-    { href: "/business", label: "Business" },
-    { href: "/influencer-collaboration", label: "Collaborate" },
-    { href: "/contact", label: "Contact" }
+    { href: "/collection", label: "Collection", icon: ShoppingBag },
+    { href: "/layering", label: "Layering", icon: Package },
+    { href: "/scent-finder", label: "Scent Finder", icon: Heart },
+    { href: "/about", label: "About", icon: User },
+    { href: "/business", label: "Business", icon: Package },
+    { href: "/influencer-collaboration", label: "Collaborate", icon: ChevronRight },
+    { href: "/contact", label: "Contact", icon: ChevronRight },
   ]
 
   const cartItemCount = items.reduce((total, item) => total + item.quantity, 0)
 
   return (
     <>
-      <motion.nav 
+      <motion.nav
         initial={{ y: 0 }}
         animate={{ y: isVisible ? 0 : -100 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -101,63 +105,70 @@ export default function SimpleNavbar() {
         }`}
       >
         <div className="container mx-auto px-6">
-          <div className="flex items-center justify-between h-20">
-            <Link href="/" className="text-white font-bold text-xl">
+          <div className="flex items-center justify-between h-16 md:h-20">
+            {/* Logo */}
+            <Link href="/" className="text-white font-bold text-xl z-10">
               <Image
                 src={`${ProductInfo.baseUrl}/logo/logo.png`}
                 alt="VAVE Logo"
                 width={120}
                 height={40}
-                className="h-8 w-auto"
+                className="h-7 md:h-8 w-auto"
               />
             </Link>
 
+            {/* Desktop Nav */}
             <div className="hidden lg:flex items-center gap-10">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`text-[11px] uppercase tracking-[0.2em] transition-colors duration-300 ${isActive(link.href) ? "text-white font-bold" : "text-white/60 hover:text-white"
-                    }`}
+                  className={`text-[11px] uppercase tracking-[0.2em] transition-colors duration-300 ${
+                    isActive(link.href) ? "text-white font-bold" : "text-white/60 hover:text-white"
+                  }`}
                 >
                   {link.label}
                 </Link>
               ))}
             </div>
 
-            <div className="flex items-center gap-2 md:gap-5">
+            {/* Right icons */}
+            <div className="flex items-center gap-1 md:gap-2">
+              {/* Wishlist */}
               <Button
                 variant="ghost"
                 size="icon"
                 className="text-white hover:text-white/80 hover:bg-white/5 relative rounded-full h-10 w-10 transition-colors"
                 onClick={() => router.push("/wishlist")}
               >
-                <Heart className="h-5 w-5" strokeWidth={1.5} />
+                <Heart className="h-[18px] w-[18px]" strokeWidth={1.5} />
                 {wishlistItems.length > 0 && (
-                  <span className="absolute top-1.5 right-1.5 bg-white text-black rounded-full w-4 h-4 text-[10px] flex items-center justify-center font-bold">
+                  <span className="absolute top-1 right-1 bg-white text-black rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold">
                     {wishlistItems.length}
                   </span>
                 )}
               </Button>
 
+              {/* Cart */}
               <Button
                 variant="ghost"
                 size="icon"
                 className="text-white hover:text-white/80 hover:bg-white/5 relative rounded-full h-10 w-10 transition-colors"
                 onClick={() => setIsOpen(true)}
               >
-                <ShoppingBag className="h-5 w-5" strokeWidth={1.5} />
+                <ShoppingBag className="h-[18px] w-[18px]" strokeWidth={1.5} />
                 {cartItemCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 bg-white text-black rounded-full w-4 h-4 text-[10px] flex items-center justify-center font-bold">
+                  <span className="absolute top-1 right-1 bg-white text-black rounded-full w-4 h-4 text-[9px] flex items-center justify-center font-bold">
                     {cartItemCount}
                   </span>
                 )}
               </Button>
 
+              {/* User (desktop) */}
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-white hover:text-white/80 hover:bg-transparent">
+                    <Button variant="ghost" size="icon" className="text-white hover:text-white/80 hover:bg-transparent hidden lg:flex">
                       <Avatar className="h-8 w-8 border border-white/20">
                         <AvatarImage src={avatarUrl} />
                         <AvatarFallback className="bg-zinc-800 text-xs">{user.full_name?.[0]}</AvatarFallback>
@@ -191,56 +202,122 @@ export default function SimpleNavbar() {
                 </button>
               )}
 
+              {/* Hamburger (mobile only) */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-white hover:text-white hover:bg-white/10 lg:hidden rounded-full h-10 w-10"
+                className="text-white hover:text-white hover:bg-white/10 lg:hidden rounded-full h-10 w-10 ml-1"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
+                aria-label="Toggle menu"
               >
                 {isMenuOpen ? <X className="h-5 w-5" strokeWidth={1.5} /> : <Menu className="h-5 w-5" strokeWidth={1.5} />}
               </Button>
             </div>
           </div>
         </div>
-
-        {/* Mobile menu - Luxury Aesthetic */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="lg:hidden absolute top-20 left-0 right-0 bg-zinc-950/95 backdrop-blur-2xl border-t border-white/10 overflow-hidden"
-            >
-              <div className="container mx-auto px-8 py-10 flex flex-col gap-6 items-center text-center">
-                {navLinks.map((link, i) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={`text-2xl font-serif italic tracking-wide transition-colors ${isActive(link.href) ? "text-white" : "text-white/50 hover:text-white"
-                      }`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-                
-                {!user && (
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      router.push(`/auth/login?redirect=${encodeURIComponent(pathname)}`);
-                    }}
-                    className="mt-6 px-10 py-3 rounded-full border border-white/20 text-white hover:bg-white/10 backdrop-blur-md text-xs uppercase tracking-[0.2em] transition-all duration-500"
-                  >
-                    Sign In
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </motion.nav>
+
+      {/* ── Full-screen mobile menu overlay ── */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[45] lg:hidden bg-zinc-950 flex flex-col overflow-y-auto"
+          >
+            {/* Header row inside overlay */}
+            <div className="flex items-center justify-between px-6 h-16 border-b border-white/5 shrink-0">
+              <Link href="/" onClick={() => setIsMenuOpen(false)}>
+                <Image
+                  src={`${ProductInfo.baseUrl}/logo/logo.png`}
+                  alt="VAVE Logo"
+                  width={100}
+                  height={34}
+                  className="h-7 w-auto"
+                />
+              </Link>
+              <button
+                onClick={() => setIsMenuOpen(false)}
+                className="p-2 rounded-full hover:bg-white/10 transition-colors"
+              >
+                <X className="h-5 w-5 text-white" strokeWidth={1.5} />
+              </button>
+            </div>
+
+            {/* User info block (if logged in) */}
+            {user && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 }}
+                className="mx-5 mt-5 rounded-2xl bg-white/[0.04] border border-white/10 p-4 flex items-center gap-3"
+              >
+                <Avatar className="h-12 w-12 border border-white/20 shrink-0">
+                  <AvatarImage src={avatarUrl} />
+                  <AvatarFallback className="bg-zinc-800 text-sm font-serif">
+                    {(user.full_name || user.email || "V")[0].toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white truncate">{user.full_name || "Welcome back"}</p>
+                  <p className="text-xs text-zinc-500 truncate">{user.email}</p>
+                </div>
+                <button
+                  onClick={() => { setIsMenuOpen(false); router.push("/profile") }}
+                  className="ml-auto shrink-0 text-[10px] uppercase tracking-widest text-zinc-500 hover:text-white transition-colors border border-white/10 rounded-lg px-3 py-1.5"
+                >
+                  Profile
+                </button>
+              </motion.div>
+            )}
+
+            {/* Nav links */}
+            <nav className="flex-1 px-5 py-6 space-y-1">
+              {navLinks.map((link, i) => (
+                <motion.div
+                  key={link.href}
+                  initial={{ opacity: 0, x: -16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.06 + i * 0.04, ease: [0.22, 1, 0.36, 1] }}
+                >
+                  <Link
+                    href={link.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={`flex items-center justify-between w-full py-4 border-b border-white/5 group transition-colors ${
+                      isActive(link.href) ? "text-white" : "text-white/50 hover:text-white"
+                    }`}
+                  >
+                    <span className="text-xl font-serif italic">{link.label}</span>
+                    <ChevronRight className={`h-4 w-4 transition-transform group-hover:translate-x-1 ${isActive(link.href) ? "text-white" : "text-white/20"}`} />
+                  </Link>
+                </motion.div>
+              ))}
+            </nav>
+
+            {/* Bottom action area */}
+            <div className="px-5 pb-8 pt-4 space-y-3 shrink-0 border-t border-white/5">
+              {user ? (
+                <button
+                  onClick={() => { logout(); setIsMenuOpen(false) }}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl border border-rose-500/20 text-rose-400 hover:bg-rose-500/10 transition-colors text-sm font-medium"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </button>
+              ) : (
+                <button
+                  onClick={() => { setIsMenuOpen(false); router.push(`/auth/login?redirect=${encodeURIComponent(pathname)}`) }}
+                  className="w-full py-4 rounded-xl bg-white text-zinc-950 font-semibold text-sm tracking-wide hover:bg-zinc-100 transition-colors"
+                >
+                  Sign In
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }
