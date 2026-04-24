@@ -668,7 +668,7 @@ export default function ProductDetailPage() {
             </button>
 
             {/* Main Image Container */}
-            <div className="relative w-full h-full max-w-5xl max-h-[80vh] mx-auto px-4 flex items-center justify-center">
+            <div className="relative w-[90vw] h-[80vh] max-w-5xl mx-auto flex items-center justify-center">
                <motion.div 
                  key={currentImage}
                  initial={{ opacity: 0, scale: 0.95 }}

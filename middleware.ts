@@ -39,7 +39,8 @@ export async function middleware(request: NextRequest) {
   const redirectToOriginalUrl = (redirectTo: string = '/auth/login') => {
     const redirectUrl = new URL(redirectTo, request.url)
     if (pathname !== '/auth/login') {
-      redirectUrl.searchParams.set('redirect', pathname)
+      const fullPath = request.nextUrl.search ? `${pathname}${request.nextUrl.search}` : pathname;
+      redirectUrl.searchParams.set('redirect', fullPath)
     }
     return NextResponse.redirect(redirectUrl)
   }
