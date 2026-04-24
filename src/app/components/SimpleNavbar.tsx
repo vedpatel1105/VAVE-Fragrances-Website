@@ -194,18 +194,12 @@ export default function SimpleNavbar() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <div className="hidden lg:flex items-center gap-3">
+                <div className="hidden lg:flex items-center">
                   <button
                     onClick={() => router.push(`/auth/login?redirect=${encodeURIComponent(pathname)}`)}
-                    className="px-4 py-2 text-white/60 hover:text-white text-[10px] uppercase tracking-widest transition-colors"
+                    className="px-6 py-2 rounded-full border border-white/20 text-white hover:bg-white hover:text-black text-[10px] uppercase tracking-[1em] transition-all duration-500"
                   >
                     Sign In
-                  </button>
-                  <button
-                    onClick={() => router.push(`/auth/signup?redirect=${encodeURIComponent(pathname)}`)}
-                    className="px-6 py-2 rounded-full bg-white text-black text-[10px] uppercase tracking-widest font-bold hover:bg-zinc-200 transition-all duration-300"
-                  >
-                    Sign Up
                   </button>
                 </div>
               )}
@@ -311,20 +305,12 @@ export default function SimpleNavbar() {
                   Sign Out
                 </button>
               ) : (
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => { setIsMenuOpen(false); router.push(`/auth/login?redirect=${encodeURIComponent(pathname)}`) }}
-                    className="py-4 rounded-xl border border-white/10 text-white font-semibold text-sm tracking-wide hover:bg-white/5 transition-colors"
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={() => { setIsMenuOpen(false); router.push(`/auth/signup?redirect=${encodeURIComponent(pathname)}`) }}
-                    className="py-4 rounded-xl bg-white text-zinc-950 font-semibold text-sm tracking-wide hover:bg-zinc-100 transition-colors"
-                  >
-                    Sign Up
-                  </button>
-                </div>
+                <button
+                  onClick={() => { setIsMenuOpen(false); router.push(`/auth/login?redirect=${encodeURIComponent(pathname)}`) }}
+                  className="w-full py-4 rounded-xl border border-white/20 text-white font-semibold text-sm tracking-[0.5em] uppercase hover:bg-white hover:text-black transition-all duration-500"
+                >
+                  Sign In
+                </button>
               )}
             </div>
           </motion.div>
