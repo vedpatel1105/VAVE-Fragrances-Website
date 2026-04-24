@@ -182,7 +182,7 @@ export default function Home() {
       <div className="container mx-auto px-6 md:px-12 xl:px-20">
         {/* Featured Products Section */}
         <section id="featured" className="w-full py-32 relative">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-24 bg-gradient-to-b from-white/20 to-transparent" />
+
           <div className="container mx-auto px-4 md:px-6">
             {/* Section Header */}
             <motion.div 

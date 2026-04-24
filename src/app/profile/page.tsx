@@ -326,22 +326,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-zinc-950 text-white selection:bg-white selection:text-black">
       <SimpleNavbar />
 
-      {/* ── Mobile top bar: mini profile header ── */}
-      <div className="lg:hidden sticky top-16 z-30 bg-zinc-950/95 backdrop-blur border-b border-white/5 flex items-center px-5 py-3 gap-3">
-        <Avatar className="h-9 w-9 border border-white/10 shrink-0">
-          <AvatarImage src={profile.avatarUrl} />
-          <AvatarFallback className="bg-zinc-800 text-white text-xs font-serif">
-            {(profile.full_name || "V").charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white truncate leading-none">{profile.full_name || "My Account"}</p>
-          <p className="text-xs text-zinc-500 truncate mt-0.5">{profile.email || user?.email}</p>
-        </div>
-        <button onClick={handleLogout} className="shrink-0 p-2 rounded-xl hover:bg-rose-500/10 text-zinc-500 hover:text-rose-400 transition-colors">
-          <LogOut className="h-4 w-4" />
-        </button>
-      </div>
+
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-6 lg:py-16 flex gap-10">
 
@@ -450,16 +435,7 @@ export default function ProfilePage() {
                   </div>
                 )}
 
-                {/* Logout Card */}
-                <div className="lg:hidden pt-4">
-                   <button 
-                     onClick={handleLogout}
-                     className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-zinc-900 border border-rose-500/20 text-rose-400 text-sm font-medium hover:bg-rose-500/5 transition-all"
-                   >
-                     <LogOut className="h-4 w-4" />
-                     Sign Out of Account
-                   </button>
-                </div>
+
               </motion.div>
             )}
 
@@ -877,6 +853,19 @@ export default function ProfilePage() {
               </motion.div>
             )}
 
+
+            {/* Simple Mobile Logout at Bottom */}
+            <div className="lg:hidden mt-20 border-t border-white/5 pt-10 pb-10">
+              <button 
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-3 text-zinc-500 hover:text-rose-400 transition-all duration-300 group"
+              >
+                <div className="p-2 rounded-full bg-zinc-900 border border-white/5 group-hover:border-rose-500/30 group-hover:bg-rose-500/5 transition-all">
+                  <LogOut className="h-4 w-4" strokeWidth={1.5} />
+                </div>
+                <span className="text-sm font-medium uppercase tracking-[0.2em]">Log Out</span>
+              </button>
+            </div>
           </AnimatePresence>
         </main>
       </div>
