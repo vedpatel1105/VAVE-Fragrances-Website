@@ -144,7 +144,7 @@ export default function Hero() {
         <span className="text-[7px] uppercase tracking-widest font-black">48.8566° N, 2.3522° E</span>
       </div>
 
-      <div className="absolute bottom-12 inset-x-12 flex justify-between items-end">
+      <div className="absolute bottom-12 inset-x-12 flex justify-center md:justify-between items-end">
         <div className="hidden md:flex flex-col gap-1 text-white/10">
           <span className="text-[7px] uppercase tracking-widest">Extrait De Parfum</span>
           <div className="h-[2px] w-12 bg-white/20 mt-1" />
