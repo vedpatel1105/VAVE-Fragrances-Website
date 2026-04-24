@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { supabase, isSupabaseConfigured } from "./supabaseClient";
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { isSupabaseConfigured } from "./supabaseClient";
 
 interface User {
     user_metadata: any;
@@ -29,14 +30,19 @@ export interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             user: null,
             isAuthenticated: false,
             isLoading: true,
+            
+            // Internal supabase client that handles cookies
+            _supabase: createClientComponentClient(),
+
             setUser: (user) => set({ user, isAuthenticated: !!user }),
             
             login: async (email, password) => {
                 try {
+                    const supabase = get()._supabase;
                     set({ isLoading: true });
                     
                     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -82,6 +88,7 @@ export const useAuthStore = create<AuthState>()(
             
             loginWithGoogle: async (redirectPath: string = '') => {
                 try {
+                    const supabase = get()._supabase;
                     set({ isLoading: true });
                     const origin = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || "https://vavefragrances.com");
                     const { error } = await supabase.auth.signInWithOAuth({
@@ -109,6 +116,7 @@ export const useAuthStore = create<AuthState>()(
 
             register: async (email, password, full_name, phone) => {
                 try {
+                    const supabase = get()._supabase;
                     set({ isLoading: true });
                     const origin = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || "https://vavefragrances.com");
                     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -161,6 +169,7 @@ export const useAuthStore = create<AuthState>()(
             
             signInWithPhone: async (phone) => {
                 try {
+                    const supabase = get()._supabase;
                     set({ isLoading: true });
                     const { error } = await supabase.auth.signInWithOtp({
                         phone: phone.startsWith('+') ? phone : `+91${phone}`, // Default to India if no code
@@ -181,6 +190,7 @@ export const useAuthStore = create<AuthState>()(
 
             verifyPhoneOtp: async (phone, token) => {
                 try {
+                    const supabase = get()._supabase;
                     set({ isLoading: true });
                     const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
                     const { data: authData, error: authError } = await supabase.auth.verifyOtp({
@@ -223,6 +233,7 @@ export const useAuthStore = create<AuthState>()(
 
             updateUserMetadata: async (metadata) => {
                 try {
+                    const supabase = get()._supabase;
                     set({ isLoading: true });
                     
                     const { data: { user }, error } = await supabase.auth.updateUser({
@@ -255,6 +266,7 @@ export const useAuthStore = create<AuthState>()(
 
             resetPassword: async (password: string) => {
                 try {
+                    const supabase = get()._supabase;
                     set({ isLoading: true });
                     const { error } = await supabase.auth.updateUser({
                         password: password
@@ -276,6 +288,7 @@ export const useAuthStore = create<AuthState>()(
 
             logout: async () => {
                 try {
+                    const supabase = get()._supabase;
                     const { error } = await supabase.auth.signOut();
                     if (error) throw error;
                 } catch (error: any) {
@@ -312,6 +325,7 @@ export const useAuthStore = create<AuthState>()(
                                 });
                                 return;
                             }
+                            const supabase = get()._supabase;
                             const { data: { session } } = await supabase.auth.getSession();
                             
                             if (session?.user) {
@@ -338,9 +352,9 @@ export const useAuthStore = create<AuthState>()(
                             console.error("Auth check error:", error);
                             set({
                                 user: null,
-                                isAuthenticated: false,
-                                isLoading: false,
-                            });
+                                    isAuthenticated: false,
+                                    isLoading: false,
+                                });
                         }
                     })();
                     

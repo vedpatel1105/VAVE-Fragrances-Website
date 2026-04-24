@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
 const envSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const envSupabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -23,4 +24,7 @@ if (!isSupabaseConfigured) {
 const supabaseUrl = envSupabaseUrl || "https://tuqdytehmpzhlbxfvylv.supabase.co";
 const supabaseAnon = envSupabaseAnonKey || "placeholder-anon-key";
 
-export const supabase = createClient(supabaseUrl, supabaseAnon);
+// Create a single instance but use the appropriate helper in the browser
+export const supabase = typeof window !== "undefined"
+  ? createClientComponentClient()
+  : createClient(supabaseUrl, supabaseAnon);
