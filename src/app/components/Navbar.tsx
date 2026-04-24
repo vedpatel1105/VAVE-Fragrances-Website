@@ -234,13 +234,38 @@ export default function Navbar({ setIsCartOpen, cartItemsCount = 0 }: NavbarProp
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="block py-2 text-sm font-medium text-white/90 hover:text-accent transition-colors"
+                    className={`block py-4 text-[10px] uppercase tracking-[0.25em] border-b border-white/5 transition-colors ${
+                      router.pathname === item.href ? "text-white font-bold" : "text-white/60 hover:text-white"
+                    }`}
+                    style={{ fontFamily: 'var(--font-montserrat), sans-serif' }}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {item.label}
                   </Link>
                 ))}
-                <div className="flex justify-start space-x-4 mt-4">
+                {!isAuthenticated && (
+                  <div className="mt-6">
+                    <Button
+                      onClick={() => { setIsMenuOpen(false); router.push('/auth/login') }}
+                      className="w-full py-6 rounded-xl border border-white/20 text-white font-bold text-[10px] tracking-[0.3em] uppercase bg-transparent hover:bg-white hover:text-black transition-all duration-500"
+                      style={{ fontFamily: 'var(--font-montserrat), sans-serif' }}
+                    >
+                      Log In / Sign Up
+                    </Button>
+                  </div>
+                )}
+                {isAuthenticated && (
+                  <div className="mt-6">
+                    <Button
+                      onClick={() => { setIsMenuOpen(false); handleLogout() }}
+                      className="w-full py-6 rounded-xl border border-rose-500/20 text-rose-400 font-bold text-[10px] tracking-[0.3em] uppercase bg-transparent hover:bg-rose-500/10 transition-all duration-500"
+                      style={{ fontFamily: 'var(--font-montserrat), sans-serif' }}
+                    >
+                      Sign Out
+                    </Button>
+                  </div>
+                )}
+                <div className="flex justify-start space-x-4 mt-8 pt-6 border-t border-white/5">
                   <a
                     href="https://wa.me/919328701508"
                     target="_blank"
