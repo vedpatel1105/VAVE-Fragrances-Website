@@ -21,12 +21,17 @@ export default function ForgotPasswordPage() {
     setIsLoading(true);
 
     try {
+      console.log("Attempting password reset for:", email);
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/callback?redirect=/auth/reset-password`,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase reset error:", error);
+        throw error;
+      }
 
+      console.log("Reset email sent successfully");
       toast({
         title: "Email Sent",
         description: "Check your email for the password reset link.",
@@ -34,6 +39,7 @@ export default function ForgotPasswordPage() {
 
       router.push("/auth/check-your-email");
     } catch (error: any) {
+      console.error("Forgot password handler error:", error);
       toast({
         title: "Error",
         description: error.message || "Something went wrong. Please try again.",

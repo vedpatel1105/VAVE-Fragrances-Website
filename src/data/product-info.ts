@@ -9,6 +9,46 @@ export namespace ProductInfo {
 
     const staticProducts: Product[] = [
         {
+            id: "demo-product-10",
+            name: "Demo Fragrance",
+            slug: "demo-10",
+            category: "Testing",
+            tagline: "Test • Demo • 10 INR",
+            price: 10,
+            priceXL: 10,
+            images: {
+                "30": [`${baseUrl}/havoc/30/bottle.webp`],
+                "50": [`${baseUrl}/havoc/50/bottle.jpg`],
+                label: `${baseUrl}/havoc/label.webp`,
+            },
+            description: "A demo product created for testing payment and checkout flows.",
+            longDescription: "<p>This is a demo product with a price of 10 INR. Use this to test the integration of Razorpay and the checkout process without spending a large amount.</p>",
+            rating: 5.0,
+            reviews: 0,
+            isNew: true,
+            isBestseller: false,
+            isLimited: false,
+            discount: null,
+            ingredients: ["Water", "Alcohol", "Fragrance"],
+            sizeOptions: [
+                { size: "30", price: 10 },
+                { size: "50", price: 10 },
+            ],
+            specifications: {
+                fragrance_family: "Demo",
+                concentration: "100% Test",
+                longevity: "N/A",
+                sillage: "N/A",
+                launch_year: "2026",
+            },
+            notes: {
+                top: ["Test"],
+                heart: ["Demo"],
+                base: ["10 INR"],
+            },
+            layeringOptions: [],
+        },
+        {
             id: "fcbba672-0980-4de5-9675-930632135864",
             name: "Havoc",
             slug: "havoc",

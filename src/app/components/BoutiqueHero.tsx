@@ -227,7 +227,7 @@ export default function BoutiqueHero() {
         animate={{ opacity: 1 }}
         transition={{ duration: 1.5, delay: 1.5 }}
         className="flex absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex-col items-center gap-2"
-      >
+      >?
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
