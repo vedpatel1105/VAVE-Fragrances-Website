@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { getSupabaseClient } from './supabaseClient';
 import type {
     Order,
     ShippingAddress,
@@ -39,19 +39,16 @@ export const validateShippingAddress = (address: ShippingAddress): string | null
         }
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(address.email)) {
         return 'Invalid email format';
     }
 
-    // Validate phone number (Indian format)
     const phoneRegex = /^[6-9]\d{9}$/;
     if (!phoneRegex.test(address.phone)) {
         return 'Invalid phone number format';
     }
 
-    // Validate pincode
     const pincodeRegex = /^\d{6}$/;
     if (!pincodeRegex.test(address.pincode)) {
         return 'Invalid pincode format';
@@ -67,10 +64,9 @@ export const createRazorpayOrder = async (order: {
     payment_method: 'razorpay';
 }): Promise<RazorpayOrderResponse> => {
     try {
-        // Get the current session if available
-        const { data: { session } } = await supabase.auth.getSession();
+        const client = getSupabaseClient();
+        const { data: { session } } = await client.auth.getSession();
         
-        // Pass the token only if it exists
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
         };
@@ -79,7 +75,6 @@ export const createRazorpayOrder = async (order: {
             headers['Authorization'] = `Bearer ${session.access_token}`;
         }
 
-        // Validate input
         if (!order.items?.length) {
             throw new Error('Order must contain items');
         }
@@ -93,7 +88,6 @@ export const createRazorpayOrder = async (order: {
             throw new Error(addressError);
         }
 
-        // Create order
         const response = await fetch('/api/create-razorpay-order', {
             method: 'POST',
             headers,
@@ -154,8 +148,8 @@ export const initializeRazorpayCheckout = async (
             },
             handler: async (response: RazorpayVerificationResponse) => {
                 try {
-                    // Get the current session if available
-                    const { data: { session } } = await supabase.auth.getSession();
+                    const client = getSupabaseClient();
+                    const { data: { session } } = await client.auth.getSession();
                     
                     const verificationHeaders: Record<string, string> = {
                         'Content-Type': 'application/json',
@@ -165,7 +159,6 @@ export const initializeRazorpayCheckout = async (
                         verificationHeaders['Authorization'] = `Bearer ${session.access_token}`;
                     }
 
-                    // Verify payment with backend
                     const verificationResponse = await fetch('/api/verify-payment', {
                         method: 'POST',
                         headers: verificationHeaders,
@@ -210,7 +203,8 @@ export const initializeRazorpayCheckout = async (
 
 export const createOrder = async (orderData: Order) => {
     try {
-        const { data: order, error } = await supabase
+        const client = getSupabaseClient();
+        const { data: order, error } = await client
             .from('orders')
             .insert([orderData])
             .select()
@@ -229,7 +223,8 @@ export const updateOrderStatus = async (
     status: 'paid' | 'failed'
 ) => {
     try {
-        const { error } = await supabase
+        const client = getSupabaseClient();
+        const { error } = await client
             .from('orders')
             .update({ status })
             .eq('id', orderId);
@@ -243,7 +238,8 @@ export const updateOrderStatus = async (
 
 export const createTransaction = async (transactionData: Transaction) => {
     try {
-        const { error } = await supabase
+        const client = getSupabaseClient();
+        const { error } = await client
             .from('transactions')
             .insert([transactionData]);
 

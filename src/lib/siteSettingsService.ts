@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient'
+import { getSupabaseClient } from './supabaseClient'
 
 export interface SiteSettings {
   id?: string
@@ -17,7 +17,8 @@ export interface GalleryImage {
 export const siteSettingsService = {
   async getSettings(): Promise<SiteSettings> {
     try {
-      const { data, error } = await supabase
+      const client = getSupabaseClient()
+      const { data, error } = await client
         .from('vave_settings')
         .select('*')
         .single()
@@ -32,16 +33,17 @@ export const siteSettingsService = {
   },
 
   async updateSettings(settings: Partial<SiteSettings>) {
-    const { data: existing } = await supabase.from('vave_settings').select('id').single()
+    const client = getSupabaseClient()
+    const { data: existing } = await client.from('vave_settings').select('id').single()
     
     if (existing) {
-      const { error } = await supabase
+      const { error } = await client
         .from('vave_settings')
         .update(settings)
         .eq('id', existing.id)
       if (error) throw error
     } else {
-      const { error } = await supabase
+      const { error } = await client
         .from('vave_settings')
         .insert([settings])
       if (error) throw error
@@ -49,7 +51,8 @@ export const siteSettingsService = {
   },
 
   async getGalleryImages(): Promise<GalleryImage[]> {
-    const { data, error } = await supabase
+    const client = getSupabaseClient()
+    const { data, error } = await client
       .from('vave_gallery')
       .select('*')
       .order('order_index', { ascending: true })
@@ -59,14 +62,16 @@ export const siteSettingsService = {
   },
 
   async addGalleryImage(image: Omit<GalleryImage, 'id'>) {
-    const { error } = await supabase
+    const client = getSupabaseClient()
+    const { error } = await client
       .from('vave_gallery')
       .insert([image])
     if (error) throw error
   },
 
   async deleteGalleryImage(id: string) {
-    const { error } = await supabase
+    const client = getSupabaseClient()
+    const { error } = await client
       .from('vave_gallery')
       .delete()
       .eq('id', id)
@@ -75,10 +80,9 @@ export const siteSettingsService = {
 
   async updateGalleryOrder(images: { id: string, order_index: number }[]) {
     try {
-      // In a production app, we would use a Supabase RPC function for batch updates.
-      // For now, we execute them in parallel for speed.
+      const client = getSupabaseClient()
       const updates = images.map(img => 
-        supabase
+        client
           .from('vave_gallery')
           .update({ order_index: img.order_index })
           .eq('id', img.id)

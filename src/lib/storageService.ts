@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { getSupabaseClient } from './supabaseClient';
 
 export const storageService = {
   /**
@@ -6,11 +6,12 @@ export const storageService = {
    * Path: [category]/[filename]
    */
   async uploadProductImage(file: File, folder: string = 'general'): Promise<string> {
+    const client = getSupabaseClient();
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
     const filePath = `${folder}/${fileName}`;
 
-    const { data, error } = await supabase.storage
+    const { data, error } = await client.storage
       .from('products')
       .upload(filePath, file, {
         cacheControl: '3600',
@@ -23,7 +24,7 @@ export const storageService = {
     }
 
     // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    const { data: { publicUrl } } = client.storage
       .from('products')
       .getPublicUrl(filePath);
 
@@ -35,13 +36,14 @@ export const storageService = {
    */
   async deleteProductImage(url: string): Promise<void> {
     try {
+      const client = getSupabaseClient();
       // Extract path from URL
       // Example URL: https://xyz.supabase.co/storage/v1/object/public/products/folder/file.png
       const urlParts = url.split('/products/');
       if (urlParts.length < 2) return;
       
       const filePath = urlParts[1];
-      const { error } = await supabase.storage
+      const { error } = await client.storage
         .from('products')
         .remove([filePath]);
 
