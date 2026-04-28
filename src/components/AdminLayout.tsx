@@ -57,7 +57,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       if (authLoading) return
 
       try {
-        const adminStatus = await adminService.isAdmin()
+        // Pass the user from useAuthStore to the adminService
+        const adminStatus = await adminService.isAdmin(user)
         setIsAdmin(adminStatus)
         
         // Only redirect if auth is finished and user is not admin

