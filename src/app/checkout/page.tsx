@@ -451,7 +451,7 @@ function CheckoutContent() {
     }
   };
 
-  const handleWhatsAppOrder = () => {
+  const handleWhatsAppOrder = async () => {
     // 1. Trigger the standard form validation to show red borders/errors in UI
     const isFormValid = validateForm();
 

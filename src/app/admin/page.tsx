@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import { adminService } from "@/src/lib/adminService"
 import { supabase, isSupabaseConfigured } from "@/src/lib/supabaseClient"
+import { useAuthStore } from "@/src/lib/auth"
 
 export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false)
@@ -83,24 +84,25 @@ export default function AdminLoginPage() {
   // Only initialize when configured to prevent runtime throw
   // @ts-ignore
 
+  const { login } = useAuthStore()
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: form.email,
-        password: form.password,
-      })
+      const result = await login(form.email, form.password)
 
-      if (error) throw error
+      if (!result.success) {
+        throw new Error(result.error || "Invalid credentials")
+      }
 
-      if (data.user) {
+      if (result.user) {
         const isAdmin = await adminService.isAdmin()
         const isViewer = await adminService.isViewer()
 
         if (!isViewer) {
-          await supabase.auth.signOut()
+          await useAuthStore.getState().logout()
           throw new Error("Unauthorized access")
         }
 

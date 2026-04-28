@@ -694,8 +694,8 @@ export namespace ProductInfo {
     // Product cache
     let _productCache: Product[] | null = null;
 
-    const CACHE_KEY = "vave_products_v2";
-    const CACHE_TIMESTAMP_KEY = "vave_products_v2_timestamp";
+    const CACHE_KEY = "vave_products_v3";
+    const CACHE_TIMESTAMP_KEY = "vave_products_v3_timestamp";
     const CACHE_EXPIRATION_MS = 48 * 60 * 60 * 1000; // 48 hours
 
     // Load products from localStorage or Supabase
