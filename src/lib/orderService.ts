@@ -119,10 +119,8 @@ export const orderService = {
 
   async getAllOrders(): Promise<Order[]> {
     const supabase = createClientComponentClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
-
-    // Check if user is admin
+    
+    // Check if user is admin (handles both real and backdoor users)
     const isAdmin = await adminService.isAdmin()
     if (!isAdmin) throw new Error('Not authorized')
 
@@ -136,9 +134,6 @@ export const orderService = {
   },
 
   async searchOrders(query: string): Promise<Order[]> {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
-
     // Check if user is admin
     const isAdmin = await adminService.isAdmin()
     if (!isAdmin) throw new Error('Not authorized')

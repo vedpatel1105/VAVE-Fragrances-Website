@@ -166,12 +166,10 @@ export default function AdminAnalyticsPage() {
       setRealAudience(audienceData)
       setRealActivity(activityData)
       
-      if (statsData.totalViews === 0 && statsData.totalRevenue === 0) {
-        setIsDemoMode(true)
-      }
+      setIsDemoMode(false)
     } catch (error) {
-      toast({ title: "Connection Error", description: "Defaulting to high-fidelity demo environment.", variant: "destructive" })
-      setIsDemoMode(true)
+      toast({ title: "Connection Error", description: "Failed to load real-time analytics.", variant: "destructive" })
+      setIsDemoMode(false)
     } finally {
       setLoading(false)
       setIsRefreshing(false)
@@ -180,9 +178,9 @@ export default function AdminAnalyticsPage() {
 
   useEffect(() => { loadData(dateRange) }, [dateRange])
 
-  const stats = isDemoMode ? MOCK_STATS : (realStats || MOCK_STATS);
-  const audience = isDemoMode ? MOCK_AUDIENCE : (realAudience || MOCK_AUDIENCE);
-  const liveActivity = isDemoMode ? MOCK_ACTIVITY : (realActivity.length > 0 ? realActivity : MOCK_ACTIVITY);
+  const stats = realStats || { totalViews: 0, totalCarts: 0, totalWishlist: 0, checkoutStarts: 0, totalPurchases: 0, totalRevenue: 0, returningRate: "0", topProducts: [], wishlistPopularity: [], revenueProducts: [], timeline: [] };
+  const audience = realAudience || { pagePerformance: [], recoveryLeads: [] };
+  const liveActivity = realActivity || [];
 
   const conversionRate = useMemo(() => {
     if (!stats || stats.totalViews === 0) return 0

