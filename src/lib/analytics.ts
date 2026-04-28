@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient'
+import { getSupabaseClient } from './supabaseClient'
 
 // Extend window for gtag
 declare global {
@@ -21,8 +21,10 @@ export const analytics = {
 
     // 2. Supabase Tracking (Async)
     try {
+      const client = getSupabaseClient();
+      
       // Get current user if exists
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user } } = await client.auth.getUser()
       
       const payload = {
         event_name: eventName,
@@ -33,7 +35,7 @@ export const analytics = {
       }
 
       // We use 'vave_analytics' as the table name
-      await supabase.from('vave_analytics').insert(payload)
+      await client.from('vave_analytics').insert(payload)
     } catch (error) {
       // Fail silently for analytics to not disturb user flow
       console.warn('Analytics Error:', error)

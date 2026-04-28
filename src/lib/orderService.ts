@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient'
+import { getSupabaseClient } from './supabaseClient'
 import { adminService } from './adminService'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { CartItem } from './cartStore'
@@ -20,10 +20,11 @@ export interface Order {
 
 export const orderService = {
   async checkIncompleteOrders(): Promise<boolean> {
-    const { data: { user } } = await supabase.auth.getUser()
+    const client = getSupabaseClient()
+    const { data: { user } } = await client.auth.getUser()
     if (!user) throw new Error('Not authenticated')
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('orders')
       .select('id, status')
       .eq('user_id', user.id)
@@ -35,6 +36,7 @@ export const orderService = {
   },
 
   async placeOrder(orderData: Pick<Order, 'items' | 'total_amount' | 'shipping_address' | 'payment_method'> & { subtotal_amount?: number, shipping_amount?: number }): Promise<Order> {
+    const client = getSupabaseClient()
     // First check for incomplete orders
     const hasIncompleteOrders = await this.checkIncompleteOrders()
     if (hasIncompleteOrders) {
@@ -42,11 +44,11 @@ export const orderService = {
     }
 
     // Get current user
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await client.auth.getUser()
     if (!user) throw new Error('User not authenticated')
 
     // Create the order
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('orders')
       .insert({
         user_id: user.id,
@@ -66,10 +68,11 @@ export const orderService = {
   },
 
   async getOrders(): Promise<Order[]> {
-    const { data: { user } } = await supabase.auth.getUser()
+    const client = getSupabaseClient()
+    const { data: { user } } = await client.auth.getUser()
     if (!user) throw new Error('Not authenticated')
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('orders')
       .select('*')
       .eq('user_id', user.id)
@@ -80,10 +83,11 @@ export const orderService = {
   },
 
   async getOrderById(id: string): Promise<Order> {
-    const { data: { user } } = await supabase.auth.getUser()
+    const client = getSupabaseClient()
+    const { data: { user } } = await client.auth.getUser()
     if (!user) throw new Error('Not authenticated')
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('orders')
       .select('*')
       .eq('id', id)
@@ -102,8 +106,8 @@ export const orderService = {
       if (!isAdmin) throw new Error('Not authorized')
 
       // Update order status
-      const supabase = createClientComponentClient()
-      const { error: orderError } = await supabase
+      const client = getSupabaseClient()
+      const { error: orderError } = await client
         .from('orders')
         .update({ status })
         .eq('id', orderId)
@@ -118,13 +122,13 @@ export const orderService = {
   },
 
   async getAllOrders(): Promise<Order[]> {
-    const supabase = createClientComponentClient()
+    const client = getSupabaseClient()
     
     // Check if user is admin (handles both real and backdoor users)
     const isAdmin = await adminService.isAdmin()
     if (!isAdmin) throw new Error('Not authorized')
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('orders')
       .select('*')
       .order('created_at', { ascending: false })
@@ -134,11 +138,12 @@ export const orderService = {
   },
 
   async searchOrders(query: string): Promise<Order[]> {
+    const client = getSupabaseClient()
     // Check if user is admin
     const isAdmin = await adminService.isAdmin()
     if (!isAdmin) throw new Error('Not authorized')
 
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('orders')
       .select('*')
       .or(`id.ilike.%${query}%,items->>name.ilike.%${query}%`)
@@ -146,18 +151,19 @@ export const orderService = {
 
     if (error) throw error
     return data
-  }
-  ,async updateFulfillmentStatus(orderId: string, fulfillmentStatus: 'processing' | 'shipped' | 'delivered' | 'cancelled'): Promise<void> {
+  },
+
+  async updateFulfillmentStatus(orderId: string, fulfillmentStatus: 'processing' | 'shipped' | 'delivered' | 'cancelled'): Promise<void> {
+    const client = getSupabaseClient()
     // Admin only
     const isAdmin = await adminService.isAdmin()
     if (!isAdmin) throw new Error('Not authorized')
 
-    const supabase = createClientComponentClient()
-    const { error } = await supabase
+    const { error } = await client
       .from('orders')
       .update({ fulfillment_status: fulfillmentStatus })
       .eq('id', orderId)
 
     if (error) throw error
   }
-} 
+}

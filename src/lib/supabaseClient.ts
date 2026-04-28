@@ -12,23 +12,19 @@ export const isSupabaseConfigured = Boolean(envSupabaseUrl &&
 const supabaseUrl = envSupabaseUrl || "https://tuqdytehmpzhlbxfvylv.supabase.co";
 const supabaseAnon = envSupabaseAnonKey || "placeholder-anon-key";
 
-// Singleton instance with lazy initialization
+// Singleton instance with lazy initialization - THIS IS THE ONLY SAFE WAY
 let supabaseInstance: any = null;
 
 export const getSupabaseClient = () => {
   if (supabaseInstance) return supabaseInstance;
   
   if (typeof window !== "undefined") {
-    // Client-side: use the auth helper
     supabaseInstance = createClientComponentClient();
   } else {
-    // Server-side: use standard client
     supabaseInstance = createClient(supabaseUrl, supabaseAnon);
   }
   return supabaseInstance;
 };
 
-// Export a getter instead of a static constant to prevent initialization loops
-export const supabase = typeof window !== "undefined" 
-  ? createClientComponentClient() // Immediate for components
-  : createClient(supabaseUrl, supabaseAnon); // Immediate for server
+// WE ARE REMOVING THE STATIC 'supabase' EXPORT TO PREVENT INITIALIZATION CRASHES
+// ALL FILES MUST NOW USE getSupabaseClient()

@@ -25,7 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { useToast } from "@/components/ui/use-toast"
 import { adminService } from "@/src/lib/adminService"
-import { supabase } from "@/src/lib/supabaseClient"
+import { getSupabaseClient } from "@/src/lib/supabaseClient"
 import { useAuthStore } from "@/src/lib/auth"
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -85,7 +85,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut()
+      const client = getSupabaseClient()
+      await client.auth.signOut()
       toast({
         title: "Logged out",
         description: "You have been successfully logged out",
