@@ -77,7 +77,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-export default function ProfilePage() {
+function ProfileContent() {
   const { toast } = useToast()
   const router = useRouter()
   const { user, isAuthenticated, isLoading, logout } = useAuthStore()
@@ -216,12 +216,6 @@ export default function ProfilePage() {
   }
 
   const handleLogout = async () => { await logout(); router.push("/") }
-
-  if (isLoading) return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-      <div className="h-8 w-8 rounded-full border-2 border-white/10 border-t-white animate-spin" />
-    </div>
-  )
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -808,5 +802,17 @@ export default function ProfilePage() {
       </div>
       <Footer />
     </div>
+  )
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-2 border-white/10 border-t-white animate-spin" />
+      </div>
+    }>
+      <ProfileContent />
+    </Suspense>
   )
 }
