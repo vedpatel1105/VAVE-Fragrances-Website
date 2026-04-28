@@ -6,7 +6,7 @@ import Image from "next/image"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import { supabase } from "@/src/lib/supabaseClient"
+import { getSupabaseClient } from "@/src/lib/supabaseClient"
 import { CheckCircle2, Loader2, PackageSearch } from "lucide-react"
 import Link from "next/link"
 import { useAuthStore } from "@/src/lib/auth"
@@ -35,7 +35,6 @@ function OrderSuccessContent() {
   const [loading, setLoading] = useState(true)
   const orderId = searchParams.get("orderId")
 
-  // Protected route - redirect if not authenticated
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !user)) {
       const currentPath = window.location.pathname + window.location.search;
@@ -46,7 +45,6 @@ function OrderSuccessContent() {
 
   useEffect(() => {
     const fetchOrder = async () => {
-      // Wait for authentication to complete
       if (isLoading) return;
 
       if (!isAuthenticated || !user) {
@@ -65,17 +63,16 @@ function OrderSuccessContent() {
       }
 
       try {
-        // Fetch order with security check - ensure user can only access their own orders
-        const { data, error } = await supabase
+        const client = getSupabaseClient();
+        const { data, error } = await client
           .from("orders")
           .select("*")
           .eq("id", orderId)
-          .eq("user_id", user.id) // Security: Only allow access to user's own orders
+          .eq("user_id", user.id)
           .single()
 
         if (error) {
           if (error.code === 'PGRST116') {
-            // No rows returned - order not found or user doesn't have access
             toast({
               title: "Access Denied",
               description: "You don't have permission to view this order",

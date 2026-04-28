@@ -27,7 +27,7 @@ import { ProductInfo } from "@/src/data/product-info"
 import Image from "next/image"
 import { useCartStore } from "@/src/lib/cartStore"
 import { motion, AnimatePresence } from "framer-motion"
-import { supabase } from "@/src/lib/supabaseClient"
+import { getSupabaseClient } from "@/src/lib/supabaseClient"
 
 const SimpleNavbar = dynamic(() => import("@/src/app/components/SimpleNavbar"), { ssr: false })
 
@@ -51,7 +51,6 @@ const NAV: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "settings", label: "Settings",  icon: Settings },
 ]
 
-// ─── Reusable Card ─────────────────────────────────────────────
 function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <div className={`rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm p-6 lg:p-8 ${className}`}>
@@ -60,7 +59,6 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
   )
 }
 
-// ─── Section Label ─────────────────────────────────────────────
 function SectionLabel({ icon: Icon, children }: { icon?: React.ElementType; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-6">
@@ -70,7 +68,6 @@ function SectionLabel({ icon: Icon, children }: { icon?: React.ElementType; chil
   )
 }
 
-// ─── Field ─────────────────────────────────────────────────────
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-2">
@@ -80,7 +77,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-function ProfileContent() {
+export default function ProfilePage() {
   const { toast } = useToast()
   const router = useRouter()
   const { user, isAuthenticated, isLoading, logout } = useAuthStore()
@@ -104,7 +101,14 @@ function ProfileContent() {
   const [addresses, setAddresses] = useState<Address[]>([])
   const [orders, setOrders] = useState<UserOrder[]>([])
 
-  // Redirect logic: If from cart and profile becomes complete, maybe notify user
+  const completionSteps = [
+    { label: "Add your full name",      done: !!profile.full_name?.trim(), tab: "profile"  as Tab },
+    { label: "Add your phone number",   done: !!profile.phone?.trim(),     tab: "profile"  as Tab },
+    { label: "Save a delivery address", done: addresses.length > 0,        tab: "profile"  as Tab },
+    { label: "Save items to wishlist",  done: wishlistItems.length > 0,    tab: "wishlist" as Tab },
+  ]
+  const pct = Math.round((completionSteps.filter(s => s.done).length / completionSteps.length) * 100)
+
   useEffect(() => {
     if (isFromCart && pct === 100) {
       toast({
@@ -114,7 +118,6 @@ function ProfileContent() {
     }
   }, [pct, isFromCart])
 
-  // PWA State for Profile
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstalled, setIsInstalled] = useState(false);
 
@@ -168,14 +171,6 @@ function ProfileContent() {
     if (!isLoading && !isAuthenticated) router.push("/auth/login")
   }, [isAuthenticated, isLoading, router])
 
-  const completionSteps = [
-    { label: "Add your full name",      done: !!profile.full_name?.trim(), tab: "profile"  as Tab },
-    { label: "Add your phone number",   done: !!profile.phone?.trim(),     tab: "profile"  as Tab },
-    { label: "Save a delivery address", done: addresses.length > 0,        tab: "profile"  as Tab },
-    { label: "Save items to wishlist",  done: wishlistItems.length > 0,    tab: "wishlist" as Tab },
-  ]
-  const pct = Math.round((completionSteps.filter(s => s.done).length / completionSteps.length) * 100)
-
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault(); setIsSaving(true)
     try {
@@ -212,7 +207,8 @@ function ProfileContent() {
     if (pwdForm.next !== pwdForm.confirm) { toast({ title: "Passwords don't match", variant: "destructive" }); return }
     if (pwdForm.next.length < 6) { toast({ title: "Min 6 characters required", variant: "destructive" }); return }
     try {
-      const { error } = await supabase.auth.updateUser({ password: pwdForm.next })
+      const client = getSupabaseClient();
+      const { error } = await client.auth.updateUser({ password: pwdForm.next })
       if (error) throw error
       toast({ title: "Password updated!" })
       setChangingPwd(false); setPwdForm({ next: "", confirm: "" })
@@ -227,10 +223,8 @@ function ProfileContent() {
     </div>
   )
 
-  // ─── Sidebar content (shared for desktop + mobile drawer) ────
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Avatar block */}
       <div className="relative mb-8">
         <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl -m-2" />
         <div className="relative flex items-center gap-4">
@@ -252,7 +246,6 @@ function ProfileContent() {
         </div>
       </div>
 
-      {/* Stats row */}
       <div className="grid grid-cols-3 gap-2 mb-8">
         {[
           { label: "Orders",    value: orders.length },
@@ -266,7 +259,6 @@ function ProfileContent() {
         ))}
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 space-y-1">
         {NAV.map(item => {
           const active = activeTab === item.id
@@ -293,7 +285,6 @@ function ProfileContent() {
         })}
       </nav>
 
-      {/* Profile completion */}
       {pct < 100 && (
         <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
           <div className="flex items-center justify-between mb-2">
@@ -329,7 +320,6 @@ function ProfileContent() {
         </div>
       )}
 
-      {/* Sign out */}
       <button onClick={handleLogout} className="mt-6 w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-zinc-500 hover:text-rose-400 hover:bg-rose-500/5 transition-all">
         <LogOut className="h-4 w-4 shrink-0" />
         Sign Out
@@ -341,24 +331,18 @@ function ProfileContent() {
     <div className="min-h-screen bg-zinc-950 text-white selection:bg-white selection:text-black">
       <SimpleNavbar />
 
-
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 pt-28 pb-12 lg:py-16 flex gap-10">
 
-        {/* ── Desktop Sidebar ── */}
         <aside className="hidden lg:block w-72 shrink-0 sticky top-28 self-start h-fit">
           <SidebarContent />
         </aside>
 
-        {/* ── Main Content ── */}
         <main className="flex-1 min-w-0 pb-28 lg:pb-0">
           <AnimatePresence mode="wait">
 
-            {/* ════════════ OVERVIEW (DASHBOARD) ════════════ */}
             {activeTab === "overview" && (
               <motion.div key="overview" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-8">
                 
-                {/* Mobile Welcome Header */}
                 <div className="lg:hidden flex flex-col gap-4 mb-2">
                   <div className="flex items-center gap-4">
                     <Avatar className="h-14 w-14 border border-white/10 ring-4 ring-white/5">
@@ -374,7 +358,6 @@ function ProfileContent() {
                   </div>
                 </div>
 
-                {/* Return to Cart/Checkout Banner */}
                 {redirectPath && (
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
@@ -409,7 +392,6 @@ function ProfileContent() {
                   </motion.div>
                 )}
 
-                {/* Quick Stats Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[
                     { label: "Orders",    value: orders.length,    icon: Package, color: "text-blue-400" },
@@ -425,7 +407,6 @@ function ProfileContent() {
                   ))}
                 </div>
 
-                {/* Dashboard Options Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
                     { id: "profile" as Tab, label: "Profile Settings", desc: "Manage your name, phone, and addresses", icon: User },
@@ -452,7 +433,6 @@ function ProfileContent() {
                   ))}
                 </div>
 
-                {/* Completion Progress (Mobile Only) */}
                 {pct < 100 && (
                   <div className="lg:hidden">
                     <Card className="bg-amber-500/5 border-amber-500/10">
@@ -489,7 +469,6 @@ function ProfileContent() {
               </motion.div>
             )}
 
-            {/* ════════════ PROFILE ════════════ */}
             {activeTab === "profile" && (
               <motion.div key="profile" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-6">
 
@@ -498,7 +477,6 @@ function ProfileContent() {
                   <p className="text-sm text-zinc-500 mt-1">Manage your personal information and addresses</p>
                 </div>
 
-                {/* Personal Info */}
                 <Card>
                   <SectionLabel icon={User}>Personal Information</SectionLabel>
                   <form onSubmit={handleSave} className="space-y-5">
@@ -539,7 +517,6 @@ function ProfileContent() {
                   </form>
                 </Card>
 
-                {/* Addresses */}
                 <Card>
                   <div className="flex items-center justify-between mb-6">
                     <SectionLabel icon={MapPin}>Delivery Addresses</SectionLabel>
@@ -586,7 +563,6 @@ function ProfileContent() {
               </motion.div>
             )}
 
-            {/* ════════════ ORDERS ════════════ */}
             {activeTab === "orders" && (
               <motion.div key="orders" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
                 <div className="mb-6">
@@ -647,7 +623,6 @@ function ProfileContent() {
                               <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} transition={{ duration: 0.22 }} className="overflow-hidden">
                                 <div className="border-t border-white/10 p-5 space-y-5">
 
-                                  {/* Items list */}
                                   <div>
                                     <p className="text-xs font-semibold uppercase tracking-[0.15em] text-zinc-500 mb-3">Items Ordered</p>
                                     <div className="rounded-xl border border-white/5 overflow-hidden">
@@ -663,7 +638,6 @@ function ProfileContent() {
                                     </div>
                                   </div>
 
-                                  {/* Price summary */}
                                   <div className="rounded-xl bg-zinc-900 border border-white/5 p-4">
                                     <div className="space-y-2">
                                       <div className="flex justify-between text-sm text-zinc-400">
@@ -680,7 +654,6 @@ function ProfileContent() {
                                     </div>
                                   </div>
 
-                                  {/* Shipping + Payment */}
                                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {shipping?.address && (
                                       <div className="rounded-xl bg-zinc-900 border border-white/5 p-4">
@@ -710,7 +683,6 @@ function ProfileContent() {
               </motion.div>
             )}
 
-            {/* ════════════ WISHLIST ════════════ */}
             {activeTab === "wishlist" && (
               <motion.div key="wishlist" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
                 <div className="mb-6">
@@ -774,7 +746,6 @@ function ProfileContent() {
               </motion.div>
             )}
 
-            {/* ════════════ SETTINGS ════════════ */}
             {activeTab === "settings" && (
               <motion.div key="settings" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }} className="space-y-5">
                 <div className="mb-2">
@@ -782,7 +753,6 @@ function ProfileContent() {
                   <p className="text-sm text-zinc-500 mt-1">Manage your account preferences</p>
                 </div>
 
-                {/* Change Password */}
                 <Card>
                   <div className="flex items-start justify-between">
                     <div>
@@ -798,174 +768,45 @@ function ProfileContent() {
                     {changingPwd && (
                       <motion.form initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
                         onSubmit={handleChangePwd} className="overflow-hidden">
-                        <div className="pt-5 border-t border-white/10 mt-4 space-y-4">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <Field label="New Password">
-                              <Input type="password" value={pwdForm.next} onChange={e => setPwdForm(p => ({ ...p, next: e.target.value }))}
-                                placeholder="Min 6 characters"
-                                className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600 h-12 rounded-xl focus:border-white/30 focus:ring-1 focus:ring-white/20 text-sm" />
-                            </Field>
-                            <Field label="Confirm Password">
-                              <Input type="password" value={pwdForm.confirm} onChange={e => setPwdForm(p => ({ ...p, confirm: e.target.value }))}
-                                placeholder="Repeat password"
-                                className="bg-zinc-900 border-white/10 text-white placeholder:text-zinc-600 h-12 rounded-xl focus:border-white/30 focus:ring-1 focus:ring-white/20 text-sm" />
-                            </Field>
+                        <div className="space-y-4 pt-4 pb-2">
+                          <Field label="New Password">
+                            <Input type="password" value={pwdForm.next} onChange={e => setPwdForm(p => ({ ...p, next: e.target.value }))} className="bg-zinc-900 border-white/10 text-white h-12 rounded-xl" />
+                          </Field>
+                          <Field label="Confirm New Password">
+                            <Input type="password" value={pwdForm.confirm} onChange={e => setPwdForm(p => ({ ...p, confirm: e.target.value }))} className="bg-zinc-900 border-white/10 text-white h-12 rounded-xl" />
+                          </Field>
+                          <div className="flex justify-end">
+                            <Button type="submit" className="bg-white text-zinc-950 hover:bg-zinc-100 rounded-xl">Update Password</Button>
                           </div>
-                          <Button type="submit"
-                            className="bg-white text-zinc-950 hover:bg-zinc-100 h-11 px-8 rounded-xl text-sm font-semibold">
-                            Update Password
-                          </Button>
                         </div>
                       </motion.form>
                     )}
                   </AnimatePresence>
                 </Card>
 
-                {/* Account details */}
                 <Card>
-                  <SectionLabel icon={Shield}>Account Details</SectionLabel>
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                    {[
-                      { label: "Email",     value: profile.email || user?.email || "—" },
-                      { label: "Status",    value: "Active" },
-                      { label: "Orders",    value: `${orders.length}` },
-                      { label: "Addresses", value: `${addresses.length}` },
-                    ].map(item => (
-                      <div key={item.label} className="rounded-xl bg-zinc-900 border border-white/5 p-4">
-                        <p className="text-[10px] uppercase tracking-widest text-zinc-600 mb-1.5">{item.label}</p>
-                        <p className="text-sm font-semibold text-white truncate">{item.value}</p>
-                      </div>
-                    ))}
-                  </div>
+                   <SectionLabel icon={Smartphone}>App Experience</SectionLabel>
+                   <div className="flex items-center justify-between">
+                     <div>
+                       <p className="text-sm font-semibold text-white">Install Vave Web App</p>
+                       <p className="text-xs text-zinc-500 mt-1">Access your sanctuary directly from your home screen.</p>
+                     </div>
+                     <Button 
+                      onClick={handleInstallApp} 
+                      disabled={isInstalled || !deferredPrompt}
+                      variant="outline" 
+                      className="rounded-xl border-white/10 hover:bg-white hover:text-zinc-950 transition-all"
+                     >
+                       {isInstalled ? "Installed" : "Install"}
+                     </Button>
+                   </div>
                 </Card>
-
-                {/* Sign out */}
-                <Card className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <SectionLabel icon={LogOut}>Sign Out</SectionLabel>
-                    <p className="text-sm text-zinc-400 -mt-3">You'll be redirected to the homepage after signing out.</p>
-                  </div>
-                  <Button onClick={handleLogout} variant="outline"
-                    className="bg-transparent border-white/20 text-white hover:bg-white hover:text-zinc-950 rounded-xl h-11 px-8 text-sm font-semibold transition-all shrink-0">
-                    Sign Out
-                  </Button>
-                </Card>
-
-                {/* Download App Section */}
-                <Card className="bg-gradient-to-br from-zinc-900 to-zinc-950 border-white/10">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                    <div className="flex gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                        <Smartphone className="h-6 w-6 text-white" />
-                      </div>
-                      <div>
-                        <SectionLabel icon={Download}>Vave Mobile Experience</SectionLabel>
-                        <p className="text-sm text-zinc-400 -mt-3">
-                          {isInstalled 
-                            ? "You've already installed the Vave App. Enjoy the cinematic experience!" 
-                            : "Get the full boutique experience on your home screen with our official app."}
-                        </p>
-                      </div>
-                    </div>
-                    {!isInstalled && deferredPrompt && (
-                      <Button 
-                        onClick={handleInstallApp}
-                        className="bg-white text-zinc-950 hover:bg-zinc-100 rounded-xl h-11 px-8 text-sm font-bold shadow-lg shadow-white/10 transition-all shrink-0"
-                      >
-                        Install App
-                      </Button>
-                    )}
-                    {isInstalled && (
-                      <div className="px-6 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-widest">
-                        Installed
-                      </div>
-                    )}
-                    {!isInstalled && !deferredPrompt && (
-                        <p className="text-[10px] text-zinc-600 uppercase tracking-widest italic max-w-[150px] text-right">
-                            Already installed or not supported on this browser
-                        </p>
-                    )}
-                  </div>
-                </Card>
-
-                {/* Danger zone */}
-                <div className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.04] p-6 lg:p-8">
-                  <SectionLabel icon={AlertTriangle}>Danger Zone</SectionLabel>
-                  <p className="text-sm text-zinc-400 mb-5 -mt-3">
-                    Permanently deletes your account, orders, addresses, and all associated data. This action cannot be undone.
-                  </p>
-                  <Button variant="ghost"
-                    onClick={() => toast({ title: "Contact Support", description: "Email support@vavefragrances.com to request account deletion.", variant: "destructive" })}
-                    className="border border-rose-500/30 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl h-11 px-8 text-sm font-semibold">
-                    Delete My Account
-                  </Button>
-                </div>
               </motion.div>
             )}
-
-
-            {/* Simple Mobile Logout at Bottom */}
-            <div className="lg:hidden mt-20 border-t border-white/5 pt-10 pb-10">
-              <button 
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-3 text-zinc-500 hover:text-rose-400 transition-all duration-300 group"
-              >
-                <div className="p-2 rounded-full bg-zinc-900 border border-white/5 group-hover:border-rose-500/30 group-hover:bg-rose-500/5 transition-all">
-                  <LogOut className="h-4 w-4" strokeWidth={1.5} />
-                </div>
-                <span className="text-sm font-medium uppercase tracking-[0.2em]">Log Out</span>
-              </button>
-            </div>
           </AnimatePresence>
         </main>
       </div>
-
-      {/* ── Mobile bottom tab bar ── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/90 backdrop-blur-2xl border-t border-white/5 flex items-stretch px-2 pb-safe">
-        {NAV.map(item => {
-          const active = activeTab === item.id
-          const badge = item.id === "orders" ? orders.length : item.id === "wishlist" ? wishlistItems.length : 0
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className="flex-1 flex flex-col items-center justify-center py-3.5 relative"
-            >
-              <div className="relative">
-                <item.icon className={`h-5 w-5 transition-all duration-300 ${active ? "text-white scale-110" : "text-zinc-500"}`} />
-                {badge > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white text-[8px] font-bold text-black ring-2 ring-zinc-950">
-                    {badge}
-                  </span>
-                )}
-              </div>
-              <span className={`text-[8px] uppercase tracking-[0.2em] font-bold mt-1.5 transition-colors ${active ? "text-white" : "text-zinc-600"}`}>
-                {item.label}
-              </span>
-              {active && (
-                <motion.div 
-                  layoutId="activeTabIndicator"
-                  className="absolute bottom-1 w-8 h-0.5 bg-white rounded-full" 
-                />
-              )}
-            </button>
-          )
-        })}
-      </div>
-
       <Footer />
     </div>
-  )
-}
-
-export default function ProfilePage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="h-8 w-8 rounded-full border-2 border-white/10 border-t-white animate-spin" />
-      </div>
-    }>
-      <ProfileContent />
-    </Suspense>
   )
 }

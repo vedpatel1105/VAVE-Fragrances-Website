@@ -10,7 +10,7 @@ import Footer from "@/src/app/components/Footer"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { formatCurrency } from "@/lib/utils"
-import { supabase } from "@/src/lib/supabaseClient"
+import { getSupabaseClient } from "@/src/lib/supabaseClient"
 import { useAuthStore } from "@/src/lib/auth"
 import { useToast } from "@/components/ui/use-toast"
 import SimpleNavbar from "../../components/SimpleNavbar"
@@ -59,7 +59,6 @@ export default function TrackOrderPage() {
   const [currentEvent, setCurrentEvent] = useState<TrackingEvent | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // Protected route - redirect if not authenticated
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !user)) {
       const currentPath = window.location.pathname;
@@ -70,7 +69,6 @@ export default function TrackOrderPage() {
 
   useEffect(() => {
     const fetchOrder = async () => {
-      // Wait for authentication to complete
       if (isLoading) return;
       
       if (!isAuthenticated || !user) {
@@ -88,17 +86,16 @@ export default function TrackOrderPage() {
           return;
         }
 
-        // Fetch order with security check - ensure user can only access their own orders
-        const { data, error } = await supabase
+        const client = getSupabaseClient();
+        const { data, error } = await client
           .from("orders")
           .select("*")
           .eq("id", orderId)
-          .eq("user_id", user.id) // Security: Only allow access to user's own orders
+          .eq("user_id", user.id)
           .single();
 
         if (error) {
           if (error.code === 'PGRST116') {
-            // No rows returned - order not found or user doesn't have access
             setError("Order not found or you don't have permission to view this order");
           } else {
             throw error;
@@ -109,7 +106,6 @@ export default function TrackOrderPage() {
 
         setOrder(data);
         
-        // Set current event to the first tracking event
         const trackingInfo = getTrackingInfo(data);
         if (trackingInfo.events.length > 0) {
           setCurrentEvent(trackingInfo.events[0]);
@@ -125,7 +121,6 @@ export default function TrackOrderPage() {
     fetchOrder();
   }, [params.id, user, isAuthenticated, isLoading, router]);
 
-  // Generate tracking information based on order status
   const getTrackingInfo = (order: Order): TrackingInfo => {
     const baseEvents: TrackingEvent[] = [
       {
@@ -135,7 +130,6 @@ export default function TrackOrderPage() {
       }
     ];
 
-    // Add events based on order status
     switch (order.status) {
       case 'paid':
         baseEvents.push({
@@ -187,11 +181,10 @@ export default function TrackOrderPage() {
     return {
       number: order.status === 'shipped' || order.status === 'delivered' ? `BD${order.id.slice(-9)}` : null,
       carrier: order.status === 'shipped' || order.status === 'delivered' ? 'BlueDart' : null,
-      events: baseEvents.reverse() // Show most recent first
+      events: baseEvents.reverse()
     };
   };
 
-  // Derive a display location (city) from the order shipping address
   const getCityFromOrder = (order: Order): string => {
     try {
       const addr = typeof order.shipping_address === 'string' ? JSON.parse(order.shipping_address) : order.shipping_address as any;
@@ -201,7 +194,6 @@ export default function TrackOrderPage() {
     }
   }
 
-  // Get status color
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "delivered":
@@ -219,7 +211,6 @@ export default function TrackOrderPage() {
     }
   }
 
-  // Get status icon
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
       case "delivered":
@@ -237,7 +228,6 @@ export default function TrackOrderPage() {
     }
   }
 
-  // Calculate delivery progress percentage
   const calculateProgress = () => {
     if (!order) return 0
 
@@ -248,7 +238,6 @@ export default function TrackOrderPage() {
     if (completedEvents >= 0) {
       return 100;
     } else {
-      // Calculate based on order status
       switch (order.status) {
         case 'paid':
           return 25;
@@ -262,7 +251,6 @@ export default function TrackOrderPage() {
     }
   }
 
-  // Share tracking info
   const shareTracking = async () => {
     if (!order) return
 
@@ -276,7 +264,6 @@ export default function TrackOrderPage() {
       if (navigator.share) {
         await navigator.share(shareData)
       } else {
-        // Fallback - copy to clipboard
         await navigator.clipboard.writeText(window.location.href)
         alert("Tracking link copied to clipboard!")
       }
@@ -354,7 +341,6 @@ export default function TrackOrderPage() {
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-8">
-            {/* Order Status Banner */}
             <div
               className={`p-6 ${
                 order.status === "delivered"
@@ -393,7 +379,6 @@ export default function TrackOrderPage() {
               </div>
             </div>
 
-            {/* Delivery Progress */}
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-bold mb-4">Delivery Progress</h3>
 
@@ -427,7 +412,6 @@ export default function TrackOrderPage() {
               </div>
             </div>
 
-            {/* Tracking Details */}
             <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2">
                 <h3 className="text-lg font-bold mb-4">Tracking Details</h3>
@@ -494,7 +478,6 @@ export default function TrackOrderPage() {
             </div>
           </div>
 
-          {/* Order Details */}
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden mb-8">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <h3 className="text-lg font-bold mb-4">Order Details</h3>

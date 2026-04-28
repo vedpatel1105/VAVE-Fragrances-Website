@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { supabase } from "@/src/lib/supabaseClient"
+import { getSupabaseClient } from "@/src/lib/supabaseClient"
 import { useAuthStore } from "@/src/lib/auth"
 import { useToast } from "@/components/ui/use-toast"
 import Image from "next/image"
@@ -60,7 +60,6 @@ export default function MyOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Protected route - redirect if not authenticated
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !user)) {
       const currentPath = window.location.pathname;
@@ -69,13 +68,13 @@ export default function MyOrdersPage() {
     }
   }, [isAuthenticated, isLoading, user, router]);
 
-  // Fetch user orders
   useEffect(() => {
     const fetchOrders = async () => {
       if (!user?.id) return;
 
       try {
-        const { data, error } = await supabase
+        const client = getSupabaseClient();
+        const { data, error } = await client
           .from('orders')
           .select('*')
           .eq('user_id', user.id)
@@ -99,11 +98,9 @@ export default function MyOrdersPage() {
     fetchOrders();
   }, [user, toast]);
 
-  // Filter orders based on active tab
   const filteredOrders = orders.filter((order) => {
     if (activeTab === "all") return true
 
-    // Map database statuses to UI statuses
     const statusMap: { [key: string]: string[] } = {
       'processing': ['pending', 'paid'],
       'in_transit': ['shipped'],
@@ -114,7 +111,6 @@ export default function MyOrdersPage() {
     return statusMap[activeTab]?.includes(order.status) || order.status === activeTab
   })
 
-  // Filter orders based on search query
   const searchedOrders = filteredOrders.filter((order) => {
     if (!searchQuery) return true
 
@@ -123,7 +119,6 @@ export default function MyOrdersPage() {
       order.items.some((item) => item.name.toLowerCase().includes(query))
   })
 
-  // Sort orders
   const sortedOrders = [...searchedOrders].sort((a, b) => {
     const dateA = new Date(a.created_at).getTime()
     const dateB = new Date(b.created_at).getTime()
@@ -141,7 +136,6 @@ export default function MyOrdersPage() {
     return 0
   })
 
-  // Get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "delivered":
@@ -160,7 +154,6 @@ export default function MyOrdersPage() {
     }
   }
 
-  // Get status icon
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "delivered":
@@ -178,25 +171,19 @@ export default function MyOrdersPage() {
     }
   }
 
-  // View order details
   const viewOrderDetails = (orderId: string) => {
     setSelectedOrder(orderId)
   }
 
-  // Track order
   const trackOrder = (orderId: string) => {
     router.push(`/track-order/${orderId}`)
   }
 
-  // Get selected order
   const getSelectedOrder = () => {
     return orders.find((order) => order.id === selectedOrder)
   }
 
-  // Mock tracking data for now (in a real app, this would come from a shipping service)
   const getTrackingInfo = (order: Order): TrackingInfo => {
-    // For now, return mock tracking data
-    // In production, this would fetch from your shipping provider API
     return {
       number: order.status === 'shipped' ? `BD${order.id.slice(-9)}` : null,
       carrier: order.status === 'shipped' ? 'BlueDart' : null,
