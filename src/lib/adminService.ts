@@ -1,5 +1,4 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient'
-import { useAuthStore } from './auth'
 
 export interface User {
   id: string
@@ -19,9 +18,9 @@ export const adminService = {
     const supabase = this.getSupabase()
     if (!supabase) return 'user'
 
-    // Check for backdoor user in AuthStore
-    const authUser = useAuthStore.getState().user;
-    if (authUser?.id === '00000000-0000-0000-0000-000000000000') return 'admin';
+    // Check for backdoor user session directly if possible, or skip store check to break circularity
+    // For now, we rely on the session check below which handles the backdoor ID if it's in the session.
+    // If not in session, we look for a cookie or local storage if needed, but session is safest.
 
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) return 'user' // Return 'user' instead of throwing to prevent navbar crashes
@@ -39,9 +38,10 @@ export const adminService = {
   async isAdmin(): Promise<boolean> {
     if (!isSupabaseConfigured) return false
     try {
-      // Check for backdoor user in AuthStore
-      const authUser = useAuthStore.getState().user;
-      if (authUser?.id === '00000000-0000-0000-0000-000000000000') return true;
+      // Check session directly for backdoor ID
+      const supabase = this.getSupabase();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id === '00000000-0000-0000-0000-000000000000') return true;
 
       const role = await this.getCurrentUserRole()
       return role === 'admin'
@@ -53,9 +53,10 @@ export const adminService = {
   async isViewer(): Promise<boolean> {
     if (!isSupabaseConfigured) return false
     try {
-      // Check for backdoor user in AuthStore
-      const authUser = useAuthStore.getState().user;
-      if (authUser?.id === '00000000-0000-0000-0000-000000000000') return true;
+      // Check session directly for backdoor ID
+      const supabase = this.getSupabase();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id === '00000000-0000-0000-0000-000000000000') return true;
 
       const role = await this.getCurrentUserRole()
       return role === 'admin' || role === 'viewer'
