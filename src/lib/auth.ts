@@ -330,75 +330,54 @@ export const useAuthStore = create<AuthState>()(
                 }
             },
 
-            checkAuth: (() => {
-                let lastCheck = 0;
-                let checkPromise: Promise<void> | null = null;
-                const minInterval = 1000; // Minimum 1 second between checks
-                
-                return async () => {
-                    const now = Date.now();
-                    if (now - lastCheck < minInterval && checkPromise) {
-                        await checkPromise; // Await existing promise if called too soon
+            checkAuth: async () => {
+                try {
+                    if (!isSupabaseConfigured) {
+                        set({
+                            user: null,
+                            isAuthenticated: false,
+                            isLoading: false,
+                        });
                         return;
                     }
-                    lastCheck = now;
+                    const supabase = get()._supabase;
+                    const { data: { session } } = await supabase.auth.getSession();
                     
-                    checkPromise = (async () => {
-                        try {
-                            if (!isSupabaseConfigured) {
-                                set({
-                                    user: null,
-                                    isAuthenticated: false,
-                                    isLoading: false,
-                                });
-                                return;
-                            }
-                            const supabase = get()._supabase;
-                            const { data: { session } } = await supabase.auth.getSession();
-                            
-                            if (session?.user) {
-                                set({
-                                    user: {
-                                        id: session.user.id,
-                                        email: session.user.email!,
-                                        full_name: session.user.user_metadata?.full_name || "",
-                                        role: session.user.user_metadata?.role,
-                                        phone: session.user.user_metadata?.phone,
-                                        user_metadata: session.user.user_metadata
-                                    },
-                                    isAuthenticated: true,
-                                    isLoading: false,
-                                });
-                            } else if (!get().user) {
-                                // Only set to false if we don't already have a user (to avoid race conditions)
-                                set({
-                                    user: null,
-                                    isAuthenticated: false,
-                                    isLoading: false,
-                                });
-                            } else {
-                                // We have a user in store but getSession returned null? 
-                                // This could be a temporary issue. Don't clear immediately, just stop loading.
-                                set({ isLoading: false });
-                            }
-                        } catch (error) {
-                            console.error("Auth check error:", error);
-                            // Only clear on error if we don't have a user
-                            if (!get().user) {
-                                set({
-                                    user: null,
-                                    isAuthenticated: false,
-                                    isLoading: false,
-                                });
-                            } else {
-                                set({ isLoading: false });
-                            }
-                        }
-                    })();
-                    
-                    await checkPromise;
-                };
-            })(),
+                    if (session?.user) {
+                        set({
+                            user: {
+                                id: session.user.id,
+                                email: session.user.email!,
+                                full_name: session.user.user_metadata?.full_name || "",
+                                role: session.user.user_metadata?.role,
+                                phone: session.user.user_metadata?.phone,
+                                user_metadata: session.user.user_metadata
+                            },
+                            isAuthenticated: true,
+                            isLoading: false,
+                        });
+                    } else if (!get().user) {
+                        set({
+                            user: null,
+                            isAuthenticated: false,
+                            isLoading: false,
+                        });
+                    } else {
+                        set({ isLoading: false });
+                    }
+                } catch (error) {
+                    console.error("Auth check error:", error);
+                    if (!get().user) {
+                        set({
+                            user: null,
+                            isAuthenticated: false,
+                            isLoading: false,
+                        });
+                    } else {
+                        set({ isLoading: false });
+                    }
+                }
+            },
         }),
         {
             name: "auth-storage",
