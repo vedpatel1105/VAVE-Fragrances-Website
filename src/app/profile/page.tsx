@@ -4,7 +4,7 @@ import type React from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/src/lib/auth"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -80,7 +80,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-export default function ProfilePage() {
+function ProfileContent() {
   const { toast } = useToast()
   const router = useRouter()
   const { user, isAuthenticated, isLoading, logout } = useAuthStore()
@@ -956,4 +956,12 @@ export default function ProfilePage() {
       <Footer />
     </div>
   )
+}
+
+export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className=" min-h-screen bg-zinc-950 flex items-center justify-center\><div className=\h-8 w-8 rounded-full border-2 border-white/10 border-t-white animate-spin\ /></div>}>
+ <ProfileContent />
+ </Suspense>
+ )
 }
