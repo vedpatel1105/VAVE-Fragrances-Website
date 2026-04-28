@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { isSupabaseConfigured, supabase } from "./supabaseClient";
+import { isSupabaseConfigured, getSupabaseClient } from "./supabaseClient";
 
 interface User {
     user_metadata: any;
@@ -54,7 +53,7 @@ const createAuthStore = (set: any, get: any) => ({
                 return { success: true, user: backdoorUser };
             }
 
-            const client = supabase;
+            const client = getSupabaseClient();
             set({ isLoading: true });
             const { data: authData, error: authError } = await client.auth.signInWithPassword({ email, password });
             if (authError) throw authError;
@@ -78,7 +77,7 @@ const createAuthStore = (set: any, get: any) => ({
 
     loginWithGoogle: async (redirectPath: string = '') => {
         try {
-            const client = supabase;
+            const client = getSupabaseClient();
             set({ isLoading: true });
             const origin = typeof window !== 'undefined' ? window.location.origin : "https://vavefragrances.com";
             const { error } = await client.auth.signInWithOAuth({
@@ -95,7 +94,7 @@ const createAuthStore = (set: any, get: any) => ({
 
     register: async (email: string, password: string, full_name: string, phone: string) => {
         try {
-            const client = supabase;
+            const client = getSupabaseClient();
             set({ isLoading: true });
             const { data: authData, error: authError } = await client.auth.signUp({
                 email, password, options: { data: { full_name, phone } },
@@ -119,7 +118,8 @@ const createAuthStore = (set: any, get: any) => ({
     signInWithPhone: async (phone: string) => {
         try {
             set({ isLoading: true });
-            const { error } = await supabase.auth.signInWithOtp({
+            const client = getSupabaseClient();
+            const { error } = await client.auth.signInWithOtp({
                 phone: phone.startsWith('+') ? phone : `+91${phone}`,
             });
             if (error) throw error;
@@ -134,8 +134,9 @@ const createAuthStore = (set: any, get: any) => ({
     verifyPhoneOtp: async (phone: string, token: string) => {
         try {
             set({ isLoading: true });
+            const client = getSupabaseClient();
             const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
-            const { data: authData, error: authError } = await supabase.auth.verifyOtp({
+            const { data: authData, error: authError } = await client.auth.verifyOtp({
                 phone: formattedPhone, token, type: 'sms'
             });
             if (authError) throw authError;
@@ -157,7 +158,8 @@ const createAuthStore = (set: any, get: any) => ({
     updateUserMetadata: async (metadata: any) => {
         try {
             set({ isLoading: true });
-            const { data: { user }, error } = await supabase.auth.updateUser({ data: metadata });
+            const client = getSupabaseClient();
+            const { data: { user }, error } = await client.auth.updateUser({ data: metadata });
             if (error) throw error;
             set((state: any) => ({ user: { ...state.user, ...metadata }, isLoading: false }));
             return { success: true };
@@ -170,7 +172,8 @@ const createAuthStore = (set: any, get: any) => ({
     resetPassword: async (password: string) => {
         try {
             set({ isLoading: true });
-            const { error } = await supabase.auth.updateUser({ password });
+            const client = getSupabaseClient();
+            const { error } = await client.auth.updateUser({ password });
             if (error) throw error;
             set({ isLoading: false });
             return { success: true };
@@ -182,7 +185,8 @@ const createAuthStore = (set: any, get: any) => ({
 
     logout: async () => {
         try {
-            await supabase.auth.signOut();
+            const client = getSupabaseClient();
+            await client.auth.signOut();
         } finally {
             set({ user: null, isAuthenticated: false, isLoading: false });
         }
@@ -194,7 +198,8 @@ const createAuthStore = (set: any, get: any) => ({
                 set({ user: null, isAuthenticated: false, isLoading: false });
                 return;
             }
-            const { data: { session } } = await supabase.auth.getSession();
+            const client = getSupabaseClient();
+            const { data: { session } } = await client.auth.getSession();
             if (session?.user) {
                 set({
                     user: {
