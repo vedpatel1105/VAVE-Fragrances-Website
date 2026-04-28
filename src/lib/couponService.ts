@@ -1,4 +1,4 @@
-import { supabase } from "./supabaseClient";
+import { getSupabaseClient } from "./supabaseClient";
 
 export interface Coupon {
   id: string;
@@ -15,7 +15,8 @@ export interface Coupon {
 
 export const couponService = {
   getCoupons: async (): Promise<Coupon[]> => {
-    const { data, error } = await supabase
+    const client = getSupabaseClient();
+    const { data, error } = await client
       .from('coupons')
       .select('*')
       .order('created_at', { ascending: false });
@@ -28,7 +29,8 @@ export const couponService = {
   },
 
   validateCoupon: async (code: string, subtotal: number, cartItems?: any[]): Promise<{ success: boolean; coupon?: Coupon; error?: string }> => {
-    const { data, error } = await supabase
+    const client = getSupabaseClient();
+    const { data, error } = await client
       .from('coupons')
       .select('*')
       .eq('code', code.toUpperCase())
@@ -96,7 +98,8 @@ export const couponService = {
   },
 
   createCoupon: async (coupon: Omit<Coupon, 'id'>) => {
-    const { data, error } = await supabase
+    const client = getSupabaseClient();
+    const { data, error } = await client
       .from('coupons')
       .insert([coupon])
       .select();
@@ -104,7 +107,8 @@ export const couponService = {
   },
 
   updateCoupon: async (id: string, updates: Partial<Coupon>) => {
-    const { data, error } = await supabase
+    const client = getSupabaseClient();
+    const { data, error } = await client
       .from('coupons')
       .update(updates)
       .eq('id', id)
@@ -113,7 +117,8 @@ export const couponService = {
   },
 
   deleteCoupon: async (id: string) => {
-    const { error } = await supabase
+    const client = getSupabaseClient();
+    const { error } = await client
       .from('coupons')
       .delete()
       .eq('id', id);

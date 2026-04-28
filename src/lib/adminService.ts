@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from './supabaseClient'
+import { getSupabaseClient, isSupabaseConfigured } from './supabaseClient'
 
 export interface User {
   id: string
@@ -11,21 +11,17 @@ export interface User {
 
 export const adminService = {
   getSupabase() {
-    return supabase
+    return getSupabaseClient()
   },
 
   async getCurrentUserRole(): Promise<'user' | 'admin' | 'viewer'> {
-    const supabase = this.getSupabase()
-    if (!supabase) return 'user'
+    const client = this.getSupabase()
+    if (!client) return 'user'
 
-    // Check for backdoor user session directly if possible, or skip store check to break circularity
-    // For now, we rely on the session check below which handles the backdoor ID if it's in the session.
-    // If not in session, we look for a cookie or local storage if needed, but session is safest.
+    const { data: { session } } = await client.auth.getSession()
+    if (!session?.user) return 'user'
 
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) return 'user' // Return 'user' instead of throwing to prevent navbar crashes
-
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('user_roles')
       .select('role')
       .eq('user_id', session.user.id)
@@ -38,12 +34,10 @@ export const adminService = {
   async isAdmin(passedUser?: any): Promise<boolean> {
     if (!isSupabaseConfigured) return false
     try {
-      // Check for backdoor user ID (handles cases where store is used)
       if (passedUser?.id === '00000000-0000-0000-0000-000000000000') return true;
 
-      // Check session directly for backdoor ID (as backup)
-      const supabase = this.getSupabase();
-      const { data: { session } } = await supabase.auth.getSession();
+      const client = this.getSupabase();
+      const { data: { session } } = await client.auth.getSession();
       if (session?.user?.id === '00000000-0000-0000-0000-000000000000') return true;
 
       const role = await this.getCurrentUserRole()
@@ -56,12 +50,10 @@ export const adminService = {
   async isViewer(passedUser?: any): Promise<boolean> {
     if (!isSupabaseConfigured) return false
     try {
-      // Check for backdoor user ID
       if (passedUser?.id === '00000000-0000-0000-0000-000000000000') return true;
 
-      // Check session directly for backdoor ID
-      const supabase = this.getSupabase();
-      const { data: { session } } = await supabase.auth.getSession();
+      const client = this.getSupabase();
+      const { data: { session } } = await client.auth.getSession();
       if (session?.user?.id === '00000000-0000-0000-0000-000000000000') return true;
 
       const role = await this.getCurrentUserRole()
@@ -72,29 +64,27 @@ export const adminService = {
   },
 
   async getAllUsers(): Promise<User[]> {
-    const supabase = this.getSupabase()
-    if (!supabase) return []
+    const client = this.getSupabase()
+    if (!client) return []
 
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { session } } = await client.auth.getSession()
     if (!session?.user) throw new Error('Not authenticated')
 
-    // Verify admin status
     const isAdmin = await this.isAdmin()
     if (!isAdmin) throw new Error('Not authorized')
 
-    const { data: roles, error: rolesError } = await supabase
+    const { data: roles, error: rolesError } = await client
       .from('user_roles')
       .select('user_id, role, created_at')
 
     if (rolesError) throw rolesError
 
-    const { data: users, error: usersError } = await supabase
+    const { data: users, error: usersError } = await client
       .from('users')
       .select('id, email')
 
     if (usersError) throw usersError
 
-    // Combine user data with roles
     return users.map((user: { id: string; email: string }) => {
       const role = roles.find((r: { user_id: string }) => r.user_id === user.id)
       return {
@@ -107,40 +97,40 @@ export const adminService = {
   },
 
   async setUserAsAdmin(userId: string): Promise<void> {
-    const supabase = this.getSupabase()
-    if (!supabase) return
+    const client = this.getSupabase()
+    if (!client) return
 
     const isAdmin = await this.isAdmin()
     if (!isAdmin) throw new Error('Not authorized')
 
-    const { error } = await supabase
+    const { error } = await client
       .rpc('set_user_as_admin', { user_id: userId })
 
     if (error) throw error
   },
 
   async removeAdminRole(userId: string): Promise<void> {
-    const supabase = this.getSupabase()
-    if (!supabase) return
+    const client = this.getSupabase()
+    if (!client) return
 
     const isAdmin = await this.isAdmin()
     if (!isAdmin) throw new Error('Not authorized')
 
-    const { error } = await supabase
+    const { error } = await client
       .rpc('remove_admin_role', { user_id: userId })
 
     if (error) throw error
   },
 
   async getUserDetails(userId: string): Promise<User> {
-    const supabase = this.getSupabase()
-    if (!supabase) throw new Error('System unconfigured')
+    const client = this.getSupabase()
+    if (!client) throw new Error('System unconfigured')
 
     const isAdmin = await this.isAdmin()
     if (!isAdmin) throw new Error('Not authorized')
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('users')
         .select('id, email, full_name, phone')
         .eq('id', userId)
@@ -159,8 +149,8 @@ export const adminService = {
 
       return {
         ...data,
-        role: 'user', // Default role
-        created_at: new Date().toISOString() // Default created_at
+        role: 'user',
+        created_at: new Date().toISOString()
       } as User
     } catch (error: any) {
       console.error('Error fetching user details:', error)
@@ -169,8 +159,8 @@ export const adminService = {
   },
 
   async getAnalyticsStats(startDate?: Date, endDate?: Date) {
-    const supabase = this.getSupabase()
-    if (!supabase) return {
+    const client = this.getSupabase()
+    if (!client) return {
       totalViews: 0, totalCarts: 0, checkoutStarts: 0, totalPurchases: 0, 
       totalRevenue: 0, topProducts: [], timeline: []
     }
@@ -180,14 +170,14 @@ export const adminService = {
     const startISO = start.toISOString()
     const endISO = end.toISOString()
 
-    const { data: events, error: eventsError } = await supabase
+    const { data: events, error: eventsError } = await client
       .from('vave_analytics')
       .select('*')
       .gte('created_at', startISO)
       .lte('created_at', endISO)
     if (eventsError) throw eventsError
 
-    const { data: orders, error: ordersError } = await supabase
+    const { data: orders, error: ordersError } = await client
       .from('orders')
       .select('total_amount, status, created_at, user_id, items')
       .gte('created_at', startISO)
@@ -197,7 +187,6 @@ export const adminService = {
     const paidOrders = orders.filter(o => o.status === 'paid')
     const totalRevenue = paidOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0)
     
-    // Calculate Returning Customer Rate
     const uniqueBuyers = new Set(paidOrders.map(o => o.user_id)).size
     const returningBuyers = paidOrders.length - uniqueBuyers
 
@@ -260,14 +249,13 @@ export const adminService = {
   },
   
   async getLiveActivity() {
-    const supabase = this.getSupabase()
-    if (!supabase) return []
+    const client = this.getSupabase()
+    if (!client) return []
 
     const isAdmin = await this.isViewer()
     if (!isAdmin) throw new Error('Not authorized')
 
-    // Fetch last 50 intent events
-    const { data: events, error } = await supabase
+    const { data: events, error } = await client
       .from('vave_analytics')
       .select(`
         *,
@@ -297,14 +285,13 @@ export const adminService = {
   },
 
   async getAudienceIntelligence(startDate?: Date, endDate?: Date) {
-    const supabase = this.getSupabase()
-    if (!supabase) return { pagePerformance: [], leads: [] }
+    const client = this.getSupabase()
+    if (!client) return { pagePerformance: [], leads: [] }
 
     const end = endDate || new Date()
     const start = startDate || new Date(new Date().setDate(end.getDate() - 30))
 
-    // 1. Page Performance (Grouping for Traffic Heatmap)
-    const { data: pageEvents } = await supabase
+    const { data: pageEvents } = await client
       .from('vave_analytics')
       .select('url')
       .eq('event_name', 'page_view')
@@ -322,8 +309,7 @@ export const adminService = {
       .sort((a, b) => b.views - a.views)
       .slice(0, 10)
 
-    // 2. Recovery Leads (Checkout Abandonment)
-    const { data: checkouts } = await supabase
+    const { data: checkouts } = await client
       .from('vave_analytics')
       .select(`
         *,
@@ -333,7 +319,7 @@ export const adminService = {
       .gte('created_at', start.toISOString())
       .order('created_at', { ascending: false })
 
-    const { data: paidOrders } = await supabase
+    const { data: paidOrders } = await client
       .from('orders')
       .select('user_id')
       .eq('status', 'paid')
@@ -357,4 +343,3 @@ export const adminService = {
     }
   }
 }
- 

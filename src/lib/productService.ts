@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { getSupabaseClient, isSupabaseConfigured } from './supabaseClient';
 import { adminService } from './adminService';
 
 export interface ProductVariant {
@@ -25,14 +25,12 @@ export interface DBProduct {
     description: string;
     long_description: string | null;
     
-    // Advanced Metadata
     brand?: string;
     gender?: 'men' | 'women' | 'unisex' | 'other';
     strength?: string;
     collection?: string;
     sku?: string;
     
-    // Core Data (Legacy support)
     price_30ml: number;
     price_50ml: number;
     stock_30ml: number;
@@ -43,7 +41,6 @@ export interface DBProduct {
         label: string;
     };
 
-    // Modern Data (v2)
     variants?: ProductVariant[];
     images_v2?: ProductImageV2[];
     
@@ -61,7 +58,6 @@ export interface DBProduct {
         base: string[];
     };
 
-    // Computed properties (client side)
     price?: number;
 }
 
@@ -73,13 +69,12 @@ export type ProductCreateInput = Omit<DBProduct, 'id' | 'price' | 'priceXL' | 'r
 export type ProductUpdateInput = Partial<Omit<DBProduct, 'id' | 'price' | 'priceXL'>>;
 
 export const productService = {
-    // ─── Public Queries (filter hidden products) ─────────────────────
-
     async getAllProducts(): Promise<DBProduct[]> {
         if (!isSupabaseConfigured) return [];
         
         try {
-            const { data, error } = await supabase
+            const client = getSupabaseClient();
+            const { data, error } = await client
                 .from('products')
                 .select('*')
                 .eq('is_hidden', false)
@@ -96,7 +91,8 @@ export const productService = {
     async getProductBySlug(slug: string): Promise<DBProduct | null> {
         if (!isSupabaseConfigured) return null;
         try {
-            const { data, error } = await supabase
+            const client = getSupabaseClient();
+            const { data, error } = await client
                 .from('products')
                 .select('*')
                 .eq('slug', slug)
@@ -113,7 +109,8 @@ export const productService = {
     async getProductById(id: string): Promise<DBProduct | null> {
         if (!isSupabaseConfigured) return null;
         try {
-            const { data, error } = await supabase
+            const client = getSupabaseClient();
+            const { data, error } = await client
                 .from('products')
                 .select('*')
                 .eq('id', id)
@@ -129,7 +126,8 @@ export const productService = {
     async getBestsellerProducts(): Promise<DBProduct[]> {
         if (!isSupabaseConfigured) return [];
         try {
-            const { data, error } = await supabase
+            const client = getSupabaseClient();
+            const { data, error } = await client
                 .from('products')
                 .select('*')
                 .eq('is_bestseller', true)
@@ -144,7 +142,8 @@ export const productService = {
     },
 
     async getNewProducts(): Promise<DBProduct[]> {
-        const { data, error } = await supabase
+        const client = getSupabaseClient();
+        const { data, error } = await client
             .from('products')
             .select('*')
             .eq('is_new', true)
@@ -156,7 +155,8 @@ export const productService = {
     },
 
     async getProductsByCategory(category: string): Promise<DBProduct[]> {
-        const { data, error } = await supabase
+        const client = getSupabaseClient();
+        const { data, error } = await client
             .from('products')
             .select('*')
             .eq('category', category)
@@ -168,7 +168,8 @@ export const productService = {
     },
 
     async updateStock(productId: string, size: '30' | '50', quantity: number): Promise<void> {
-        const { error } = await supabase.rpc('update_product_stock', {
+        const client = getSupabaseClient();
+        const { error } = await client.rpc('update_product_stock', {
             p_product_id: productId,
             p_size: size,
             p_quantity: quantity
@@ -178,9 +179,10 @@ export const productService = {
     },
 
     async checkStock(productId: string, size: '30' | '50', quantity: number): Promise<boolean> {
+        const client = getSupabaseClient();
         const stockField = size === '30' ? 'stock_30ml' : 'stock_50ml';
 
-        const { data, error } = await supabase
+        const { data, error } = await client
             .from('products')
             .select(stockField)
             .eq('id', productId)
@@ -196,13 +198,12 @@ export const productService = {
         return typeof stock === 'number' && stock >= quantity;
     },
 
-    // ─── Admin Queries (include hidden products) ─────────────────────
-
     async getAllProductsAdmin(): Promise<DBProduct[]> {
         const isAdmin = await adminService.isAdmin();
         if (!isAdmin) throw new Error('Not authorized');
 
-        const { data, error } = await supabase
+        const client = getSupabaseClient();
+        const { data, error } = await client
             .from('products')
             .select('*')
             .order('name');
@@ -211,13 +212,12 @@ export const productService = {
         return data || [];
     },
 
-    // ─── Admin CRUD ──────────────────────────────────────────────────
-
     async createProduct(product: ProductCreateInput): Promise<DBProduct> {
         const isAdmin = await adminService.isAdmin();
         if (!isAdmin) throw new Error('Not authorized');
 
-        const { data, error } = await supabase
+        const client = getSupabaseClient();
+        const { data, error } = await client
             .from('products')
             .insert({
                 ...product,
@@ -235,7 +235,8 @@ export const productService = {
         const isAdmin = await adminService.isAdmin();
         if (!isAdmin) throw new Error('Not authorized');
 
-        const { data, error } = await supabase
+        const client = getSupabaseClient();
+        const { data, error } = await client
             .from('products')
             .update(updates)
             .eq('id', id)
@@ -250,7 +251,8 @@ export const productService = {
         const isAdmin = await adminService.isAdmin();
         if (!isAdmin) throw new Error('Not authorized');
 
-        const { error } = await supabase
+        const client = getSupabaseClient();
+        const { error } = await client
             .from('products')
             .delete()
             .eq('id', id);
@@ -262,7 +264,8 @@ export const productService = {
         const isAdmin = await adminService.isAdmin();
         if (!isAdmin) throw new Error('Not authorized');
 
-        const { data, error } = await supabase
+        const client = getSupabaseClient();
+        const { data, error } = await client
             .from('products')
             .update({ is_hidden: isHidden })
             .eq('id', id)
