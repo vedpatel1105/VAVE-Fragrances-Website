@@ -12,7 +12,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { useCartStore } from "@/src/lib/cartStore"
 import { createRazorpayOrder, initializeRazorpayCheckout, validateShippingAddress } from "@/src/lib/razorpayService"
 import type { PaymentVerificationResult } from "@/src/types/orders"
-import { supabase } from "@/src/lib/supabaseClient"
+import { getSupabaseClient } from "@/src/lib/supabaseClient"
 import { useSearchParams } from "next/navigation"
 import { ProductInfo } from "@/src/data/product-info"
 
@@ -172,7 +172,8 @@ function CheckoutContent() {
 
     const loadUserAddresses = async () => {
       try {
-        const { data: addresses, error } = await supabase
+        const client = getSupabaseClient()
+        const { data: addresses, error } = await client
           .from('user_addresses')
           .select('*')
           .eq('user_id', user.id)
@@ -396,7 +397,8 @@ function CheckoutContent() {
 
           // Save address if user is logged in
           if (user?.id) {
-            const { error: addressError } = await supabase
+            const client = getSupabaseClient()
+            const { error: addressError } = await client
               .from('user_addresses')
               .upsert({
                 user_id: user.id,
@@ -525,7 +527,8 @@ function CheckoutContent() {
         created_at: new Date().toISOString()
       };
 
-      const { data: savedOrder, error: dbError } = await supabase
+      const client = getSupabaseClient()
+      const { data: savedOrder, error: dbError } = await client
         .from('orders')
         .insert(orderData)
         .select()

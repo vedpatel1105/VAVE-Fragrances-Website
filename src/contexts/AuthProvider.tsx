@@ -1,8 +1,8 @@
 'use client';
 
-import { createContext, useContext, useEffect } from 'react';
+import { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useAuthStore } from '@/src/lib/auth';
-import { supabase } from '@/src/lib/supabaseClient';
+import { getSupabaseClient } from '@/src/lib/supabaseClient';
 import { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 const AuthContext = createContext<ReturnType<typeof useAuthStore> | null>(null);
@@ -15,15 +15,17 @@ export function useAuth() {
     return context;
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
     const auth = useAuthStore();
 
     useEffect(() => {
         // Initial auth check
         auth.checkAuth();
 
+        const client = getSupabaseClient();
+
         // Listen for auth state changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        const { data: { subscription } } = client.auth.onAuthStateChange(
             async (event: AuthChangeEvent, session: Session | null) => {
                 if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
                     if (session?.user) {

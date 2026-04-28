@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import Razorpay from 'razorpay';
-import { supabase } from '@/src/lib/supabaseClient';
+import { getSupabaseClient } from '@/src/lib/supabaseClient';
 import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         const authorization = (await headersList).get('authorization');
 
         let user: any = null;
-        let supabaseClient = supabase; // Use public client by default
+        let supabaseClient = getSupabaseClient(); // Use public client by default
 
         if (authorization?.startsWith('Bearer ')) {
             const supabaseToken = authorization.split(' ')[1];

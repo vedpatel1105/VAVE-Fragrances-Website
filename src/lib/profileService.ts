@@ -1,4 +1,4 @@
-import { supabase } from "@/src/lib/supabaseClient";
+import { getSupabaseClient } from "@/src/lib/supabaseClient";
 
 export interface UserProfile {
   id: string;
@@ -42,7 +42,8 @@ export interface UserOrder {
 // --- Profile Service ---
 export const profileService = {
   async getProfile() {
-    const { data, error } = await supabase
+    const client = getSupabaseClient();
+    const { data, error } = await client
       .from('users')
       .select('id, full_name, phone, email, is_active')
       .single();
@@ -51,10 +52,12 @@ export const profileService = {
   },
 
   async updateProfile(profile: Partial<Pick<UserProfile, 'full_name' | 'phone'>>) {
-    const { data, error } = await supabase
+    const client = getSupabaseClient();
+    const userResponse = await client.auth.getUser();
+    const { data, error } = await client
       .from('users')
       .update(profile)
-      .eq('id', (await supabase.auth.getUser()).data.user?.id)
+      .eq('id', userResponse.data.user?.id)
       .select()
       .single();
     if (error) throw error;
@@ -63,7 +66,8 @@ export const profileService = {
 
   // --- Addresses ---
   async getAddresses() {
-    const { data, error } = await supabase
+    const client = getSupabaseClient();
+    const { data, error } = await client
       .from('user_addresses')
       .select('*');
     if (error) throw error;
@@ -71,11 +75,13 @@ export const profileService = {
   },
 
   async addAddress(address: Omit<Address, 'id' | 'created_at'>) {
-    const { data, error } = await supabase
+    const client = getSupabaseClient();
+    const userResponse = await client.auth.getUser();
+    const { data, error } = await client
       .from('user_addresses')
       .insert({
         ...address,
-        user_id: (await supabase.auth.getUser()).data.user?.id,
+        user_id: userResponse.data.user?.id,
       })
       .single();
     if (error) throw error;
@@ -83,7 +89,8 @@ export const profileService = {
   },
 
   async updateAddress(id: string, updates: Partial<Omit<Address, 'id' | 'user_id' | 'created_at'>>) {
-    const { data, error } = await supabase
+    const client = getSupabaseClient();
+    const { data, error } = await client
       .from('user_addresses')
       .update(updates)
       .eq('id', id)
@@ -94,7 +101,8 @@ export const profileService = {
 
   // --- Orders ---
   async getOrders() {
-    const { data, error } = await supabase
+    const client = getSupabaseClient();
+    const { data, error } = await client
       .from('user_orders')
       .select('*')
       .order('created_at', { ascending: false });
