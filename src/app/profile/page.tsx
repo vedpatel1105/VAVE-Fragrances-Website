@@ -960,8 +960,12 @@ function ProfileContent() {
 
 export default function ProfilePage() {
   return (
-    <Suspense fallback={<div className=" min-h-screen bg-zinc-950 flex items-center justify-center\><div className=\h-8 w-8 rounded-full border-2 border-white/10 border-t-white animate-spin\ /></div>}>
- <ProfileContent />
- </Suspense>
- )
+    <Suspense fallback={
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-2 border-white/10 border-t-white animate-spin" />
+      </div>
+    }>
+      <ProfileContent />
+    </Suspense>
+  )
 }
