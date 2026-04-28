@@ -152,20 +152,29 @@ function ProfileContent() {
   }, [profile.email])
 
   useEffect(() => {
-    if (!isAuthenticated) return
+    if (!isAuthenticated || !user) return
     ;(async () => {
       try {
-        const [p, a, o] = await Promise.all([
+        const [p, a, o] = await Promise.allSettled([
           profileService.getProfile(),
           profileService.getAddresses(),
           profileService.getOrders(),
         ])
-        setProfile(prev => ({ ...prev, ...p }))
-        setAddresses((a ?? []).filter(Boolean))
-        setOrders(o ?? [])
-      } catch {}
+        
+        if (p.status === 'fulfilled' && p.value) {
+          setProfile(prev => ({ ...prev, ...p.value }))
+        }
+        if (a.status === 'fulfilled' && a.value) {
+          setAddresses((a.value ?? []).filter(Boolean))
+        }
+        if (o.status === 'fulfilled' && o.value) {
+          setOrders((o.value ?? []).filter(Boolean))
+        }
+      } catch (err) {
+        console.error("Profile data fetch error:", err)
+      }
     })()
-  }, [isAuthenticated])
+  }, [isAuthenticated, user?.id])
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) router.push("/auth/login")

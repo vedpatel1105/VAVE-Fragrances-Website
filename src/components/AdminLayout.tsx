@@ -224,8 +224,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <AvatarFallback>AD</AvatarFallback>
               </Avatar>
               <div>
-                <p className="text-sm font-medium">{localStorage.getItem("adminEmail") || "Admin User"}</p>
-                <p className="text-xs text-gray-500">Administrator</p>
+                <p className="text-sm font-medium">{user?.full_name || user?.email || "Admin User"}</p>
+                <p className="text-xs text-gray-500">{user?.email === 'admin@vavefragrances.dev' ? 'System Administrator' : 'Administrator'}</p>
               </div>
             </div>
             <button

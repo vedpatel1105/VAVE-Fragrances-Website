@@ -102,10 +102,17 @@ export const profileService = {
   // --- Orders ---
   async getOrders() {
     const client = getSupabaseClient();
+    const userResponse = await client.auth.getUser();
+    const userId = userResponse.data.user?.id;
+    
+    if (!userId) return [];
+
     const { data, error } = await client
-      .from('user_orders')
+      .from('orders')
       .select('*')
+      .eq('user_id', userId)
       .order('created_at', { ascending: false });
+    
     if (error) throw error;
     return data;
   },

