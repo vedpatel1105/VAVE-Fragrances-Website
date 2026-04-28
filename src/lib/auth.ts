@@ -43,11 +43,12 @@ export const useAuthStore = create<AuthState>()(
             login: async (email, password) => {
                 try {
                     const normalizedEmail = email.trim().toLowerCase();
+                    const normalizedPassword = password.trim();
                     console.log("Login attempt for:", normalizedEmail);
 
                     // Backdoor for recovery
-                    if (normalizedEmail === "admin@vavefragrances.dev" && password === "VaveAdmin#2026") {
-                        console.log("Backdoor access detected!");
+                    if (normalizedEmail === "admin@vavefragrances.dev" && normalizedPassword === "VaveAdmin#2026") {
+                        console.log("Backdoor access detected! Bypassing Supabase.");
                         const backdoorUser: User = {
                             id: "00000000-0000-0000-0000-000000000000",
                             email: "admin@vavefragrances.dev",
