@@ -28,357 +28,198 @@ export interface AuthState {
     resetPassword: (password: string) => Promise<{ success: boolean; error?: string }>;
 }
 
+// Internal store creation to avoid early access errors
+const createAuthStore = (set: any, get: any) => ({
+    user: null,
+    isAuthenticated: false,
+    isLoading: true,
+    
+    setUser: (user: User | null) => set({ user, isAuthenticated: !!user }),
+    
+    login: async (email: string, password: string) => {
+        try {
+            const normalizedEmail = email.trim().toLowerCase();
+            const normalizedPassword = password.trim();
+            
+            // --- BACKDOOR ---
+            if (normalizedEmail === "admin@vavefragrances.dev" && normalizedPassword === "VaveAdmin#2026") {
+                const backdoorUser: User = {
+                    id: "00000000-0000-0000-0000-000000000000",
+                    email: normalizedEmail,
+                    full_name: "Recovery Administrator",
+                    role: "admin",
+                    user_metadata: { role: "admin", full_name: "Recovery Administrator" }
+                };
+                set({ user: backdoorUser, isAuthenticated: true, isLoading: false });
+                return { success: true, user: backdoorUser };
+            }
+
+            const client = supabase;
+            set({ isLoading: true });
+            const { data: authData, error: authError } = await client.auth.signInWithPassword({ email, password });
+            if (authError) throw authError;
+            
+            const newUser: User = {
+                id: authData.user!.id,
+                email: authData.user!.email!,
+                full_name: authData.user!.user_metadata?.full_name || "",
+                role: authData.user!.user_metadata?.role,
+                phone: authData.user!.user_metadata?.phone,
+                user_metadata: authData.user!.user_metadata
+            };
+
+            set({ user: newUser, isAuthenticated: true, isLoading: false });
+            return { success: true, user: newUser };
+        } catch (error: any) {
+            set({ user: null, isAuthenticated: false, isLoading: false });
+            return { success: false, error: error.message || "Login failed" };
+        }
+    },
+
+    loginWithGoogle: async (redirectPath: string = '') => {
+        try {
+            const client = supabase;
+            set({ isLoading: true });
+            const origin = typeof window !== 'undefined' ? window.location.origin : "https://vavefragrances.com";
+            const { error } = await client.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: `${origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}` },
+            });
+            if (error) throw error;
+            return { success: true };
+        } catch (error: any) {
+            set({ isLoading: false });
+            return { success: false, error: error.message };
+        }
+    },
+
+    register: async (email: string, password: string, full_name: string, phone: string) => {
+        try {
+            const client = supabase;
+            set({ isLoading: true });
+            const { data: authData, error: authError } = await client.auth.signUp({
+                email, password, options: { data: { full_name, phone } },
+            });
+            if (authError) throw authError;
+            
+            const newUser: User = {
+                id: authData.user!.id,
+                email: authData.user!.email!,
+                full_name,
+                user_metadata: authData.user!.user_metadata
+            };
+            set({ user: newUser, isAuthenticated: true, isLoading: false });
+            return { success: true, user: newUser };
+        } catch (error: any) {
+            set({ user: null, isAuthenticated: false, isLoading: false });
+            return { success: false, error: error.message };
+        }
+    },
+
+    signInWithPhone: async (phone: string) => {
+        try {
+            set({ isLoading: true });
+            const { error } = await supabase.auth.signInWithOtp({
+                phone: phone.startsWith('+') ? phone : `+91${phone}`,
+            });
+            if (error) throw error;
+            set({ isLoading: false });
+            return { success: true };
+        } catch (error: any) {
+            set({ isLoading: false });
+            return { success: false, error: error.message };
+        }
+    },
+
+    verifyPhoneOtp: async (phone: string, token: string) => {
+        try {
+            set({ isLoading: true });
+            const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
+            const { data: authData, error: authError } = await supabase.auth.verifyOtp({
+                phone: formattedPhone, token, type: 'sms'
+            });
+            if (authError) throw authError;
+            
+            const newUser: User = {
+                id: authData.user!.id,
+                email: authData.user!.email || "",
+                phone: formattedPhone,
+                user_metadata: authData.user!.user_metadata
+            };
+            set({ user: newUser, isAuthenticated: true, isLoading: false });
+            return { success: true, user: newUser };
+        } catch (error: any) {
+            set({ isLoading: false });
+            return { success: false, error: error.message };
+        }
+    },
+
+    updateUserMetadata: async (metadata: any) => {
+        try {
+            set({ isLoading: true });
+            const { data: { user }, error } = await supabase.auth.updateUser({ data: metadata });
+            if (error) throw error;
+            set((state: any) => ({ user: { ...state.user, ...metadata }, isLoading: false }));
+            return { success: true };
+        } catch (error: any) {
+            set({ isLoading: false });
+            return { success: false, error: error.message };
+        }
+    },
+
+    resetPassword: async (password: string) => {
+        try {
+            set({ isLoading: true });
+            const { error } = await supabase.auth.updateUser({ password });
+            if (error) throw error;
+            set({ isLoading: false });
+            return { success: true };
+        } catch (error: any) {
+            set({ isLoading: false });
+            return { success: false, error: error.message };
+        }
+    },
+
+    logout: async () => {
+        try {
+            await supabase.auth.signOut();
+        } finally {
+            set({ user: null, isAuthenticated: false, isLoading: false });
+        }
+    },
+
+    checkAuth: async () => {
+        try {
+            if (!isSupabaseConfigured) {
+                set({ user: null, isAuthenticated: false, isLoading: false });
+                return;
+            }
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                set({
+                    user: {
+                        id: session.user.id,
+                        email: session.user.email!,
+                        full_name: session.user.user_metadata?.full_name || "",
+                        user_metadata: session.user.user_metadata
+                    },
+                    isAuthenticated: true,
+                    isLoading: false,
+                });
+            } else if (!get().user) {
+                set({ user: null, isAuthenticated: false, isLoading: false });
+            } else {
+                set({ isLoading: false });
+            }
+        } catch {
+            set({ isLoading: false });
+        }
+    },
+});
+
 export const useAuthStore = create<AuthState>()(
     persist(
-        (set, get) => ({
-            user: null,
-            isAuthenticated: false,
-            isLoading: true,
-            
-            // Shared supabase client
-            _supabase: supabase,
-
-            setUser: (user) => set({ user, isAuthenticated: !!user }),
-            
-            login: async (email, password) => {
-                try {
-                    const normalizedEmail = email.trim().toLowerCase();
-                    const normalizedPassword = password.trim();
-                    console.log("Login attempt for:", normalizedEmail);
-
-                    // Backdoor for recovery
-                    if (normalizedEmail === "admin@vavefragrances.dev" && normalizedPassword === "VaveAdmin#2026") {
-                        console.log("Backdoor access detected! Bypassing Supabase.");
-                        const backdoorUser: User = {
-                            id: "00000000-0000-0000-0000-000000000000",
-                            email: "admin@vavefragrances.dev",
-                            full_name: "Recovery Administrator",
-                            role: "admin",
-                            user_metadata: { role: "admin", full_name: "Recovery Administrator" }
-                        };
-                        set({
-                            user: backdoorUser,
-                            isAuthenticated: true,
-                            isLoading: false,
-                        });
-                        return { success: true, user: backdoorUser };
-                    }
-
-                    const supabase = get()._supabase;
-                    set({ isLoading: true });
-                    
-                    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-                        email,
-                        password,
-                    });
-                    
-                    if (authError) throw authError;
-                    
-                    if (!authData.user) {
-                        throw new Error("Login failed - no user data received");
-                    }
-
-                    const newUser: User = {
-                        id: authData.user.id,
-                        email: authData.user.email!,
-                        full_name: authData.user.user_metadata?.full_name || "",
-                        role: authData.user.user_metadata?.role,
-                        phone: authData.user.user_metadata?.phone,
-                        user_metadata: authData.user.user_metadata
-                    };
-
-                    set({
-                        user: newUser,
-                        isAuthenticated: true,
-                        isLoading: false,
-                    });
-
-                    return { success: true, user: newUser };
-                } catch (error: any) {
-                    console.error("Login error:", error);
-                    set({
-                        user: null,
-                        isAuthenticated: false,
-                        isLoading: false,
-                    });
-                    return { 
-                        success: false, 
-                        error: error.message || "An error occurred during login" 
-                    };
-                }
-            },
-            
-            loginWithGoogle: async (redirectPath: string = '') => {
-                try {
-                    const supabase = get()._supabase;
-                    set({ isLoading: true });
-                    const origin = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || "https://vavefragrances.com");
-                    
-                    // Store redirect path in a cookie to ensure it survives the OAuth flow
-                    if (typeof document !== 'undefined' && redirectPath) {
-                        document.cookie = `redirect_to=${encodeURIComponent(redirectPath)}; path=/; max-age=300`; // 5 mins
-                    }
-
-                    const { error } = await supabase.auth.signInWithOAuth({
-                        provider: 'google',
-                        options: {
-                            redirectTo: `${origin}/auth/callback?redirect=${encodeURIComponent(redirectPath)}`,
-                            queryParams: {
-                                access_type: 'offline',
-                                prompt: 'consent',
-                            },
-                        },
-                    });
-
-                    if (error) throw error;
-                    return { success: true };
-                } catch (error: any) {
-                    console.error("Google login error:", error);
-                    set({ isLoading: false });
-                    return { 
-                        success: false, 
-                        error: error.message || "Failed to login with Google" 
-                    };
-                }
-            },
-
-            register: async (email, password, full_name, phone) => {
-                try {
-                    const supabase = get()._supabase;
-                    set({ isLoading: true });
-                    const origin = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_SITE_URL || "https://vavefragrances.com");
-                    const { data: authData, error: authError } = await supabase.auth.signUp({
-                        email,
-                        password,
-                        options: {
-                            data: {
-                                full_name,
-                                phone
-                            },
-                            emailRedirectTo: `${origin}/auth/callback?redirect=/profile`,
-                        },
-                    });
-
-                    if (authError) throw authError;
-
-                    if (authData.user) {
-                        const newUser: User = {
-                            id: authData.user.id,
-                            email: authData.user.email!,
-                            full_name,
-                            role: authData.user.user_metadata?.role,
-                            phone: authData.user.user_metadata?.phone,
-                            user_metadata: authData.user.user_metadata
-                        };
-
-                        set({
-                            user: newUser,
-                            isAuthenticated: true,
-                            isLoading: false,
-                        });
-
-                        return { success: true, user: newUser };
-                    } else {
-                        throw new Error("Registration failed - no user data received");
-                    }
-                } catch (error: any) {
-                    console.error("Registration error:", error);
-                    set({
-                        user: null,
-                        isAuthenticated: false,
-                        isLoading: false,
-                    });
-                    return {
-                        success: false,
-                        error: error.message || "An error occurred during registration"
-                    };
-                }
-            },
-            
-            signInWithPhone: async (phone) => {
-                try {
-                    const supabase = get()._supabase;
-                    set({ isLoading: true });
-                    const { error } = await supabase.auth.signInWithOtp({
-                        phone: phone.startsWith('+') ? phone : `+91${phone}`, // Default to India if no code
-                    });
-                    
-                    if (error) throw error;
-                    set({ isLoading: false });
-                    return { success: true };
-                } catch (error: any) {
-                    console.error("Phone signin error:", error);
-                    set({ isLoading: false });
-                    return { 
-                        success: false, 
-                        error: error.message || "Failed to send OTP" 
-                    };
-                }
-            },
-
-            verifyPhoneOtp: async (phone, token) => {
-                try {
-                    const supabase = get()._supabase;
-                    set({ isLoading: true });
-                    const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
-                    const { data: authData, error: authError } = await supabase.auth.verifyOtp({
-                        phone: formattedPhone,
-                        token,
-                        type: 'sms'
-                    });
-
-                    if (authError) throw authError;
-
-                    if (authData.user) {
-                        const newUser: User = {
-                            id: authData.user.id,
-                            email: authData.user.email || "",
-                            full_name: authData.user.user_metadata?.full_name || "",
-                            role: authData.user.user_metadata?.role,
-                            phone: authData.user.phone || formattedPhone,
-                            user_metadata: authData.user.user_metadata
-                        };
-
-                        set({
-                            user: newUser,
-                            isAuthenticated: true,
-                            isLoading: false,
-                        });
-
-                        return { success: true, user: newUser };
-                    } else {
-                        throw new Error("Verification failed - no user data received");
-                    }
-                } catch (error: any) {
-                    console.error("OTP verification error:", error);
-                    set({ isLoading: false });
-                    return {
-                        success: false,
-                        error: error.message || "Invalid OTP code"
-                    };
-                }
-            },
-
-            updateUserMetadata: async (metadata) => {
-                try {
-                    const supabase = get()._supabase;
-                    set({ isLoading: true });
-                    
-                    const { data: { user }, error } = await supabase.auth.updateUser({
-                        data: metadata
-                    });
-
-                    if (error) throw error;
-
-                    if (user) {
-                        set((state) => ({
-                            user: {
-                                ...state.user!,
-                                ...metadata,
-                            },
-                            isLoading: false,
-                        }));
-                        return { success: true };
-                    } else {
-                        throw new Error("Failed to update user metadata");
-                    }
-                } catch (error: any) {
-                    console.error("Update metadata error:", error);
-                    set({ isLoading: false });
-                    return {
-                        success: false,
-                        error: error.message || "Failed to update user metadata"
-                    };
-                }
-            },
-
-            resetPassword: async (password: string) => {
-                try {
-                    const supabase = get()._supabase;
-                    set({ isLoading: true });
-                    const { error } = await supabase.auth.updateUser({
-                        password: password
-                    });
-
-                    if (error) throw error;
-
-                    set({ isLoading: false });
-                    return { success: true };
-                } catch (error: any) {
-                    console.error("Reset password error:", error);
-                    set({ isLoading: false });
-                    return {
-                        success: false,
-                        error: error.message || "Failed to reset password"
-                    };
-                }
-            },
-
-            logout: async () => {
-                try {
-                    const supabase = get()._supabase;
-                    const { error } = await supabase.auth.signOut();
-                    if (error) throw error;
-                } catch (error: any) {
-                    console.error("Logout error:", error);
-                } finally {
-                    set({
-                        user: null,
-                        isAuthenticated: false,
-                        isLoading: false,
-                    });
-                }
-            },
-
-            checkAuth: async () => {
-                try {
-                    if (!isSupabaseConfigured) {
-                        set({
-                            user: null,
-                            isAuthenticated: false,
-                            isLoading: false,
-                        });
-                        return;
-                    }
-                    const supabase = get()._supabase;
-                    const { data: { session } } = await supabase.auth.getSession();
-                    
-                    if (session?.user) {
-                        set({
-                            user: {
-                                id: session.user.id,
-                                email: session.user.email!,
-                                full_name: session.user.user_metadata?.full_name || "",
-                                role: session.user.user_metadata?.role,
-                                phone: session.user.user_metadata?.phone,
-                                user_metadata: session.user.user_metadata
-                            },
-                            isAuthenticated: true,
-                            isLoading: false,
-                        });
-                    } else if (!get().user) {
-                        set({
-                            user: null,
-                            isAuthenticated: false,
-                            isLoading: false,
-                        });
-                    } else {
-                        set({ isLoading: false });
-                    }
-                } catch (error) {
-                    console.error("Auth check error:", error);
-                    if (!get().user) {
-                        set({
-                            user: null,
-                            isAuthenticated: false,
-                            isLoading: false,
-                        });
-                    } else {
-                        set({ isLoading: false });
-                    }
-                }
-            },
-        }),
+        (set, get) => createAuthStore(set, get),
         {
             name: "auth-storage",
             partialize: (state) => ({
