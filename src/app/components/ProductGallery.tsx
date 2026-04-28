@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Image from "next/image"
-import { supabase } from "@/src/lib/supabaseClient"
+import { getSupabaseClient } from "@/src/lib/supabaseClient"
 
 interface GalleryImage {
   id: string
@@ -19,7 +19,8 @@ export default function ProductGallery() {
   useEffect(() => {
     async function fetchGallery() {
       try {
-        const { data, error } = await supabase
+        const client = getSupabaseClient();
+        const { data, error } = await client
           .from('vave_gallery')
           .select('*')
           .order('order_index', { ascending: true })
@@ -28,7 +29,6 @@ export default function ProductGallery() {
         setImages(data || [])
       } catch (err) {
         console.error("Error fetching gallery:", err)
-        // Fallback to empty if table doesn't exist
         setImages([])
       } finally {
         setLoading(false)

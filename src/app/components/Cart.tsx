@@ -11,7 +11,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { orderService } from '@/src/lib/orderService'
 import { useToast } from '@/components/ui/use-toast'
-import { supabase } from '@/src/lib/supabaseClient'
+import { getSupabaseClient } from '@/src/lib/supabaseClient'
 import { useAuthStore } from '@/src/lib/auth'
 import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
@@ -54,8 +54,8 @@ export default function Cart() {
     setMounted(true)
     checkAuth()
     
-    // Subscribe to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const client = getSupabaseClient();
+    const { data: { subscription } } = client.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN') {
         await checkAuth()
       } else if (event === 'SIGNED_OUT') {
@@ -82,7 +82,8 @@ export default function Cart() {
 
   const fetchSavedAddresses = async () => {
     try {
-      const { data, error } = await supabase
+      const client = getSupabaseClient();
+      const { data, error } = await client
         .from('user_addresses')
         .select('*')
         .eq('user_id', user?.id)
@@ -126,10 +127,8 @@ export default function Cart() {
   const handleCheckout = async () => {
     if (items.length === 0) return
 
-    // Recheck auth state before proceeding
     await checkAuth()
 
-    // Check if user is authenticated
     if (!isAuthenticated) {
       setShowAuthModal(true)
       return
@@ -137,15 +136,14 @@ export default function Cart() {
 
     setIsPlacingOrder(true)
     try {
-      // Check for incomplete orders
       const hasIncompleteOrders = await orderService.checkIncompleteOrders()
       if (hasIncompleteOrders) {
         setShowIncompleteOrderModal(true)
         return
       }
 
-      // Get user's default address
-      const { data: addresses, error: addressError } = await supabase
+      const client = getSupabaseClient();
+      const { data: addresses, error: addressError } = await client
         .from('user_addresses')
         .select('*')
         .eq('user_id', user?.id)
@@ -157,7 +155,6 @@ export default function Cart() {
         return
       }
 
-      // Build JSON shipping address per orders schema
       const shippingAddress = {
         name: user?.user_metadata?.full_name || '',
         email: user?.email || '',
@@ -168,7 +165,6 @@ export default function Cart() {
         pincode: addresses.pincode,
       }
 
-      // Place COD order in orders table
       const order = await orderService.placeOrder({
         items,
         total_amount: grandTotal,
@@ -178,10 +174,8 @@ export default function Cart() {
         payment_method: 'COD',
       })
 
-      // Set order details for success modal
       setOrderDetails(order)
 
-      // Clear cart and show success modal
       clearCart()
       setIsOpen(false)
       setShowSuccessModal(true)
@@ -200,7 +194,6 @@ export default function Cart() {
   const handleWhatsAppCheckout = async () => {
     if (items.length === 0) return
 
-    // Validate if any field is missing
     const missing = []
     if (!shippingAddress.name.trim()) missing.push("Name")
     if (!shippingAddress.phone.trim()) missing.push("Phone")
@@ -216,7 +209,6 @@ export default function Cart() {
     }
 
     try {
-      // 1. If authenticated, check if profile is complete (needs phone and at least one address)
       if (isAuthenticated && user) {
         const hasPhone = !!user.user_metadata?.phone;
         const hasAddress = savedAddresses.length > 0;
@@ -240,7 +232,6 @@ export default function Cart() {
 
       const total = grandTotal
       
-      // 1. Record order in database
       const orderData = {
         user_id: user?.id || null,
         items: items.map(item => ({
@@ -260,7 +251,8 @@ export default function Cart() {
         created_at: new Date().toISOString()
       }
 
-      const { data: savedOrder, error: dbError } = await supabase
+      const client = getSupabaseClient();
+      const { data: savedOrder, error: dbError } = await client
         .from('orders')
         .insert(orderData)
         .select()
@@ -287,10 +279,8 @@ export default function Cart() {
         `${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}\n\n` +
         `Please confirm my COD order. Thank you!`;
 
-      // 2. Send WhatsApp link
       const whatsappUrl = `https://wa.me/919328701508?text=${encodeURIComponent(messageText)}`;
       
-      // 3. Cleanup
       clearCart()
       setIsOpen(false)
       setShowWhatsAppModal(false)
@@ -300,13 +290,11 @@ export default function Cart() {
         description: "Your order has been recorded and details sent via WhatsApp.",
       })
 
-      // 4. Open WhatsApp with fallback
       const newWindow = window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
       if (!newWindow) {
         window.location.href = whatsappUrl;
       }
 
-      // 5. Redirect to success page
       router.push(`/order-success?orderId=${orderId}&method=cod`)
 
     } catch (error) {
@@ -321,10 +309,7 @@ export default function Cart() {
     }
   }
 
-  // Calculate shipping cost
   const shippingCost = getTotalPrice() >= 1000 ? 0 : 30
-
-  // Calculate grand total
   const grandTotal = getTotalPrice() + shippingCost
 
   if (!mounted) {
@@ -423,7 +408,6 @@ export default function Cart() {
                           </div>
                         </div>
                         
-                        {/* Absolute Trash Button - Always visible on mobile, hover on desktop */}
                         <button
                           className="absolute top-4 right-4 text-white/20 hover:text-red-400 transition-colors lg:opacity-0 lg:group-hover:opacity-100"
                           onClick={() => removeItem(item.id, item.size, item.color)}
@@ -454,7 +438,6 @@ export default function Cart() {
                     <p className="text-[9px] uppercase tracking-widest text-white/30 text-center mt-2">GST included in all prices</p>
                   </div>
 
-                  {/* Primary Checkout Button */}
                   <Button
                     className="w-full h-14 text-xs tracking-widest uppercase font-bold bg-white text-black hover:bg-gray-200 rounded-full shadow-lg transition-all duration-300"
                     onClick={() => {
@@ -466,7 +449,6 @@ export default function Cart() {
                     Check out (Online Payment)
                   </Button>
 
-                  {/* Payment Options Divider */}
                   <div className="flex items-center my-5">
                     <div className="flex-1 border-t border-white/10"></div>
                     <span className="px-4 text-[9px] uppercase tracking-[0.2em] text-white/30 bg-zinc-950">
@@ -475,9 +457,7 @@ export default function Cart() {
                     <div className="flex-1 border-t border-white/10"></div>
                   </div>
 
-                  {/* Alternative Payment Options */}
                   <div className="space-y-3">
-                    {/* WhatsApp Button */}
                     <Button
                       onClick={() => setShowWhatsAppModal(true)}
                       disabled={items.length === 0}
@@ -488,7 +468,6 @@ export default function Cart() {
                     </Button>
                   </div>
 
-                  {/* Shipping Info */}
                   <div className="mt-6 p-4 bg-zinc-900/30 border border-white/5 rounded-2xl flex items-center justify-center gap-3 text-center">
                     <Truck className="h-4 w-4 text-white/30 flex-shrink-0" strokeWidth={1.5} />
                     <p className="text-[10px] uppercase tracking-widest text-white/50">
@@ -500,7 +479,6 @@ export default function Cart() {
             </div>
           </motion.div>
 
-          {/* Authentication Modal */}
           <Dialog open={showAuthModal} onOpenChange={setShowAuthModal}>
             <DialogContent className="z-[10000]">
               <DialogHeader>
@@ -523,7 +501,6 @@ export default function Cart() {
             </DialogContent>
           </Dialog>
 
-          {/* Incomplete Order Modal */}
           <Dialog open={showIncompleteOrderModal} onOpenChange={setShowIncompleteOrderModal}>
             <DialogContent className="z-[10000]">
               <DialogHeader>
@@ -540,7 +517,6 @@ export default function Cart() {
             </DialogContent>
           </Dialog>
 
-          {/* Address Modal */}
           <Dialog open={showAddressModal} onOpenChange={setShowAddressModal}>
             <DialogContent className="z-[10000]">
               <DialogHeader>
@@ -563,7 +539,6 @@ export default function Cart() {
             </DialogContent>
           </Dialog>
 
-          {/* Success Modal */}
           <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
             <DialogContent className="sm:max-w-[500px] z-[10000]">
               <DialogHeader>
@@ -644,7 +619,7 @@ export default function Cart() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          {/* WhatsApp COD Details Modal */}
+
           <Dialog open={showWhatsAppModal} onOpenChange={setShowWhatsAppModal}>
             <DialogContent className="sm:max-w-[450px] z-[10000] bg-zinc-950 border-zinc-800 text-white">
               <DialogHeader>
@@ -658,7 +633,6 @@ export default function Cart() {
               </DialogHeader>
 
               <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                {/* Saved Addresses for Authenticated Users */}
                 {isAuthenticated && savedAddresses.length > 0 && (
                   <div className="space-y-2">
                     <label className="text-xs uppercase tracking-widest text-zinc-500 font-bold">Select Saved Address</label>
