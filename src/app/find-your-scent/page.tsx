@@ -2,7 +2,7 @@
 "use client"
 
 import { useState } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import Navbar from "@/src/app/components/Navbar"
 import { useRouter } from "next/navigation"
 
