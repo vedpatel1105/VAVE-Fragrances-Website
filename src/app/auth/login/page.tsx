@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/components/ui/use-toast"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useAuthStore } from "@/src/lib/auth"
+import { adminService } from "@/src/lib/adminService"
 
 function LoginForm() {
   const { user, login, loginWithGoogle, isAuthenticated, signInWithPhone, verifyPhoneOtp } = useAuthStore()
@@ -273,17 +274,7 @@ function LoginForm() {
                   {fieldErrors.email && (
                     <p className="text-[10px] text-red-500 font-medium uppercase tracking-widest">{fieldErrors.email}</p>
                   )}
-                  {emailForm.email.trim().toLowerCase() === 'admin@vavefragrances.dev' && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pt-2">
-                      <Button 
-                        type="button" 
-                        onClick={() => setEmailForm(f => ({ ...f, password: 'VaveAdmin#2026' }))}
-                        className="w-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 h-10 rounded-none text-[9px] uppercase tracking-[0.2em] hover:bg-emerald-500/20"
-                      >
-                        Autofill Admin Password
-                      </Button>
-                    </motion.div>
-                  )}
+                  {/* Autofill removed for production security */}
                 </div>
 
                 <div className="space-y-3">
