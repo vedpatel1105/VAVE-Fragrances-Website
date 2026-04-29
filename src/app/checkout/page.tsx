@@ -134,6 +134,16 @@ function CheckoutContent() {
   }, [paymentStep, isProcessing]);
   const [processingTimeout, setProcessingTimeout] = useState<any>(null);
 
+  // Auto-escape: if stuck on 'verifying' for more than 30s, redirect to profile
+  useEffect(() => {
+    if (paymentStep === 'verifying') {
+      const t = setTimeout(() => {
+        window.location.href = '/profile';
+      }, 30000);
+      return () => clearTimeout(t);
+    }
+  }, [paymentStep]);
+
   // Save Address State
   const [saveAddressForFuture, setSaveAddressForFuture] = useState(true);
 
@@ -543,8 +553,14 @@ function CheckoutContent() {
             }
           })();
 
-          // Redirect immediately — no stuck modal
-          router.push(`/order-success?orderId=${verificationData.orderId}&method=razorpay&paid=true`);
+          // Use window.location instead of router.push — Razorpay handler runs outside
+          // React's render cycle so router.push can silently fail on some browsers.
+          const redirectId = verificationData.orderId && verificationData.orderId !== 'pending' 
+            ? verificationData.orderId 
+            : '';
+          window.location.href = redirectId
+            ? `/order-success?orderId=${redirectId}&method=razorpay&paid=true`
+            : `/profile`;
         },
         // Error/Cancel callback
         (error) => {
