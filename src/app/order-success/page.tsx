@@ -5,23 +5,23 @@ import { useSearchParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/use-toast"
-import { getSupabaseClient } from "@/src/lib/supabaseClient"
-import { CheckCircle2, Loader2, PackageSearch } from "lucide-react"
+import { CheckCircle2, Loader2, MapPin, CreditCard, ArrowRight, ShoppingBag } from "lucide-react"
 import Link from "next/link"
 import { useAuthStore } from "@/src/lib/auth"
+import { getSupabaseClient } from "@/src/lib/supabaseClient"
 
 interface OrderDetails {
   id: string
   status: string
   shipping_address: string
   total_amount: number
+  payment_method: string
   items: Array<{
     name: string
     quantity: number
     size: string
     price: number
-    image: string
+    image?: string
   }>
   created_at: string
 }
@@ -29,239 +29,224 @@ interface OrderDetails {
 function OrderSuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { toast } = useToast()
-  const { user, isAuthenticated, isLoading } = useAuthStore()
+  const { isAuthenticated, isLoading } = useAuthStore()
   const [order, setOrder] = useState<OrderDetails | null>(null)
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState("")
+  
   const orderId = searchParams.get("orderId")
+  const isPaid = searchParams.get("paid") === "true"
+  const method = searchParams.get("method") || "razorpay"
 
   useEffect(() => {
-    // If not authenticated, we still allow them to see the order success page 
-    // if there's an orderId in the URL (guest checkout flow).
-    if (!isLoading && !isAuthenticated && !orderId) {
-      const currentPath = window.location.pathname + window.location.search;
-      router.push(`/auth/login?redirect=${encodeURIComponent(currentPath)}`);
-      return;
+    if (isLoading) return
+    if (!orderId) {
+      setFetchError("No order ID provided")
+      setLoading(false)
+      return
     }
-  }, [isAuthenticated, isLoading, user, router, orderId]);
 
-  useEffect(() => {
     const fetchOrder = async () => {
-      if (isLoading) return;
-
-      // If no orderId, we can't do anything
-      if (!orderId) {
-        setLoading(false);
-        return;
-      }
-
-      // If authenticated, we can verify ownership
-      // If guest, we fetch by ID only (database should ideally have a secure token, 
-      // but for now we fetch by ID to fix the immediate issue)
-
-      if (!orderId) {
-        toast({
-          title: "Error",
-          description: "Order ID not found",
-          variant: "destructive",
-        })
-        setLoading(false);
-        return
-      }
-
       try {
-        const client = getSupabaseClient();
-        let query = client
-          .from("orders")
-          .select("*")
-          .eq("id", orderId);
+        const client = getSupabaseClient()
+        const { data: { session } } = await client.auth.getSession()
         
-        // Only enforce user_id if they are logged in
-        if (user?.id) {
-          query = query.eq("user_id", user.id);
+        const headers: Record<string, string> = {}
+        if (session?.access_token) {
+          headers['Authorization'] = `Bearer ${session.access_token}`
         }
 
-        const { data, error } = await query.single();
+        const res = await fetch(`/api/get-order?orderId=${orderId}`, { headers })
+        const data = await res.json()
 
-        if (error) {
-          console.error('Supabase error fetching order:', error);
-          // If it's a permissions error or not found, just show the not found state
-          // instead of throwing and showing a toast.
-          setLoading(false);
-          return;
+        if (!res.ok || !data.order) {
+          setFetchError("Order may still be processing. Please check your orders page.")
+        } else {
+          setOrder(data.order)
         }
-
-        setOrder(data)
-      } catch (err: any) {
-        console.error('Exception in fetchOrder:', err);
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred while loading order details",
-          variant: "destructive",
-        })
+      } catch (err) {
+        console.error('Error fetching order:', err)
+        setFetchError("Could not load order details.")
       } finally {
         setLoading(false)
       }
     }
 
     fetchOrder()
-  }, [orderId, toast, user, isAuthenticated, isLoading, router])
+  }, [orderId, isLoading])
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <h2 className="text-xl font-medium">Loading order details...</h2>
+      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center gap-4">
+        <div className="relative h-16 w-16">
+          <div className="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
         </div>
+        <p className="text-white/50 text-sm uppercase tracking-widest">Loading your order...</p>
       </div>
     )
   }
 
-  if (!order) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <PackageSearch className="h-12 w-12 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Order Not Found</h2>
-          <p className="text-gray-400 mb-6">We couldn't find the order you're looking for.</p>
-          <Button asChild>
-            <Link href="/collection">Continue Shopping</Link>
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  let shippingAddress: any = { name: "Valued Customer", address: "Details unavailable", city: "", state: "", pincode: "", phone: "" };
+  let shippingAddress: any = {}
   try {
-    shippingAddress = typeof order.shipping_address === 'string' 
-      ? JSON.parse(order.shipping_address) 
-      : order.shipping_address;
-  } catch (e) {
-    console.error("Error parsing shipping address:", e);
-  }
+    shippingAddress = order?.shipping_address
+      ? (typeof order.shipping_address === 'string' ? JSON.parse(order.shipping_address) : order.shipping_address)
+      : {}
+  } catch { /* ignore */ }
+
+  const displayId = orderId ? orderId.slice(-8).toUpperCase() : "—"
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white py-12">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-zinc-950 text-white">
+      <div className="container mx-auto px-4 py-16 max-w-2xl">
+        
+        {/* Success Header */}
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
+            className="relative h-24 w-24 mx-auto mb-6"
+          >
+            <div className="absolute inset-0 bg-emerald-500/10 rounded-full"></div>
+            <div className="absolute inset-0 border-2 border-emerald-500/30 rounded-full"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <CheckCircle2 className="h-12 w-12 text-emerald-400" />
+            </div>
+          </motion.div>
+          
+          <h1 className="text-4xl font-serif text-white mb-2">
+            {(isPaid || method === "razorpay") ? "Payment Confirmed!" : "Order Placed!"}
+          </h1>
+          <p className="text-zinc-400 mb-4">
+            {isPaid ? "Your payment was successful and your order is being processed." : "Your COD order has been placed successfully."}
+          </p>
+          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-5 py-2">
+            <span className="text-xs text-zinc-500 uppercase tracking-widest">Order</span>
+            <span className="text-sm font-mono font-bold text-white">#{displayId}</span>
+          </div>
+        </motion.div>
+
+        {/* Status Steps */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl mx-auto"
+          transition={{ delay: 0.3 }}
+          className="grid grid-cols-3 gap-2 mb-8"
         >
-          <div className="text-center mb-8">
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            </motion.div>
-            <h1 className="text-3xl font-bold mb-2">Order Confirmed!</h1>
-            <p className="text-gray-400">
-              Thank you for your purchase. Your order has been successfully placed.
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="bg-white/5 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-4">Order Details</h2>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Order ID</span>
-                  <span>{order.id}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Order Date</span>
-                  <span>
-                    {new Date(order.created_at).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Status</span>
-                  <span className="capitalize">{order.status}</span>
-                </div>
+          {["Confirmed", "Processing", "Shipped"].map((step, i) => (
+            <div key={i} className={`text-center p-4 rounded-2xl border ${i === 0 ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-white/[0.03] border-white/5'}`}>
+              <div className={`text-xs uppercase tracking-widest font-bold ${i === 0 ? 'text-emerald-400' : 'text-zinc-600'}`}>
+                {step}
               </div>
             </div>
+          ))}
+        </motion.div>
 
-            <div className="bg-white/5 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-4">Items</h2>
-              <div className="space-y-4">
-                {order.items.map((item, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <div className="relative w-16 h-16">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover rounded"
-                      />
+        {order && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="space-y-4">
+            {/* Items */}
+            <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-6">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">Items Ordered</h2>
+              <div className="space-y-3">
+                {order.items.map((item, i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    {item.image && (
+                      <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0 bg-zinc-900">
+                        <Image src={item.image} alt={item.name} fill className="object-cover" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white">{item.name}</p>
+                      <p className="text-xs text-zinc-500">{item.size}ml × {item.quantity}</p>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium">{item.name}</h3>
-                      <p className="text-sm text-gray-400">
-                        {item.size}ml × {item.quantity}
-                      </p>
-                    </div>
-                    <p className="font-medium">₹{item.price * item.quantity}</p>
+                    <span className="text-sm font-mono font-semibold text-white shrink-0">₹{item.price * item.quantity}</span>
                   </div>
                 ))}
-
-                <div className="border-t border-white/10 pt-4 mt-4">
-                  <div className="flex justify-between font-medium">
-                    <span>Total</span>
-                    <span>₹{order.total_amount}</span>
-                  </div>
+                <div className="border-t border-white/10 pt-3 flex justify-between font-bold text-white">
+                  <span>Total Paid</span>
+                  <span className="font-mono">₹{order.total_amount}</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white/5 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-4">Shipping Address</h2>
-              <div className="space-y-1 text-sm">
-                <p className="font-medium">{shippingAddress.name}</p>
-                <p>{shippingAddress.address}</p>
-                <p>
-                  {shippingAddress.city}, {shippingAddress.state}{" "}
-                  {shippingAddress.pincode}
+            {/* Delivery + Payment Info */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {shippingAddress?.address && (
+                <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <MapPin className="h-4 w-4 text-zinc-500" />
+                    <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Delivering To</span>
+                  </div>
+                  <p className="text-sm font-semibold text-white">{shippingAddress.name}</p>
+                  <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                    {shippingAddress.address}, {shippingAddress.city}, {shippingAddress.state} – {shippingAddress.pincode}
+                  </p>
+                </div>
+              )}
+              <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <CreditCard className="h-4 w-4 text-zinc-500" />
+                  <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Payment</span>
+                </div>
+                <p className="text-sm font-semibold text-white capitalize">
+                  {order.payment_method === 'razorpay' ? 'Paid Online ✓' : 'Cash on Delivery'}
                 </p>
-                <p>Phone: {shippingAddress.phone}</p>
+                <p className="text-xs text-zinc-500 mt-1">
+                  {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </p>
               </div>
             </div>
-            
-            {!isAuthenticated && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="bg-white/5 border border-white/10 rounded-lg p-6 text-center space-y-4"
-              >
-                <h3 className="text-lg font-semibold">Save your details for later?</h3>
-                <p className="text-sm text-gray-400">
-                  Create an account now to track your order and enjoy faster checkout next time.
-                </p>
-                <Button variant="outline" className="w-full border-white/20 hover:bg-white/5" asChild>
-                  <Link href={`/auth/register?email=${encodeURIComponent(shippingAddress.email || '')}&name=${encodeURIComponent(shippingAddress.name || '')}&phone=${encodeURIComponent(shippingAddress.phone || '')}`}>
-                    Create My Account
-                  </Link>
-                </Button>
-              </motion.div>
-            )}
+          </motion.div>
+        )}
 
-            <div className="flex gap-4">
-              <Button className="w-full" asChild>
-                <Link href="/my-orders">View Orders</Link>
-              </Button>
-              <Button className="w-full" variant="secondary" asChild>
-                <Link href="/collection">Continue Shopping</Link>
-              </Button>
-            </div>
+        {fetchError && (
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5 text-center mt-4">
+            <p className="text-amber-300 text-sm">{fetchError}</p>
           </div>
+        )}
+
+        {/* Guest Registration Prompt */}
+        {!isAuthenticated && shippingAddress?.email && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="mt-6 bg-white/[0.03] border border-white/10 rounded-2xl p-6 text-center"
+          >
+            <h3 className="text-base font-semibold mb-1">Save your details for next time?</h3>
+            <p className="text-sm text-zinc-500 mb-4">Create a free account and checkout 3x faster.</p>
+            <Button variant="outline" className="border-white/20 hover:bg-white/5 w-full" asChild>
+              <Link href={`/auth/register?email=${encodeURIComponent(shippingAddress.email || '')}&name=${encodeURIComponent(shippingAddress.name || '')}&phone=${encodeURIComponent(shippingAddress.phone || '')}`}>
+                Create Account <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </motion.div>
+        )}
+
+        {/* Actions */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="flex flex-col sm:flex-row gap-3 mt-8"
+        >
+          {isAuthenticated ? (
+            <Button
+              className="flex-1 bg-white text-black hover:bg-zinc-100 h-12 rounded-xl font-semibold"
+              onClick={() => router.push('/profile')}
+            >
+              <ShoppingBag className="mr-2 h-4 w-4" />
+              View My Orders
+            </Button>
+          ) : (
+            <Button className="flex-1 bg-white text-black hover:bg-zinc-100 h-12 rounded-xl font-semibold" asChild>
+              <Link href="/collection">Continue Shopping</Link>
+            </Button>
+          )}
+          <Button variant="outline" className="flex-1 border-white/20 hover:bg-white/5 h-12 rounded-xl" asChild>
+            <Link href="/collection">Shop More</Link>
+          </Button>
         </motion.div>
       </div>
     </div>
@@ -271,11 +256,8 @@ function OrderSuccessContent() {
 export default function OrderSuccess() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <h2 className="text-xl font-medium">Loading details...</h2>
-        </div>
+      <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-white/40" />
       </div>
     }>
       <OrderSuccessContent />

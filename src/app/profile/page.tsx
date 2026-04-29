@@ -4,7 +4,7 @@ import type React from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/src/lib/auth"
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -13,7 +13,7 @@ import {
   User, Package, Heart, Settings, LogOut, MapPin,
   CheckCircle2, Clock, Truck, XCircle, AlertTriangle,
   ChevronRight, Trash2, Key, Shield, ShoppingBag,
-  ChevronDown, ChevronUp, Star, Plus,
+  ChevronDown, ChevronUp, Star, Plus, MessageCircle,
   ArrowRight, CreditCard, Download, Smartphone
 } from "lucide-react"
 import { profileService, type UserProfile, type Address, type UserOrder } from "@/src/lib/profileService"
@@ -151,7 +151,7 @@ function ProfileContent() {
     gen()
   }, [profile.email])
 
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     if (!isAuthenticated || !user) return
     try {
       const [p, a, o] = await Promise.allSettled([
@@ -159,24 +159,17 @@ function ProfileContent() {
         profileService.getAddresses(),
         profileService.getOrders(),
       ])
-      
-      if (p.status === 'fulfilled' && p.value) {
-        setProfile(prev => ({ ...prev, ...p.value }))
-      }
-      if (a.status === 'fulfilled' && a.value) {
-        setAddresses((a.value ?? []).filter(Boolean))
-      }
-      if (o.status === 'fulfilled' && o.value) {
-        setOrders((o.value ?? []).filter(Boolean))
-      }
+      if (p.status === 'fulfilled' && p.value) setProfile(prev => ({ ...prev, ...p.value }))
+      if (a.status === 'fulfilled' && a.value) setAddresses((a.value ?? []).filter(Boolean))
+      if (o.status === 'fulfilled' && o.value) setOrders((o.value ?? []).filter(Boolean))
     } catch (err) {
       console.error("Profile data fetch error:", err)
     }
-  }
+  }, [isAuthenticated, user?.id])
 
   useEffect(() => {
     fetchAllData()
-  }, [isAuthenticated, user?.id, activeTab]) // Refetch when tab changes or auth changes
+  }, [fetchAllData, activeTab])
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) router.push("/auth/login")

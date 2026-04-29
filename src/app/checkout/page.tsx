@@ -104,7 +104,7 @@ function CheckoutContent() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ShippingAddress, string>>>({});
   const [isLoadingAddress, setIsLoadingAddress] = useState(true);
   const [shippingCharge, setShippingCharge] = useState<number>(0);
-  const [paymentStep, setPaymentStep] = useState<'form' | 'processing' | 'payment'>('form');
+  const [paymentStep, setPaymentStep] = useState<'form' | 'processing' | 'payment' | 'verifying'>('form');
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | 'new'>('new');
 
@@ -260,39 +260,40 @@ function CheckoutContent() {
     const loadUserAddresses = async () => {
       try {
         const client = getSupabaseClient()
-        const { data: addresses, error } = await client
-          .from('user_addresses')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('is_default', { ascending: false });
 
-        if (error) throw error;
+        // Fetch addresses AND user profile in parallel
+        const [addressResult, profileResult] = await Promise.allSettled([
+          client.from('user_addresses').select('*').eq('user_id', user.id).order('is_default', { ascending: false }),
+          client.from('users').select('full_name, phone').eq('id', user.id).single()
+        ]);
 
-        if (addresses && addresses.length > 0) {
+        // Get phone/name from users table (most reliable) or fall back to metadata
+        const profileData = profileResult.status === 'fulfilled' ? profileResult.value.data : null;
+        const userName = profileData?.full_name || user.user_metadata?.full_name || '';
+        const userPhone = profileData?.phone || user.user_metadata?.phone || '';
+        const userEmail = user.email || '';
+
+        const addresses = addressResult.status === 'fulfilled' ? (addressResult.value.data ?? []) : [];
+
+        if (addresses.length > 0) {
           setSavedAddresses(addresses);
-          const defaultAddr = addresses.find(a => a.is_default) || addresses[0];
+          const defaultAddr = addresses.find((a: any) => a.is_default) || addresses[0];
           setSelectedAddressId(defaultAddr.id);
           setShippingAddress({
-            name: user.user_metadata?.full_name || "",
-            email: user.email || "",
-            phone: user.user_metadata?.phone || "",
+            name: userName,
+            email: userEmail,
+            phone: userPhone,
             address: defaultAddr.address,
             city: defaultAddr.city,
             state: defaultAddr.state,
             pincode: defaultAddr.pincode
           });
-          
-          // If express=true is in URL, skip directly to payment step
-          const isExpress = searchParams.get('express') === 'true';
-          if (isExpress) {
-            setPaymentStep('payment');
-          }
         } else {
           setShippingAddress(prev => ({
             ...prev,
-            name: user.user_metadata?.full_name || '',
-            email: user.email || '',
-            phone: user.user_metadata?.phone || ''
+            name: userName,
+            email: userEmail,
+            phone: userPhone,
           }));
         }
       } catch (error) {
@@ -389,20 +390,36 @@ function CheckoutContent() {
   const validateForm = (): boolean => {
     const errors: Partial<Record<keyof ShippingAddress, string>> = {};
 
-    if (!shippingAddress.name.trim()) {
-      errors.name = "Full name is required";
-    }
+    // When a saved address is selected and user is logged in,
+    // name/email/phone come from user profile — skip those validations.
+    const usingProfile = isAuthenticated && selectedAddressId !== 'new';
 
-    if (!shippingAddress.email.trim()) {
-      errors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shippingAddress.email)) {
-      errors.email = "Please enter a valid email address";
-    }
+    if (!usingProfile) {
+      if (!shippingAddress.name.trim()) {
+        errors.name = "Full name is required";
+      }
 
-    if (!shippingAddress.phone.trim()) {
-      errors.phone = "Phone number is required";
-    } else if (!/^[6-9]\d{9}$/.test(shippingAddress.phone.replace(/\s/g, ''))) {
-      errors.phone = "Please enter a valid 10-digit phone number";
+      if (!shippingAddress.email.trim()) {
+        errors.email = "Email is required";
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(shippingAddress.email)) {
+        errors.email = "Please enter a valid email address";
+      }
+
+      // Strip +91 / spaces before checking phone
+      const rawPhone = shippingAddress.phone.replace(/^\+91\s?/, '').replace(/\s/g, '');
+      if (!rawPhone) {
+        errors.phone = "Phone number is required";
+      } else if (!/^[6-9]\d{9}$/.test(rawPhone)) {
+        errors.phone = "Please enter a valid 10-digit mobile number";
+      }
+    } else {
+      // Even with saved address, validate that name/email/phone are populated
+      if (!shippingAddress.name.trim()) {
+        errors.name = "Name missing — please update your profile";
+      }
+      if (!shippingAddress.email.trim()) {
+        errors.email = "Email missing — please update your profile";
+      }
     }
 
     if (!shippingAddress.address.trim()) {
@@ -488,41 +505,24 @@ function CheckoutContent() {
         async (verificationData: PaymentVerificationResult) => {
           console.log('Payment verification succeeded:', verificationData.orderId);
           
-          // RESET UI IMMEDIATELY to prevent "stuck" state
-          setIsProcessing(false);
-          setPaymentStep('form');
-          setSuccessOrderId(verificationData.orderId);
-          setShowSuccessModal(true);
+          // Clear cart first
           clearCart();
 
-          // Execute background tasks WITHOUT awaiting them to prevent UI blocking
-          (async () => {
+          // Background: save address + notifications (non-blocking)
+          ;(async () => {
             try {
-              // Save address if user is logged in and preference is checked
-              if (user?.id && saveAddressForFuture) {
+              if (user?.id && saveAddressForFuture && selectedAddressId === 'new') {
                 const client = getSupabaseClient()
-                // Only include fields that exist in the user_addresses table
-                const { error: addrError } = await client
-                  .from('user_addresses')
-                  .insert({
-                    user_id: user.id,
-                    type: 'shipping',
-                    address: shippingAddress.address,
-                    city: shippingAddress.city,
-                    state: shippingAddress.state,
-                    pincode: shippingAddress.pincode,
-                    is_default: true,
-                  });
-                
-                if (addrError) console.error('Error saving address:', addrError);
+                await client.from('user_addresses').insert({
+                  user_id: user.id,
+                  type: 'shipping',
+                  address: shippingAddress.address,
+                  city: shippingAddress.city,
+                  state: shippingAddress.state,
+                  pincode: shippingAddress.pincode,
+                  is_default: savedAddresses.length === 0,
+                });
               }
-
-              toast({
-                title: "Order Placed Successfully!",
-                description: "Thank you for your purchase.",
-              });
-
-              // Send Email Notification (Online)
               await notificationService.sendOrderNotification({
                 orderId: verificationData.orderId,
                 customerName: shippingAddress.name,
@@ -533,17 +533,18 @@ function CheckoutContent() {
                 paymentMethod: 'Razorpay',
                 shippingAddress: `${shippingAddress.address}, ${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}`
               });
-              
-              // Track Purchase
               await analytics.trackEvent('purchase', {
                 transaction_id: verificationData.orderId,
                 value: subtotalAmount + shippingCharge,
                 items: checkoutItems.map(i => i.name)
               });
             } catch (bgError) {
-              console.warn('Background checkout task failed (non-blocking):', bgError);
+              console.warn('Background task failed (non-blocking):', bgError);
             }
           })();
+
+          // Redirect immediately — no stuck modal
+          router.push(`/order-success?orderId=${verificationData.orderId}&method=razorpay&paid=true`);
         },
         // Error/Cancel callback
         (error) => {
@@ -560,9 +561,9 @@ function CheckoutContent() {
           setIsProcessing(false);
           setPaymentStep('form');
         },
-        // onProcessing callback
+        // onProcessing callback — show verifying screen
         () => {
-          setPaymentStep('processing');
+          setPaymentStep('verifying');
         }
       );
     } catch (error) {
@@ -796,95 +797,59 @@ function CheckoutContent() {
             </motion.div>
           )}
 
+
+          {/* Processing Overlay — shown while Razorpay modal is open */}
           {paymentStep === 'processing' && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-              className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center backdrop-blur-md"
+              className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center backdrop-blur-md"
             >
               <div className="text-center p-8 max-w-sm">
-                <div className="relative h-20 w-20 mx-auto mb-6">
+                <div className="relative h-16 w-16 mx-auto mb-6">
                   <div className="absolute inset-0 border-4 border-white/10 rounded-full"></div>
                   <div className="absolute inset-0 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
                 </div>
-                <h2 className="text-xl font-serif text-white mb-2">Processing your payment...</h2>
-                <p className="text-white/60 text-xs uppercase tracking-widest leading-relaxed">
-                  Verifying transaction with your bank. Please do not refresh or close this page.
-                </p>
-                
-                {processingTime > 15 && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-8 space-y-4"
-                  >
-                    <p className="text-xs text-amber-400/80 italic">
-                      This is taking longer than usual. Please check your order history if payment was deducted.
-                    </p>
-                    <div className="flex flex-col gap-2">
-                      <Button 
-                        variant="outline" 
-                        onClick={() => {
-                          setIsProcessing(false);
-                          setPaymentStep('form');
-                        }}
-                        className="border-white/20 text-white hover:bg-white/10"
-                      >
-                        Cancel & Return to Checkout
-                      </Button>
-                      <Button 
-                        onClick={() => router.push('/profile?tab=orders')}
-                        className="bg-white text-black"
-                      >
-                        Check Order Status
-                      </Button>
-                    </div>
-                  </motion.div>
-                )}
-
-                <div className="mt-8 pt-8 border-t border-white/5">
-                   <p className="text-[10px] text-white/30 uppercase tracking-[0.2em]">Secured by Vave Payments</p>
-                </div>
+                <h2 className="text-xl font-serif text-white mb-2">Opening Payment Gateway...</h2>
+                <p className="text-white/40 text-xs uppercase tracking-widest">Please complete the payment in the Razorpay window</p>
               </div>
             </motion.div>
           )}
 
-          {/* Success Modal */}
-          {showSuccessModal && (
+          {/* Verifying Overlay — shown after payment is done, while we confirm with server */}
+          {paymentStep === 'verifying' && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center backdrop-blur-sm"
+              className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center backdrop-blur-md"
             >
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="bg-zinc-900 border border-white/10 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl relative overflow-hidden"
-              >
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
-                <div className="h-16 w-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+              <div className="text-center p-8 max-w-sm w-full">
+                {/* Animated check sequence */}
+                <div className="relative h-24 w-24 mx-auto mb-8">
+                  <div className="absolute inset-0 border-4 border-emerald-500/20 rounded-full"></div>
+                  <div className="absolute inset-0 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <CheckCircle2 className="h-8 w-8 text-emerald-500/60" />
+                  </div>
                 </div>
-                <h2 className="text-2xl font-serif text-white mb-2">Payment Approved!</h2>
-                <p className="text-zinc-400 mb-8">
-                  Your order has been placed successfully. A confirmation email has been sent.
-                </p>
-                <div className="space-y-3">
-                  <Button
-                    onClick={() => {
-                      if (isAuthenticated) {
-                        router.push('/profile?tab=orders');
-                      } else {
-                        router.push(`/order-success?orderId=${successOrderId}`);
-                      }
-                    }}
-                    className="w-full bg-white text-black hover:bg-zinc-200 h-12 rounded-xl font-semibold"
-                  >
-                    View Order Details
-                  </Button>
+                <h2 className="text-2xl font-serif text-white mb-3">Payment Received!</h2>
+                <p className="text-emerald-400 text-sm font-medium mb-6">Confirming your order...</p>
+                <div className="space-y-3 text-left bg-white/5 rounded-2xl p-5 border border-white/10">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                    <span className="text-sm text-white">Payment successful</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0"></div>
+                    <span className="text-sm text-white/60">Verifying with bank...</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="h-4 w-4 rounded-full border border-white/20 shrink-0"></div>
+                    <span className="text-sm text-white/30">Creating your order</span>
+                  </div>
                 </div>
-              </motion.div>
+                <p className="text-[10px] text-white/20 uppercase tracking-widest mt-8">Please do not close this page</p>
+              </div>
             </motion.div>
           )}
 
