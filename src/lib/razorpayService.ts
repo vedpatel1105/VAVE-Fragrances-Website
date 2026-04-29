@@ -88,7 +88,7 @@ export const createRazorpayOrder = async (order: {
             throw new Error(addressError);
         }
 
-        const response = await fetch('/api/create-razorpay-order', {
+        const response = await fetch('/api/create-payment-order', {
             method: 'POST',
             headers,
             body: JSON.stringify({
