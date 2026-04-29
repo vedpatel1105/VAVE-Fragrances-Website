@@ -86,7 +86,13 @@ function LoginForm() {
         return
       }
       toast({ title: "Welcome back!", description: "Signed in successfully." })
-      router.replace(redirectTo)
+      
+      // If no specific redirect and user is admin, go to admin dashboard
+      if (redirectTo === '/profile' && (result.user?.role === 'admin' || result.user?.email === 'admin@vavefragrances.dev')) {
+        router.replace('/admin')
+      } else {
+        router.replace(redirectTo)
+      }
     } catch (error: any) {
       setLoginError(error.message || "An unexpected error occurred")
     } finally {
@@ -112,7 +118,13 @@ function LoginForm() {
         const result = await verifyPhoneOtp(phoneForm.phone, phoneForm.otp)
         if (result.success) {
           toast({ title: "Success", description: "Identity verified successfully." })
-          router.replace(redirectTo)
+          
+          // If no specific redirect and user is admin, go to admin dashboard
+          if (redirectTo === '/profile' && (result.user?.role === 'admin' || result.user?.email === 'admin@vavefragrances.dev')) {
+            router.replace('/admin')
+          } else {
+            router.replace(redirectTo)
+          }
         } else {
           setLoginError(result.error || "Invalid OTP")
         }
@@ -242,7 +254,7 @@ function LoginForm() {
                       <Lock size={12} className="opacity-70" />
                       Password
                     </label>
-                    <Link href="/forgot-password" size="sm" className="text-[11px] uppercase tracking-[0.1em] text-white/40 hover:text-white transition-colors">
+                    <Link href="/auth/forgot-password" size="sm" className="text-[11px] uppercase tracking-[0.1em] text-white/40 hover:text-white transition-colors">
                       Forgot?
                     </Link>
                   </div>

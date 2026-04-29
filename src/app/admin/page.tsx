@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, Terminal, ClipboardIcon, CheckIcon } from "lucide-react"
@@ -18,6 +18,21 @@ export default function AdminLoginPage() {
   const [form, setForm] = useState({ email: "", password: "" })
   const router = useRouter()
   const { toast } = useToast()
+  const { user } = useAuthStore()
+
+  // Redirect if already logged in as admin
+  useEffect(() => {
+    const checkSession = async () => {
+      if (user) {
+        const isAdmin = await adminService.isAdmin(user)
+        const isViewer = await adminService.isViewer(user)
+        if (isAdmin || isViewer) {
+          router.replace('/admin/analytics')
+        }
+      }
+    }
+    checkSession()
+  }, [user, router])
 
   // Gracefully handle missing configuration
   if (!isSupabaseConfigured) {
@@ -98,8 +113,8 @@ export default function AdminLoginPage() {
       }
 
       if (result.user) {
-        const isAdmin = await adminService.isAdmin()
-        const isViewer = await adminService.isViewer()
+        const isAdmin = await adminService.isAdmin(result.user)
+        const isViewer = await adminService.isViewer(result.user)
 
         if (!isViewer) {
           await useAuthStore.getState().logout()

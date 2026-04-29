@@ -57,12 +57,17 @@ export const adminService = {
   async isViewer(passedUser?: any): Promise<boolean> {
     if (!isSupabaseConfigured) return false
     try {
+      // 1. Check passed user for recovery ID or admin email
       if (passedUser?.id === '00000000-0000-0000-0000-000000000000') return true;
+      if (passedUser?.email === 'admin@vavefragrances.dev') return true;
 
+      // 2. Check session for recovery ID
       const client = this.getSupabase();
       const { data: { session } } = await client.auth.getSession();
       if (session?.user?.id === '00000000-0000-0000-0000-000000000000') return true;
+      if (session?.user?.email === 'admin@vavefragrances.dev') return true;
 
+      // 3. Check database role
       const role = await this.getCurrentUserRole()
       return role === 'admin' || role === 'viewer'
     } catch (error) {

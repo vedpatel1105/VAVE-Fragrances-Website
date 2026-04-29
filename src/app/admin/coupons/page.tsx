@@ -22,6 +22,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { couponService, type Coupon } from "@/src/lib/couponService"
 import { productService } from "@/src/lib/productService"
 import { adminService } from "@/src/lib/adminService"
+import { useAuthStore } from "@/src/lib/auth"
 import AdminNavbar from "@/src/app/components/AdminNavbar"
 import { useRouter } from "next/navigation"
 
@@ -73,7 +74,8 @@ export default function AdminCouponsPage() {
 
   useEffect(() => {
     const init = async () => {
-      const isAdmin = await adminService.isAdmin()
+      const user = useAuthStore.getState().user
+      const isAdmin = await adminService.isAdmin(user)
       if (!isAdmin) {
         router.push('/admin')
         return

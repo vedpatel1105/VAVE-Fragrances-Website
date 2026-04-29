@@ -27,6 +27,7 @@ import {
   Clock
 } from "lucide-react"
 import { adminService } from "@/src/lib/adminService"
+import { useAuthStore } from "@/src/lib/auth"
 import AdminNavbar from "@/src/app/components/AdminNavbar"
 import { useToast } from "@/components/ui/use-toast"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -146,8 +147,9 @@ export default function AdminAnalyticsPage() {
   const loadData = async (days: string) => {
     setIsRefreshing(true)
     try {
-      const isAdmin = await adminService.isViewer()
-      if (!isAdmin) {
+      const user = useAuthStore.getState().user
+      const isViewer = await adminService.isViewer(user)
+      if (!isViewer) {
         toast({ title: "Access Restricted", description: "Standard account privileges required.", variant: "destructive" })
         return
       }

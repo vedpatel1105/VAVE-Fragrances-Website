@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
 import { productService, type DBProduct, type ProductUpdateInput } from "@/src/lib/productService"
 import { adminService } from "@/src/lib/adminService"
+import { useAuthStore } from "@/src/lib/auth"
 import { formatCurrency } from "@/lib/utils"
 import AdminNavbar from "@/src/app/components/AdminNavbar"
 import ProductImageUpload from "../components/ProductImageUpload"
@@ -167,8 +168,9 @@ export default function AdminProductsPage() {
   useEffect(() => {
     const init = async () => {
       try {
-        const isAdmin = await adminService.isAdmin()
-        const isViewer = await adminService.isViewer()
+        const user = useAuthStore.getState().user
+        const isAdmin = await adminService.isAdmin(user)
+        const isViewer = await adminService.isViewer(user)
 
         if (isViewer && !isAdmin) {
           router.push('/admin/analytics')

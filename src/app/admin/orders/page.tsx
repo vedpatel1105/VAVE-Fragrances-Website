@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useToast } from "@/components/ui/use-toast"
 import { orderService, Order } from "@/src/lib/orderService"
 import { adminService, type User } from "@/src/lib/adminService"
+import { useAuthStore } from "@/src/lib/auth"
 import { formatCurrency } from "@/lib/utils"
 import AdminNavbar from "@/src/app/components/AdminNavbar"
 
@@ -38,8 +39,9 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     const checkAdminAndLoadOrders = async () => {
       try {
-        const isAdmin = await adminService.isAdmin()
-        const isViewer = await adminService.isViewer()
+        const user = useAuthStore.getState().user
+        const isAdmin = await adminService.isAdmin(user)
+        const isViewer = await adminService.isViewer(user)
 
         if (isViewer && !isAdmin) {
           router.push('/admin/analytics')

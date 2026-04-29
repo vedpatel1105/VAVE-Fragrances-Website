@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
 import { adminService, User } from "@/src/lib/adminService"
+import { useAuthStore } from "@/src/lib/auth"
 import AdminNavbar from "@/src/app/components/AdminNavbar"
 
 export default function AdminUsersPage() {
@@ -22,8 +23,9 @@ export default function AdminUsersPage() {
   useEffect(() => {
     const checkAdmin = async () => {
       try {
-        const isAdmin = await adminService.isAdmin()
-        const isViewer = await adminService.isViewer()
+        const user = useAuthStore.getState().user
+        const isAdmin = await adminService.isAdmin(user)
+        const isViewer = await adminService.isViewer(user)
 
         if (isViewer && !isAdmin) {
           router.push('/admin/analytics')

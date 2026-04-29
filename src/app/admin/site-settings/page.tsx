@@ -13,6 +13,7 @@ import { storageService } from "@/src/lib/storageService"
 import AdminNavbar from "@/src/app/components/AdminNavbar"
 import { useRouter } from "next/navigation"
 import { adminService } from "@/src/lib/adminService"
+import { useAuthStore } from "@/src/lib/auth"
 
 export default function AdminSiteSettings() {
   const { toast } = useToast()
@@ -26,7 +27,8 @@ export default function AdminSiteSettings() {
   useEffect(() => {
     const init = async () => {
       try {
-        const isAdmin = await adminService.isAdmin()
+        const user = useAuthStore.getState().user
+        const isAdmin = await adminService.isAdmin(user)
         if (!isAdmin) {
           router.push('/admin')
           return

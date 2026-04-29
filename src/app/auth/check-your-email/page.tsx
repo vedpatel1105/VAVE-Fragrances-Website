@@ -47,7 +47,7 @@ export default function CheckYourEmail() {
             </Link>
             
             <p className="text-[9px] uppercase tracking-[0.2em] text-white/20">
-                Didn't receive anything? <Link href="/forgot-password" className="text-white hover:underline">Try again</Link>
+                Didn't receive anything? <Link href="/auth/forgot-password" className="text-white hover:underline">Try again</Link>
             </p>
           </div>
         </div>
