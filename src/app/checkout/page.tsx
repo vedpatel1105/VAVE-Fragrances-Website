@@ -113,6 +113,9 @@ function CheckoutContent() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successOrderId, setSuccessOrderId] = useState("");
 
+  // Save Address State
+  const [saveAddressForFuture, setSaveAddressForFuture] = useState(true);
+
   // Initialize checkout items
   useEffect(() => {
     if (isLoading) return;
@@ -464,8 +467,8 @@ function CheckoutContent() {
         async (verificationData: PaymentVerificationResult) => {
           clearCart();
 
-          // Save address if user is logged in
-          if (user?.id) {
+          // Save address if user is logged in and preference is checked
+          if (user?.id && saveAddressForFuture) {
             const client = getSupabaseClient()
             const { error: addressError } = await client
               .from('user_addresses')
@@ -611,6 +614,19 @@ function CheckoutContent() {
         status: 'pending',
         created_at: new Date().toISOString()
       };
+
+      // Save address if user is logged in and preference is checked
+      if (user?.id && saveAddressForFuture) {
+        const client = getSupabaseClient()
+        await client
+          .from('user_addresses')
+          .upsert({
+            user_id: user.id,
+            type: 'shipping',
+            ...shippingAddress,
+            is_default: true,
+          });
+      }
 
       const client = getSupabaseClient()
       const { data: savedOrder, error: dbError } = await client
@@ -913,6 +929,21 @@ function CheckoutContent() {
                             onChange={handleInputChange}
                             error={fieldErrors.pincode}
                           />
+
+                          {isAuthenticated && (
+                            <div className="flex items-center space-x-2 pt-2">
+                              <input
+                                type="checkbox"
+                                id="saveAddress"
+                                checked={saveAddressForFuture}
+                                onChange={(e) => setSaveAddressForFuture(e.target.checked)}
+                                className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black accent-white"
+                              />
+                              <Label htmlFor="saveAddress" className="text-sm text-white/70 cursor-pointer">
+                                Save this address for future purchases
+                              </Label>
+                            </div>
+                          )}
                         </div>
                       </motion.div>
                     )}

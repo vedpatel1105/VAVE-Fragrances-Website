@@ -37,6 +37,7 @@ export interface UserOrder {
   shipping_address: string;
   payment_method: string;
   created_at: string;
+  cancellation_reason?: string;
 }
 
 // --- Profile Service ---
@@ -146,6 +147,28 @@ export const profileService = {
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     
+    if (error) throw error;
+    return data;
+  },
+
+  async cancelOrder(orderId: string, reason: string) {
+    const client = getSupabaseClient();
+    const userResponse = await client.auth.getUser();
+    const userId = userResponse.data.user?.id;
+
+    if (!userId) throw new Error("No authenticated user");
+
+    const { data, error } = await client
+      .from('orders')
+      .update({ 
+        status: 'cancelled',
+        cancellation_reason: reason
+      })
+      .eq('id', orderId)
+      .eq('user_id', userId)
+      .select()
+      .single();
+
     if (error) throw error;
     return data;
   },

@@ -226,6 +226,31 @@ function ProfileContent() {
 
   const handleLogout = async () => { await logout(); router.push("/") }
 
+  const handleCancelOrder = async (orderId: string) => {
+    const reason = window.prompt("Please provide a reason for cancellation:");
+    if (!reason) return;
+
+    try {
+      await profileService.cancelOrder(orderId, reason);
+      setOrders(orders.map(o => o.id === orderId ? { ...o, status: 'cancelled', cancellation_reason: reason } : o));
+      toast({ title: "Order cancelled successfully." });
+    } catch (err: any) {
+      toast({ title: "Failed to cancel order", description: err.message, variant: "destructive" });
+    }
+  };
+
+  const getHelpWithOrder = (orderId: string) => {
+    const message = encodeURIComponent(`Hi, I need help with my order #${orderId.slice(0, 8).toUpperCase()}`);
+    window.open(`https://wa.me/919328701508?text=${message}`, '_blank');
+  };
+
+  const canCancel = (createdAt: string) => {
+    const orderDate = new Date(createdAt);
+    const now = new Date();
+    const diffInHours = (now.getTime() - orderDate.getTime()) / (1000 * 60 * 60);
+    return diffInHours < 24;
+  };
+
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       <div className="relative mb-8">
@@ -666,16 +691,47 @@ function ProfileContent() {
                                         {shipping.phone && <p className="text-xs text-zinc-500 mt-1">{shipping.phone}</p>}
                                       </div>
                                     )}
-                                    <div className="rounded-xl bg-zinc-900 border border-white/5 p-4">
-                                      <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500 mb-2 flex items-center gap-1.5"><CreditCard className="h-3 w-3" />Payment</p>
-                                      <p className="text-sm font-medium text-white">{order.payment_method || "Cash on Delivery"}</p>
-                                      <p className="text-xs text-zinc-500 mt-1">
-                                        {new Date(order.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
-                                      </p>
+                                      <div className="rounded-xl bg-zinc-900 border border-white/5 p-4">
+                                        <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500 mb-2 flex items-center gap-1.5"><CreditCard className="h-3 w-3" />Payment</p>
+                                        <p className="text-sm font-medium text-white">{order.payment_method || "Cash on Delivery"}</p>
+                                        <p className="text-xs text-zinc-500 mt-1">
+                                          {new Date(order.created_at).toLocaleString("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-3 pt-2">
+                                      <Button
+                                        onClick={(e) => { e.stopPropagation(); getHelpWithOrder(order.id); }}
+                                        variant="outline"
+                                        size="sm"
+                                        className="rounded-xl border-white/10 hover:bg-white hover:text-zinc-950 transition-all text-xs h-10 flex-1"
+                                      >
+                                        <MessageCircle className="mr-2 h-4 w-4" />
+                                        Get Help
+                                      </Button>
+                                      
+                                      {order.status !== 'cancelled' && canCancel(order.created_at) && (
+                                        <Button
+                                          onClick={(e) => { e.stopPropagation(); handleCancelOrder(order.id); }}
+                                          variant="outline"
+                                          size="sm"
+                                          className="rounded-xl border-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all text-xs h-10 flex-1"
+                                        >
+                                          <XCircle className="mr-2 h-4 w-4" />
+                                          Cancel Order
+                                        </Button>
+                                      )}
+
+                                      {order.status === 'cancelled' && order.cancellation_reason && (
+                                        <div className="w-full p-3 rounded-xl bg-rose-500/5 border border-rose-500/10 mt-2">
+                                          <p className="text-[10px] uppercase tracking-widest text-rose-400 font-bold mb-1">Cancellation Reason</p>
+                                          <p className="text-xs text-zinc-400 italic">"{order.cancellation_reason}"</p>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
-                                </div>
-                              </motion.div>
+                                </motion.div>
                             )}
                           </AnimatePresence>
                         </div>
