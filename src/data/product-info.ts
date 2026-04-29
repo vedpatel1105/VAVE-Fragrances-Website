@@ -694,8 +694,8 @@ export namespace ProductInfo {
     // Product cache
     let _productCache: Product[] | null = null;
 
-    const CACHE_KEY = "vave_products_v3";
-    const CACHE_TIMESTAMP_KEY = "vave_products_v3_timestamp";
+    const CACHE_KEY = "vave_products_v4";
+    const CACHE_TIMESTAMP_KEY = "vave_products_v4_timestamp";
     const CACHE_EXPIRATION_MS = 48 * 60 * 60 * 1000; // 48 hours
 
     // Load products from localStorage or Supabase
@@ -726,10 +726,18 @@ export namespace ProductInfo {
             _productCache = staticProducts.map(staticProd => {
                 const dbProd = products.find(dp => dp.slug === staticProd.slug);
                 if (!dbProd) return staticProd;
+                const db30 = dbProd.price_30ml || staticProd.price || 400;
+                const db50 = dbProd.price_50ml || staticProd.priceXL || 500;
                 return {
                     ...staticProd,
-                    price: dbProd.price_30ml || staticProd.price || 400,
-                    priceXL: dbProd.price_50ml || staticProd.priceXL || 500,
+                    price: db30,
+                    priceXL: db50,
+                    // IMPORTANT: sizeOptions must also reflect DB prices so the
+                    // checkout API price-verification check doesn't fail
+                    sizeOptions: staticProd.sizeOptions.map(opt => ({
+                        ...opt,
+                        price: opt.size === '30' ? db30 : db50,
+                    })),
                     stock_30ml: dbProd.stock_30ml ?? 100,
                     stock_50ml: dbProd.stock_50ml ?? 100,
                     id: dbProd.id,

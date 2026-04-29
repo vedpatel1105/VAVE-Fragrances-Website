@@ -135,13 +135,12 @@ export async function POST(request: NextRequest) {
                 );
             }
 
-            // Verify price and add to total
+            // Use the trusted DB price for total calculation.
+            // Log a warning if client price differs (e.g. stale cache) but don't reject —
+            // we're already using the DB price so the total is correct regardless.
             const price = item.size === '30' ? product.price_30ml : product.price_50ml;
             if (price !== item.price) {
-                return NextResponse.json(
-                    { error: `Price mismatch for product: ${item.name}` },
-                    { status: 400 }
-                );
+                console.warn(`[checkout] Price drift for ${item.name} (${item.size}ml): client=${item.price}, db=${price}. Using DB price.`);
             }
 
             calculatedSubtotal += price * item.quantity;
@@ -197,9 +196,10 @@ export async function POST(request: NextRequest) {
         const shippingCharge = calculatedSubtotal < 1000 ? 30 : 0;
         const computedOrderTotal = Math.max(0, calculatedSubtotal + shippingCharge - serverCalculatedDiscount);
 
-        // Validate client provided total matches server computed total
-        // We use Math.abs comparison for floating point safety if needed, but here it's integers mostly
-        if (typeof total !== 'number' || Math.abs(total - computedOrderTotal) > 1) {
+        // Validate client provided total is within acceptable range of server computed total.
+        // We use a generous tolerance (₹50) to handle stale client-side price caches —
+        // the actual charge is always computedOrderTotal (DB-verified), not the client total.
+        if (typeof total !== 'number' || Math.abs(total - computedOrderTotal) > 50) {
             return NextResponse.json(
                 { error: `Order total mismatch. Expected ${computedOrderTotal}, got ${total}` },
                 { status: 400 }

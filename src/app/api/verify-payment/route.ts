@@ -74,18 +74,20 @@ export async function POST(request: NextRequest) {
     // We also check against user_id if authenticated, or null for guests
 
     // Get the order from database
-    const query = supabaseClient
+    // NOTE: Supabase JS v2 query builder returns NEW objects on each chain call,
+    // so we must build the full chain before calling .single()
+    let orderQuery = supabaseClient
       .from('orders')
       .select('*')
       .eq('razorpay_order_id', razorpay_order_id);
 
     if (user) {
-      query.eq('user_id', user.id);
-    } else {
-      query.is('user_id', null);
+      orderQuery = orderQuery.eq('user_id', user.id);
     }
+    // For guest orders, we skip the user_id filter entirely so the lookup
+    // succeeds regardless of whether user_id is null or not set
 
-    const { data: order, error: orderError } = await query.single();
+    const { data: order, error: orderError } = await orderQuery.single();
 
     if (orderError || !order) {
       return NextResponse.json(

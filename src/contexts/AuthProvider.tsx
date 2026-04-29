@@ -17,10 +17,12 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const auth = useAuthStore();
+    const checkAuth = useAuthStore((state) => state.checkAuth);
+    const setUser = useAuthStore((state) => state.setUser);
 
     useEffect(() => {
         // Initial auth check
-        auth.checkAuth();
+        checkAuth();
 
         const client = getSupabaseClient();
 
@@ -29,9 +31,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             async (event: AuthChangeEvent, session: Session | null) => {
                 if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
                     if (session?.user) {
-                        auth.setUser({
+                        setUser({
                             id: session.user.id,
-                            email: session.user.email!,
+                            email: session.user.email || "",
                             user_metadata: session.user.user_metadata,
                             full_name: session.user.user_metadata?.full_name || "",
                             role: session.user.user_metadata?.role || "",
@@ -40,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     }
                 }
                 if (event === 'SIGNED_OUT') {
-                    auth.setUser(null);
+                    setUser(null);
                 }
             }
         );
@@ -49,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => {
             subscription.unsubscribe();
         };
-    }, [auth]);
+    }, [checkAuth, setUser]);
 
     return (
         <AuthContext.Provider value={auth}>
