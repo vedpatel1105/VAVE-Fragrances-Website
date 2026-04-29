@@ -57,6 +57,8 @@ export async function POST(request: NextRequest) {
       razorpay_signature,
     } = body;
 
+    console.log(`[verify-payment] Initiating verification for order: ${razorpay_order_id}`);
+
     // Verify the payment signature
     const generatedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET!)
@@ -64,11 +66,14 @@ export async function POST(request: NextRequest) {
       .digest('hex');
 
     if (generatedSignature !== razorpay_signature) {
+      console.error('[verify-payment] Invalid signature detected');
       return NextResponse.json(
         { error: 'Invalid payment signature' },
         { status: 400 }
       );
     }
+
+    console.log('[verify-payment] Signature verified. Looking up order in DB...');
 
     // Verification is done using the Razorpay order ID which was shared between client and server
     // We also check against user_id if authenticated, or null for guests
@@ -90,10 +95,34 @@ export async function POST(request: NextRequest) {
     const { data: order, error: orderError } = await orderQuery.single();
 
     if (orderError || !order) {
+      console.error('[verify-payment] Order lookup failed:', orderError || 'Order not found');
+      // If order not found by user_id filter, try finding it without user_id filter just to be sure 
+      // (in case session changed)
+      const { data: globalOrder } = await supabaseClient
+        .from('orders')
+        .select('id, user_id, status')
+        .eq('razorpay_order_id', razorpay_order_id)
+        .single();
+      
+      if (globalOrder) {
+        console.warn(`[verify-payment] Order found but restricted. Global status: ${globalOrder.status}`);
+      }
+
       return NextResponse.json(
         { error: 'Order not found or access denied' },
         { status: 404 }
       );
+    }
+
+    console.log(`[verify-payment] Order found: ${order.id}. Current status: ${order.status}`);
+
+    // If order is already paid, return success (idempotency)
+    if (order.status === 'paid') {
+      console.log(`[verify-payment] Order ${order.id} already marked as paid. Returning success.`);
+      return NextResponse.json({
+        success: true,
+        orderId: order.id,
+      });
     }
 
     // Update order status

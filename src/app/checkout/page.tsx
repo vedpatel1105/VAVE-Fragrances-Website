@@ -112,6 +112,21 @@ function CheckoutContent() {
   // Success Modal State
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successOrderId, setSuccessOrderId] = useState("");
+  const [processingTime, setProcessingTime] = useState(0);
+  
+  // Timer for processing state
+  useEffect(() => {
+    let interval: any;
+    if (paymentStep === 'processing' && isProcessing) {
+      interval = setInterval(() => {
+        setProcessingTime(prev => prev + 1);
+      }, 1000);
+    } else {
+      setProcessingTime(0);
+    }
+    return () => clearInterval(interval);
+  }, [paymentStep, isProcessing]);
+  const [processingTimeout, setProcessingTimeout] = useState<any>(null);
 
   // Save Address State
   const [saveAddressForFuture, setSaveAddressForFuture] = useState(true);
@@ -465,53 +480,58 @@ function CheckoutContent() {
         shippingAddress,
         // Success callback
         async (verificationData: PaymentVerificationResult) => {
-          clearCart();
-
-          // Save address if user is logged in and preference is checked
-          if (user?.id && saveAddressForFuture) {
-            const client = getSupabaseClient()
-            const { error: addressError } = await client
-              .from('user_addresses')
-              .upsert({
-                user_id: user.id,
-                type: 'shipping',
-                ...shippingAddress,
-                is_default: true,
-              });
-
-            if (addressError) {
-              console.error('Error saving address:', addressError);
-            }
-          }
-
-          toast({
-            title: "Order Placed Successfully!",
-            description: "Thank you for your purchase.",
-          });
-
-          // Send Email Notification (Online)
-          notificationService.sendOrderNotification({
-            orderId: verificationData.orderId,
-            customerName: shippingAddress.name,
-            customerEmail: shippingAddress.email,
-            customerPhone: shippingAddress.phone,
-            items: checkoutItems.map(item => `${item.name} (${item.size}ml) x ${item.quantity}`).join(', '),
-            totalAmount: subtotalAmount + shippingCharge,
-            paymentMethod: 'Razorpay',
-            shippingAddress: `${shippingAddress.address}, ${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}`
-          });
+          console.log('Payment verification succeeded:', verificationData.orderId);
           
-          // Track Purchase
-          analytics.trackEvent('purchase', {
-            transaction_id: verificationData.orderId,
-            value: subtotalAmount + shippingCharge,
-            items: checkoutItems.map(i => i.name)
-          });
-
-          setPaymentStep('form');
+          // RESET UI IMMEDIATELY to prevent "stuck" state
           setIsProcessing(false);
+          setPaymentStep('form');
           setSuccessOrderId(verificationData.orderId);
           setShowSuccessModal(true);
+          clearCart();
+
+          // Execute background tasks WITHOUT awaiting them to prevent UI blocking
+          (async () => {
+            try {
+              // Save address if user is logged in and preference is checked
+              if (user?.id && saveAddressForFuture) {
+                const client = getSupabaseClient()
+                await client
+                  .from('user_addresses')
+                  .upsert({
+                    user_id: user.id,
+                    type: 'shipping',
+                    ...shippingAddress,
+                    is_default: true,
+                  });
+              }
+
+              toast({
+                title: "Order Placed Successfully!",
+                description: "Thank you for your purchase.",
+              });
+
+              // Send Email Notification (Online)
+              await notificationService.sendOrderNotification({
+                orderId: verificationData.orderId,
+                customerName: shippingAddress.name,
+                customerEmail: shippingAddress.email,
+                customerPhone: shippingAddress.phone,
+                items: checkoutItems.map(item => `${item.name} (${item.size}ml) x ${item.quantity}`).join(', '),
+                totalAmount: subtotalAmount + shippingCharge,
+                paymentMethod: 'Razorpay',
+                shippingAddress: `${shippingAddress.address}, ${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}`
+              });
+              
+              // Track Purchase
+              await analytics.trackEvent('purchase', {
+                transaction_id: verificationData.orderId,
+                value: subtotalAmount + shippingCharge,
+                items: checkoutItems.map(i => i.name)
+              });
+            } catch (bgError) {
+              console.warn('Background checkout task failed (non-blocking):', bgError);
+            }
+          })();
         },
         // Error/Cancel callback
         (error) => {
@@ -753,17 +773,55 @@ function CheckoutContent() {
             </motion.div>
           )}
 
-          {/* Processing Overlay */}
           {paymentStep === 'processing' && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center"
+              className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center backdrop-blur-sm"
             >
-              <div className="text-center">
-                <Loader2 className="h-12 w-12 text-white animate-spin mx-auto mb-4" />
-                <p className="text-white text-lg font-medium">Creating your order...</p>
-                <p className="text-white/60 text-sm mt-1">Please don&apos;t close this page</p>
+              <div className="text-center p-8 max-w-sm">
+                <div className="relative h-20 w-20 mx-auto mb-6">
+                  <div className="absolute inset-0 border-4 border-white/10 rounded-full"></div>
+                  <div className="absolute inset-0 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                </div>
+                <h2 className="text-xl font-serif text-white mb-2">Processing your payment...</h2>
+                <p className="text-white/60 text-xs uppercase tracking-widest leading-relaxed">
+                  Verifying transaction with your bank. Please do not refresh or close this page.
+                </p>
+                
+                {processingTime > 15 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-8 space-y-4"
+                  >
+                    <p className="text-xs text-amber-400/80 italic">
+                      This is taking longer than usual. Please check your order history if payment was deducted.
+                    </p>
+                    <div className="flex flex-col gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setIsProcessing(false);
+                          setPaymentStep('form');
+                        }}
+                        className="border-white/20 text-white hover:bg-white/10"
+                      >
+                        Cancel & Return to Checkout
+                      </Button>
+                      <Button 
+                        onClick={() => router.push('/profile?tab=orders')}
+                        className="bg-white text-black"
+                      >
+                        Check Order Status
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+
+                <div className="mt-8 pt-8 border-t border-white/5">
+                   <p className="text-[10px] text-white/30 uppercase tracking-[0.2em]">Secured by Vave Payments</p>
+                </div>
               </div>
             </motion.div>
           )}
