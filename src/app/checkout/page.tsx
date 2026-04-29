@@ -442,11 +442,24 @@ function CheckoutContent() {
             items: checkoutItems.map(i => i.name)
           });
 
+          toast({
+            title: "Payment Approved",
+            description: "Your order has been confirmed successfully.",
+          });
+
           router.push(`/order-success?orderId=${verificationData.orderId}`);
         },
         // Error/Cancel callback
         (error) => {
           console.log('Razorpay callback received error/cancel:', error.message);
+          const isCancelled = error.message.includes('cancelled');
+          
+          toast({
+            title: isCancelled ? "Payment Cancelled" : "Payment Failed",
+            description: isCancelled ? "The payment process was cancelled." : (error.message || "Something went wrong. Please try again."),
+            variant: isCancelled ? "default" : "destructive",
+          });
+
           setError(error.message || "Payment failed. Please try again.");
           setIsProcessing(false);
           setPaymentStep('form');
