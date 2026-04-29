@@ -23,7 +23,6 @@ export default function Cart() {
   const { toast } = useToast()
   const { user, isAuthenticated, checkAuth } = useAuthStore()
   const [isPlacingOrder, setIsPlacingOrder] = useState(false)
-  const [showAuthModal, setShowAuthModal] = useState(false)
   const [showIncompleteOrderModal, setShowIncompleteOrderModal] = useState(false)
   const [showAddressModal, setShowAddressModal] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
@@ -33,7 +32,7 @@ export default function Cart() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [shippingAddress, setShippingAddress] = useState({
     name: "",
-    phone: "",
+    phone: "+91 ",
     email: "",
     address: "",
     city: "",
@@ -124,72 +123,7 @@ export default function Cart() {
     setShippingAddress(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleCheckout = async () => {
-    if (items.length === 0) return
 
-    await checkAuth()
-
-    if (!isAuthenticated) {
-      setShowAuthModal(true)
-      return
-    }
-
-    setIsPlacingOrder(true)
-    try {
-      const hasIncompleteOrders = await orderService.checkIncompleteOrders()
-      if (hasIncompleteOrders) {
-        setShowIncompleteOrderModal(true)
-        return
-      }
-
-      const client = getSupabaseClient();
-      const { data: addresses, error: addressError } = await client
-        .from('user_addresses')
-        .select('*')
-        .eq('user_id', user?.id)
-        .eq('is_default', true)
-        .single()
-
-      if (addressError || !addresses) {
-        setShowAddressModal(true)
-        return
-      }
-
-      const shippingAddress = {
-        name: user?.user_metadata?.full_name || '',
-        email: user?.email || '',
-        phone: user?.user_metadata?.phone || '',
-        address: addresses.address,
-        city: addresses.city,
-        state: addresses.state,
-        pincode: addresses.pincode,
-      }
-
-      const order = await orderService.placeOrder({
-        items,
-        total_amount: grandTotal,
-        subtotal_amount: getTotalPrice(),
-        shipping_amount: shippingCost,
-        shipping_address: shippingAddress,
-        payment_method: 'COD',
-      })
-
-      setOrderDetails(order)
-
-      clearCart()
-      setIsOpen(false)
-      setShowSuccessModal(true)
-    } catch (error) {
-      console.error('Error placing order:', error)
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to place order",
-        variant: "destructive"
-      })
-    } finally {
-      setIsPlacingOrder(false)
-    }
-  }
 
   const handleWhatsAppCheckout = async () => {
     if (items.length === 0) return
@@ -209,20 +143,8 @@ export default function Cart() {
     }
 
     try {
-      if (isAuthenticated && user) {
-        const hasPhone = !!user.user_metadata?.phone;
-        const hasAddress = savedAddresses.length > 0;
-        
-        if (!hasPhone || !hasAddress) {
-          toast({
-            title: "Profile Incomplete",
-            description: "Please add your phone number and address to your profile first.",
-          });
-          setIsOpen(false);
-          router.push(`/profile?redirect=cart&reason=incomplete`);
-          return;
-        }
-      }
+      // If authenticated, we'll still use the modal to collect missing info if needed
+      // No forced redirect to profile anymore
 
       setIsPlacingOrder(true)
       
@@ -493,27 +415,7 @@ export default function Cart() {
             </div>
           </motion.div>
 
-          <Dialog open={showAuthModal} onOpenChange={setShowAuthModal}>
-            <DialogContent className="z-[10000]">
-              <DialogHeader>
-                <DialogTitle>Authentication Required</DialogTitle>
-                <DialogDescription>
-                  Please login to place an order
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowAuthModal(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => {
-                  setShowAuthModal(false)
-                  router.push('/auth/login?redirect=/checkout')
-                }}>
-                  Login
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+
 
           <Dialog open={showIncompleteOrderModal} onOpenChange={setShowIncompleteOrderModal}>
             <DialogContent className="z-[10000]">

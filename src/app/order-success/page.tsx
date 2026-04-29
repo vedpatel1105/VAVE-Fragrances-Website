@@ -233,6 +233,25 @@ function OrderSuccessContent() {
                 <p>Phone: {shippingAddress.phone}</p>
               </div>
             </div>
+            
+            {!isAuthenticated && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="bg-white/5 border border-white/10 rounded-lg p-6 text-center space-y-4"
+              >
+                <h3 className="text-lg font-semibold">Save your details for later?</h3>
+                <p className="text-sm text-gray-400">
+                  Create an account now to track your order and enjoy faster checkout next time.
+                </p>
+                <Button variant="outline" className="w-full border-white/20 hover:bg-white/5" asChild>
+                  <Link href={`/auth/register?email=${encodeURIComponent(shippingAddress.email || '')}&name=${encodeURIComponent(shippingAddress.name || '')}&phone=${encodeURIComponent(shippingAddress.phone || '')}`}>
+                    Create My Account
+                  </Link>
+                </Button>
+              </motion.div>
+            )}
 
             <div className="flex gap-4">
               <Button className="w-full" asChild>

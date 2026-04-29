@@ -1,8 +1,8 @@
 // app/auth/register/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,7 +31,7 @@ interface FieldErrors {
   otp?: string;
 }
 
-export default function RegisterPage() {
+function RegisterForm() {
   const { loginWithGoogle, register, signInWithPhone, verifyPhoneOtp, updateUserMetadata } = useAuthStore();
   const [activeTab, setActiveTab] = useState<"email" | "phone">("email");
   const [registerStep, setRegisterStep] = useState<"form" | "otp" | "details">("form");
@@ -41,7 +41,7 @@ export default function RegisterPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
+    phone: "+91 ",
     password: "",
     otp: "",
     agreeTerms: true,
@@ -51,7 +51,24 @@ export default function RegisterPage() {
   const [registerError, setRegisterError] = useState("");
   const [resendTimer, setResendTimer] = useState(0);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+
+  // Pre-fill form from query params
+  useEffect(() => {
+    const email = searchParams.get("email");
+    const name = searchParams.get("name");
+    const phone = searchParams.get("phone");
+    
+    if (email || name || phone) {
+      setFormData(prev => ({
+        ...prev,
+        email: email || prev.email,
+        name: name || prev.name,
+        phone: phone || prev.phone,
+      }));
+    }
+  }, [searchParams]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -406,4 +423,22 @@ export default function RegisterPage() {
       </motion.div>
     </div>
   );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950 p-4">
+        <div className="w-10 h-[1px] bg-white/20 relative overflow-hidden">
+          <motion.div
+            animate={{ x: ["-100%", "200%"] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white to-transparent"
+          />
+        </div>
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
+  )
 }

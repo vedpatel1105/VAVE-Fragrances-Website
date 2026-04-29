@@ -23,6 +23,7 @@ import {
   X,
   ArrowLeft,
   ArrowRight,
+  MessageCircle,
   AlertTriangle,
   Thermometer,
   Sun,
@@ -455,6 +456,20 @@ export default function ProductDetailPage() {
                         Buy Now
                       </Button>
                     </div>
+                    <Button
+                      onClick={() => {
+                        const itemsText = `• *${product.name}* (${selectedSize}ml) x ${quantity} - ₹${(product.sizeOptions.find(s => s.size === selectedSize)?.price || product.price) * quantity}`;
+                        const messageText = `🛍️ *NEW ORDER INQUIRY*\n\n` +
+                          `I'm interested in purchasing:\n${itemsText}\n\n` +
+                          `Please help me with the checkout. Thank you!`;
+                        const whatsappUrl = `https://wa.me/919328701508?text=${encodeURIComponent(messageText)}`;
+                        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+                      }}
+                      className="w-full h-14 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] border border-[#25D366]/30 rounded-none text-[10px] uppercase tracking-[0.3em] font-bold mt-4 flex items-center justify-center gap-3 transition-all duration-300"
+                    >
+                      <MessageCircle size={16} className="animate-pulse" />
+                      Order via WhatsApp (Quick COD)
+                    </Button>
                   </div>
                 </div>
               </div>

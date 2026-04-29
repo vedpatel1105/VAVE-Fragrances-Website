@@ -14,6 +14,7 @@ import { createRazorpayOrder, initializeRazorpayCheckout, validateShippingAddres
 import type { PaymentVerificationResult } from "@/src/types/orders"
 import { getSupabaseClient } from "@/src/lib/supabaseClient"
 import { useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { ProductInfo } from "@/src/data/product-info"
 
 import { LoadingSpinner } from "@/src/components/ui/loading-spinner"
@@ -89,7 +90,7 @@ function CheckoutContent() {
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     name: "",
     email: "",
-    phone: "",
+    phone: "+91 ",
     address: "",
     city: "",
     state: "",
@@ -741,7 +742,14 @@ function CheckoutContent() {
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2">Checkout</h1>
+          <div className="flex justify-between items-baseline mb-2">
+            <h1 className="text-3xl font-bold">Checkout</h1>
+            {!isAuthenticated && (
+              <Link href="/auth/login?redirect=/checkout" className="text-[10px] uppercase tracking-widest text-white/40 hover:text-white transition-colors">
+                Returning customer? Log in
+              </Link>
+            )}
+          </div>
 
           {/* Progress Steps */}
           <div className="flex items-center gap-2 mb-8 text-sm">

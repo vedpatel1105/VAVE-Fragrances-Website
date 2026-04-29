@@ -21,7 +21,7 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [emailForm, setEmailForm] = useState({ email: "", password: "" })
-  const [phoneForm, setPhoneForm] = useState({ phone: "", otp: "" })
+  const [phoneForm, setPhoneForm] = useState({ phone: "+91 ", otp: "" })
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; phone?: string; otp?: string }>({})
   const [loginError, setLoginError] = useState("")
   const [resendTimer, setResendTimer] = useState(0)
