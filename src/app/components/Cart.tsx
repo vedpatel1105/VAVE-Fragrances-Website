@@ -451,14 +451,14 @@ export default function Cart() {
                       Express Checkout (Online)
                     </Button>
                   ) : (
-                    <Button
-                      className="w-full h-14 text-xs tracking-widest uppercase font-bold bg-white text-black hover:bg-gray-200 rounded-full shadow-lg transition-all duration-300"
-                      onClick={() => {
-                        setIsOpen(false)
-                        router.push('/checkout')
-                      }}
-                      disabled={items.length === 0}
-                    >
+                      <Button
+                        className="w-full h-14 text-xs tracking-widest uppercase font-bold bg-white text-black hover:bg-gray-200 rounded-full shadow-lg transition-all duration-300"
+                        onClick={() => {
+                          setIsOpen(false)
+                          router.push('/checkout?express=true')
+                        }}
+                        disabled={items.length === 0}
+                      >
                       Check out (Online Payment)
                     </Button>
                   )}

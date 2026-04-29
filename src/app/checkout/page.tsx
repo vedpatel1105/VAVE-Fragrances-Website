@@ -777,7 +777,8 @@ function CheckoutContent() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center backdrop-blur-sm"
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center backdrop-blur-md"
             >
               <div className="text-center p-8 max-w-sm">
                 <div className="relative h-20 w-20 mx-auto mb-6">
