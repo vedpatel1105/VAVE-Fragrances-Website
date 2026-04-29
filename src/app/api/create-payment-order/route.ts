@@ -75,18 +75,30 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        // Get products from database to verify prices
-        const { data: products, error: productsError } = await supabaseClient
-            .from('products')
-            .select('id, price_30ml, price_50ml, stock_30ml, stock_50ml')
-            .in(
-                'id',
-                items.map((item: any) => item.product_id)
-            );
+        // Get products from database to verify prices (exclude demo product)
+        const dbProductIds = items
+            .map((item: any) => item.product_id)
+            .filter((id: string) => id !== 'demo-product-10');
 
-        if (productsError || !products?.length) {
+        let products: any[] = [];
+        if (dbProductIds.length > 0) {
+            const { data, error: productsError } = await supabaseClient
+                .from('products')
+                .select('id, price_30ml, price_50ml, stock_30ml, stock_50ml')
+                .in('id', dbProductIds);
+
+            if (productsError) {
+                return NextResponse.json(
+                    { error: 'Failed to verify products from database' },
+                    { status: 400 }
+                );
+            }
+            products = data || [];
+        }
+
+        if (dbProductIds.length > 0 && products.length !== dbProductIds.length) {
             return NextResponse.json(
-                { error: 'Failed to verify products' },
+                { error: 'Failed to verify all products' },
                 { status: 400 }
             );
         }
@@ -94,6 +106,18 @@ export async function POST(request: NextRequest) {
         // Verify stock and calculate subtotal from trusted DB prices
         let calculatedSubtotal = 0;
         for (const item of items) {
+            // Bypass verification for demo product
+            if (item.product_id === 'demo-product-10') {
+                if (item.price !== 10) {
+                    return NextResponse.json(
+                        { error: `Price mismatch for demo product` },
+                        { status: 400 }
+                    );
+                }
+                calculatedSubtotal += 10 * item.quantity;
+                continue;
+            }
+
             const product = products.find(p => p.id === item.product_id);
             if (!product) {
                 return NextResponse.json(
