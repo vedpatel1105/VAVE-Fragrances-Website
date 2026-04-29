@@ -1,7 +1,7 @@
 // app/auth/register/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -341,7 +341,7 @@ export default function RegisterPage() {
                           type="button"
                           onClick={handleResendOtp}
                           disabled={isLoading || resendTimer > 0}
-                          className="text-[10px] uppercase tracking-[0.2em] text-white/40 hover:text-white transition-colors disabled:opacity-30"
+                          className={`text-[10px] uppercase tracking-[0.2em] transition-colors disabled:opacity-50 ${resendTimer > 0 ? 'text-green-400 font-bold' : 'text-white/40 hover:text-white'}`}
                         >
                           {resendTimer > 0 ? `Resend code in ${resendTimer}s` : "Resend Verification Code"}
                         </button>

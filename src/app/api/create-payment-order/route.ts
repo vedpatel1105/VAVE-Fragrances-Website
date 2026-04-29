@@ -97,8 +97,11 @@ export async function POST(request: NextRequest) {
         }
 
         if (dbProductIds.length > 0 && products.length !== dbProductIds.length) {
+            const foundIds = products.map(p => p.id);
+            const missingIds = dbProductIds.filter(id => !foundIds.includes(id));
+            console.error(`[checkout] Product verification failed. Missing IDs: ${missingIds.join(', ')}`);
             return NextResponse.json(
-                { error: 'Failed to verify all products' },
+                { error: `Failed to verify all products. Missing: ${missingIds.join(', ')}` },
                 { status: 400 }
             );
         }

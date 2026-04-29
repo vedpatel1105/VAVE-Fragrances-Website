@@ -397,7 +397,7 @@ function LoginForm() {
                           type="button"
                           onClick={handleResendOtp}
                           disabled={isLoading || resendTimer > 0}
-                          className="text-[10px] uppercase tracking-[0.2em] text-white/40 hover:text-white transition-colors disabled:opacity-30"
+                          className={`text-[10px] uppercase tracking-[0.2em] transition-colors disabled:opacity-50 ${resendTimer > 0 ? 'text-green-400 font-bold' : 'text-white/40 hover:text-white'}`}
                         >
                           {resendTimer > 0 ? `Resend code in ${resendTimer}s` : "Didn't receive code? Resend"}
                         </button>
