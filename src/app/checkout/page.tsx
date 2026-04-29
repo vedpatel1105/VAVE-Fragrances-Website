@@ -183,17 +183,23 @@ function CheckoutContent() {
 
         if (addresses && addresses.length > 0) {
           setSavedAddresses(addresses);
-          const defaultAddress = addresses.find(a => a.is_default) || addresses[0];
-          setSelectedAddressId(defaultAddress.id);
+          const defaultAddr = addresses.find(a => a.is_default) || addresses[0];
+          setSelectedAddressId(defaultAddr.id);
           setShippingAddress({
-            name: user.user_metadata?.full_name || '',
-            email: user.email || '',
-            phone: user.user_metadata?.phone || '',
-            address: defaultAddress.address,
-            city: defaultAddress.city,
-            state: defaultAddress.state,
-            pincode: defaultAddress.pincode,
+            name: user.user_metadata?.full_name || "",
+            email: user.email || "",
+            phone: user.user_metadata?.phone || "",
+            address: defaultAddr.address,
+            city: defaultAddr.city,
+            state: defaultAddr.state,
+            pincode: defaultAddr.pincode
           });
+          
+          // If express=true is in URL, skip directly to payment step
+          const isExpress = searchParams.get('express') === 'true';
+          if (isExpress) {
+            setPaymentStep('payment');
+          }
         } else {
           setShippingAddress(prev => ({
             ...prev,
@@ -438,8 +444,9 @@ function CheckoutContent() {
 
           router.push(`/order-success?orderId=${verificationData.orderId}`);
         },
-        // Error callback
+        // Error/Cancel callback
         (error) => {
+          console.log('Razorpay callback received error/cancel:', error.message);
           setError(error.message || "Payment failed. Please try again.");
           setIsProcessing(false);
           setPaymentStep('form');

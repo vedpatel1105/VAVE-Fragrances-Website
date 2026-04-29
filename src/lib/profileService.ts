@@ -43,10 +43,17 @@ export interface UserOrder {
 export const profileService = {
   async getProfile() {
     const client = getSupabaseClient();
+    const userResponse = await client.auth.getUser();
+    const userId = userResponse.data.user?.id;
+    
+    if (!userId) throw new Error("No authenticated user");
+
     const { data, error } = await client
       .from('users')
       .select('id, full_name, phone, email, is_active')
+      .eq('id', userId)
       .single();
+    
     if (error) throw error;
     return data;
   },
@@ -54,12 +61,17 @@ export const profileService = {
   async updateProfile(profile: Partial<Pick<UserProfile, 'full_name' | 'phone'>>) {
     const client = getSupabaseClient();
     const userResponse = await client.auth.getUser();
+    const userId = userResponse.data.user?.id;
+
+    if (!userId) throw new Error("No authenticated user");
+
     const { data, error } = await client
       .from('users')
       .update(profile)
-      .eq('id', userResponse.data.user?.id)
+      .eq('id', userId)
       .select()
       .single();
+    
     if (error) throw error;
     return data;
   },
@@ -67,9 +79,16 @@ export const profileService = {
   // --- Addresses ---
   async getAddresses() {
     const client = getSupabaseClient();
+    const userResponse = await client.auth.getUser();
+    const userId = userResponse.data.user?.id;
+
+    if (!userId) return [];
+
     const { data, error } = await client
       .from('user_addresses')
-      .select('*');
+      .select('*')
+      .eq('user_id', userId);
+    
     if (error) throw error;
     return data;
   },
@@ -77,24 +96,38 @@ export const profileService = {
   async addAddress(address: Omit<Address, 'id' | 'created_at'>) {
     const client = getSupabaseClient();
     const userResponse = await client.auth.getUser();
+    const userId = userResponse.data.user?.id;
+
+    if (!userId) throw new Error("No authenticated user");
+
     const { data, error } = await client
       .from('user_addresses')
       .insert({
         ...address,
-        user_id: userResponse.data.user?.id,
+        user_id: userId,
       })
+      .select()
       .single();
+    
     if (error) throw error;
     return data;
   },
 
   async updateAddress(id: string, updates: Partial<Omit<Address, 'id' | 'user_id' | 'created_at'>>) {
     const client = getSupabaseClient();
+    const userResponse = await client.auth.getUser();
+    const userId = userResponse.data.user?.id;
+
+    if (!userId) throw new Error("No authenticated user");
+
     const { data, error } = await client
       .from('user_addresses')
       .update(updates)
       .eq('id', id)
+      .eq('user_id', userId)
+      .select()
       .single();
+    
     if (error) throw error;
     return data;
   },

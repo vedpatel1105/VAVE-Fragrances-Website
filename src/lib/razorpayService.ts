@@ -191,6 +191,12 @@ export const initializeRazorpayCheckout = async (
             theme: {
                 color: '#000000'
             },
+            modal: {
+                ondismiss: () => {
+                    console.log('Razorpay modal dismissed by user');
+                    onError(new Error('Payment cancelled by user'));
+                }
+            }
         };
 
         const razorpay = new window.Razorpay(options);

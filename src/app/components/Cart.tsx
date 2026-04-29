@@ -438,16 +438,30 @@ export default function Cart() {
                     <p className="text-[9px] uppercase tracking-widest text-white/30 text-center mt-2">GST included in all prices</p>
                   </div>
 
-                  <Button
-                    className="w-full h-14 text-xs tracking-widest uppercase font-bold bg-white text-black hover:bg-gray-200 rounded-full shadow-lg transition-all duration-300"
-                    onClick={() => {
-                      setIsOpen(false)
-                      router.push('/checkout')
-                    }}
-                    disabled={items.length === 0}
-                  >
-                    Check out (Online Payment)
-                  </Button>
+                  {isAuthenticated && savedAddresses.some(a => a.is_default) ? (
+                    <Button
+                      className="w-full h-14 text-xs tracking-widest uppercase font-bold bg-white text-black hover:bg-gray-200 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+                      onClick={() => {
+                        setIsOpen(false)
+                        router.push('/checkout?express=true')
+                      }}
+                      disabled={items.length === 0}
+                    >
+                      <Zap className="h-4 w-4 fill-black" />
+                      Express Checkout (Online)
+                    </Button>
+                  ) : (
+                    <Button
+                      className="w-full h-14 text-xs tracking-widest uppercase font-bold bg-white text-black hover:bg-gray-200 rounded-full shadow-lg transition-all duration-300"
+                      onClick={() => {
+                        setIsOpen(false)
+                        router.push('/checkout')
+                      }}
+                      disabled={items.length === 0}
+                    >
+                      Check out (Online Payment)
+                    </Button>
+                  )}
 
                   <div className="flex items-center my-5">
                     <div className="flex-1 border-t border-white/10"></div>

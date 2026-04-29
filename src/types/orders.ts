@@ -76,4 +76,9 @@ export interface RazorpayOptions {
   theme: {
     color: string;
   };
+  modal?: {
+    ondismiss?: () => void;
+    escape?: boolean;
+    backdropclose?: boolean;
+  };
 }
