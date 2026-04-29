@@ -125,7 +125,8 @@ export const initializeRazorpayCheckout = async (
     orderData: RazorpayOrderResponse,
     shippingAddress: ShippingAddress,
     onSuccess: (result: PaymentVerificationResult) => void,
-    onError: (error: Error) => void
+    onError: (error: Error) => void,
+    onProcessing?: () => void
 ): Promise<void> => {
     try {
         await loadRazorpayScript();
@@ -153,6 +154,12 @@ export const initializeRazorpayCheckout = async (
             handler: async (response: RazorpayVerificationResponse) => {
                 // Mark as succeeded immediately so ondismiss doesn't interfere
                 paymentSucceeded = true;
+                
+                // Notify UI that verification has started
+                if (onProcessing) {
+                    onProcessing();
+                }
+                
                 try {
                     const client = getSupabaseClient();
                     const { data: { session } } = await client.auth.getSession();

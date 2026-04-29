@@ -109,6 +109,10 @@ function CheckoutContent() {
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const [discountAmount, setDiscountAmount] = useState(0);
 
+  // Success Modal State
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successOrderId, setSuccessOrderId] = useState("");
+
   // Initialize checkout items
   useEffect(() => {
     if (isLoading) return;
@@ -162,6 +166,63 @@ function CheckoutContent() {
       });
     }
   }, [checkoutItems.length, subtotalAmount]);
+
+  // Handle Razorpay Redirect Fallback
+  useEffect(() => {
+    const paymentId = searchParams.get('razorpay_payment_id');
+    const orderId = searchParams.get('razorpay_order_id');
+    const signature = searchParams.get('razorpay_signature');
+    const errorDesc = searchParams.get('error[description]') || searchParams.get('error_description');
+
+    if (errorDesc) {
+      setError(errorDesc);
+      setPaymentStep('form');
+      setIsProcessing(false);
+    } else if (paymentId && orderId && signature) {
+      // It's a success redirect! We should verify it.
+      // Assuming we rely on the normal flow. If the user was redirected, we might need a separate verify function here.
+      // But typically, the callback handles it. Just in case, if the page was freshly loaded with these params:
+      setPaymentStep('processing');
+      setIsProcessing(true);
+      
+      const verifyRedirect = async () => {
+        try {
+          const client = getSupabaseClient();
+          const { data: { session } } = await client.auth.getSession();
+          
+          const verificationHeaders: Record<string, string> = {
+            'Content-Type': 'application/json',
+          };
+          if (session?.access_token) {
+            verificationHeaders['Authorization'] = `Bearer ${session.access_token}`;
+          }
+
+          const response = await fetch('/api/verify-payment', {
+            method: 'POST',
+            headers: verificationHeaders,
+            body: JSON.stringify({
+              razorpay_order_id: orderId,
+              razorpay_payment_id: paymentId,
+              razorpay_signature: signature,
+            }),
+          });
+
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'Payment verification failed');
+          
+          clearCart();
+          setSuccessOrderId(data.orderId);
+          setShowSuccessModal(true);
+        } catch (err: any) {
+          setError(err.message || "Payment verification failed");
+          setPaymentStep('form');
+          setIsProcessing(false);
+        }
+      };
+      
+      verifyRedirect();
+    }
+  }, [searchParams]);
 
   // Load user's saved addresses if available
   useEffect(() => {
@@ -442,12 +503,8 @@ function CheckoutContent() {
             items: checkoutItems.map(i => i.name)
           });
 
-          toast({
-            title: "Payment Approved",
-            description: "Your order has been confirmed successfully.",
-          });
-
-          router.push(`/order-success?orderId=${verificationData.orderId}`);
+          setSuccessOrderId(verificationData.orderId);
+          setShowSuccessModal(true);
         },
         // Error/Cancel callback
         (error) => {
@@ -463,6 +520,10 @@ function CheckoutContent() {
           setError(error.message || "Payment failed. Please try again.");
           setIsProcessing(false);
           setPaymentStep('form');
+        },
+        // onProcessing callback
+        () => {
+          setPaymentStep('processing');
         }
       );
     } catch (error) {
@@ -684,6 +745,44 @@ function CheckoutContent() {
                 <p className="text-white text-lg font-medium">Creating your order...</p>
                 <p className="text-white/60 text-sm mt-1">Please don&apos;t close this page</p>
               </div>
+            </motion.div>
+          )}
+
+          {/* Success Modal */}
+          {showSuccessModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center backdrop-blur-sm"
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                className="bg-zinc-900 border border-white/10 p-8 rounded-2xl max-w-md w-full text-center shadow-2xl relative overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-400 to-emerald-600" />
+                <div className="h-16 w-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle2 className="h-8 w-8 text-emerald-500" />
+                </div>
+                <h2 className="text-2xl font-serif text-white mb-2">Payment Approved!</h2>
+                <p className="text-zinc-400 mb-8">
+                  Your order has been placed successfully. A confirmation email has been sent.
+                </p>
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => {
+                      if (isAuthenticated) {
+                        router.push('/profile?tab=orders');
+                      } else {
+                        router.push(`/order-success?orderId=${successOrderId}`);
+                      }
+                    }}
+                    className="w-full bg-white text-black hover:bg-zinc-200 h-12 rounded-xl font-semibold"
+                  >
+                    View Order Details
+                  </Button>
+                </div>
+              </motion.div>
             </motion.div>
           )}
 
