@@ -79,22 +79,20 @@ export async function POST(request: NextRequest) {
     // Verification is done using the Razorpay order ID which was shared between client and server
     const adminClient = getSupabaseAdmin();
 
-    // Get the order from database
-    let orderQuery = adminClient
+    // Get the orders from database - we use an array check instead of single() 
+    // to handle cases where multiple records might have been created due to retries
+    const orderQuery = adminClient
       .from('orders')
       .select('*')
       .eq('razorpay_order_id', razorpay_order_id);
 
-    // With admin client, we can remove the user_id filter as we are verifying the 
-    // Razorpay order ID which is unique and cryptographically verified already.
-    // This makes the verification flow much more robust against session changes.
-
-    const { data: order, error: orderError } = await orderQuery.single();
+    const { data: orders, error: orderError } = await orderQuery;
+    const order = orders && orders.length > 0 ? orders[0] : null;
 
     if (orderError || !order) {
       console.error('[verify-payment] Order lookup failed:', orderError || 'Order not found');
       return NextResponse.json(
-        { error: 'Order not found or access denied' },
+        { error: 'Order not found. If payment was successful, it will be updated shortly.' },
         { status: 404 }
       );
     }

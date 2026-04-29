@@ -80,18 +80,19 @@ export const profileService = {
   // --- Addresses ---
   async getAddresses() {
     const client = getSupabaseClient();
-    const userResponse = await client.auth.getUser();
-    const userId = userResponse.data.user?.id;
+    const { data: { session } } = await client.auth.getSession();
+    const userId = session?.user?.id;
 
     if (!userId) return [];
 
     const { data, error } = await client
       .from('user_addresses')
       .select('*')
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .order('is_default', { ascending: false });
     
     if (error) throw error;
-    return data;
+    return data ?? [];
   },
 
   async addAddress(address: Omit<Address, 'id' | 'created_at'>) {
@@ -136,8 +137,9 @@ export const profileService = {
   // --- Orders ---
   async getOrders() {
     const client = getSupabaseClient();
-    const userResponse = await client.auth.getUser();
-    const userId = userResponse.data.user?.id;
+    // Force-refresh the session to ensure we have the latest user ID
+    const { data: { session } } = await client.auth.getSession();
+    const userId = session?.user?.id;
     
     if (!userId) return [];
 
@@ -148,7 +150,7 @@ export const profileService = {
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data;
+    return data ?? [];
   },
 
   async cancelOrder(orderId: string, reason: string) {

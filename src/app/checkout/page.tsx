@@ -501,14 +501,20 @@ function CheckoutContent() {
               // Save address if user is logged in and preference is checked
               if (user?.id && saveAddressForFuture) {
                 const client = getSupabaseClient()
-                await client
+                // Only include fields that exist in the user_addresses table
+                const { error: addrError } = await client
                   .from('user_addresses')
-                  .upsert({
+                  .insert({
                     user_id: user.id,
                     type: 'shipping',
-                    ...shippingAddress,
+                    address: shippingAddress.address,
+                    city: shippingAddress.city,
+                    state: shippingAddress.state,
+                    pincode: shippingAddress.pincode,
                     is_default: true,
                   });
+                
+                if (addrError) console.error('Error saving address:', addrError);
               }
 
               toast({
@@ -644,14 +650,18 @@ function CheckoutContent() {
       // Save address if user is logged in and preference is checked
       if (user?.id && saveAddressForFuture) {
         const client = getSupabaseClient()
-        await client
+        const { error: addrError } = await client
           .from('user_addresses')
-          .upsert({
+          .insert({
             user_id: user.id,
             type: 'shipping',
-            ...shippingAddress,
+            address: shippingAddress.address,
+            city: shippingAddress.city,
+            state: shippingAddress.state,
+            pincode: shippingAddress.pincode,
             is_default: true,
           });
+        if (addrError) console.error('Error saving address:', addrError);
       }
 
       const client = getSupabaseClient()

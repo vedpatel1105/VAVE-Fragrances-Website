@@ -151,30 +151,32 @@ function ProfileContent() {
     gen()
   }, [profile.email])
 
-  useEffect(() => {
+  const fetchAllData = async () => {
     if (!isAuthenticated || !user) return
-    ;(async () => {
-      try {
-        const [p, a, o] = await Promise.allSettled([
-          profileService.getProfile(),
-          profileService.getAddresses(),
-          profileService.getOrders(),
-        ])
-        
-        if (p.status === 'fulfilled' && p.value) {
-          setProfile(prev => ({ ...prev, ...p.value }))
-        }
-        if (a.status === 'fulfilled' && a.value) {
-          setAddresses((a.value ?? []).filter(Boolean))
-        }
-        if (o.status === 'fulfilled' && o.value) {
-          setOrders((o.value ?? []).filter(Boolean))
-        }
-      } catch (err) {
-        console.error("Profile data fetch error:", err)
+    try {
+      const [p, a, o] = await Promise.allSettled([
+        profileService.getProfile(),
+        profileService.getAddresses(),
+        profileService.getOrders(),
+      ])
+      
+      if (p.status === 'fulfilled' && p.value) {
+        setProfile(prev => ({ ...prev, ...p.value }))
       }
-    })()
-  }, [isAuthenticated, user?.id])
+      if (a.status === 'fulfilled' && a.value) {
+        setAddresses((a.value ?? []).filter(Boolean))
+      }
+      if (o.status === 'fulfilled' && o.value) {
+        setOrders((o.value ?? []).filter(Boolean))
+      }
+    } catch (err) {
+      console.error("Profile data fetch error:", err)
+    }
+  }
+
+  useEffect(() => {
+    fetchAllData()
+  }, [isAuthenticated, user?.id, activeTab]) // Refetch when tab changes or auth changes
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) router.push("/auth/login")
@@ -593,9 +595,20 @@ function ProfileContent() {
 
             {activeTab === "orders" && (
               <motion.div key="orders" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
-                <div className="mb-6">
-                  <h1 className="text-3xl lg:text-4xl font-serif text-white">My Orders</h1>
-                  <p className="text-sm text-zinc-500 mt-1">{orders.length} order{orders.length !== 1 ? "s" : ""} total</p>
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h1 className="text-3xl lg:text-4xl font-serif text-white">My Orders</h1>
+                    <p className="text-sm text-zinc-500 mt-1">{orders.length} order{orders.length !== 1 ? "s" : ""} total</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={fetchAllData}
+                    className="rounded-xl border-white/10 hover:bg-white/5 h-9"
+                  >
+                    <Clock className="mr-2 h-3 w-3" />
+                    Refresh
+                  </Button>
                 </div>
 
                 {orders.length === 0 ? (
