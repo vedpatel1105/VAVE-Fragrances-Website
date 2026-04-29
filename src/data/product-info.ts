@@ -47,6 +47,7 @@ export namespace ProductInfo {
                 base: ["10 INR"],
             },
             layeringOptions: [],
+            moods: ["Test", "Demo"],
         },
         {
             id: "fcbba672-0980-4de5-9675-930632135864",
@@ -126,6 +127,7 @@ export namespace ProductInfo {
                     description: "Creates a sophisticated spicy-fresh blend",
                 },
             ],
+            moods: ["Confident", "Professional", "Fresh"],
         },
         {
             id: "d5715b7f-a6b7-4d58-a768-1204198ebd0b",
@@ -210,6 +212,7 @@ export namespace ProductInfo {
                     description: "Adds mystery and depth",
                 },
             ],
+            moods: ["Mysterious", "Sophisticated", "Night"],
         },
         {
             id: "f0fff746-3451-4139-84f0-004be84dd603",
@@ -289,6 +292,7 @@ export namespace ProductInfo {
                     description: "Enhances the oriental character",
                 },
             ],
+            moods: ["Elegant", "Amber", "Date Night"],
         },
         {
             id: "158184a5-4507-461b-92a2-d2b87917bb58",
@@ -368,6 +372,7 @@ export namespace ProductInfo {
                     description: "Enhances the richness of the florals",
                 },
             ],
+            moods: ["Romantic", "Feminine", "Cheerful"],
         },
         {
             id: "aaf23ce0-6511-486d-9a51-8d45cf500742",
@@ -448,6 +453,7 @@ export namespace ProductInfo {
                         "Creates an interesting contrast of fresh and warm",
                 },
             ],
+            moods: ["Fresh", "Energetic", "Summer"],
         },
         {
             id: "c69464e7-34ed-4d69-bec9-62c0cb5a2f18",
@@ -527,6 +533,7 @@ export namespace ProductInfo {
                     description: "Adds a floral brightness to the warmth",
                 },
             ],
+            moods: ["Seductive", "Warm", "Evening"],
         },
         {
             id: "d60cc1c5-3f1f-496e-ae60-948576fe9e08",
@@ -607,6 +614,7 @@ export namespace ProductInfo {
                         "Creates a complex, spicy oriental masterpiece",
                 },
             ],
+            moods: ["Bold", "Addictive", "Party"],
         },
         {
             id: "40d541c6-b55d-453d-8065-c82b040bf31b",
@@ -688,6 +696,7 @@ export namespace ProductInfo {
                         "Enhances the oriental character with herbal notes",
                 },
             ],
+            moods: ["Opulent", "Traditional", "Special Occasions"],
         },
     ];
 
@@ -898,6 +907,7 @@ export namespace ProductInfo {
         isLimited: boolean;
         discount: number | null;
         ingredients: string[];
+        moods?: string[];
         sizeOptions: { size: string; price: number }[];
         specifications: {
             fragrance_family: string;

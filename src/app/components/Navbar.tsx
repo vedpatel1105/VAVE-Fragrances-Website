@@ -74,6 +74,8 @@ export default function Navbar({ setIsCartOpen, cartItemsCount = 0 }: NavbarProp
   const navItems = [
     { href: "/", label: "Home" },
     { href: "/collection", label: "Collection" },
+    { href: "/moods", label: "Moods" },
+    { href: "/lexicon", label: "Lexicon" },
     { href: "/find-your-scent", label: "Scent Finder" },
     { href: "/wishlist", label: "Wishlist" },
     { href: "/about", label: "About" },
