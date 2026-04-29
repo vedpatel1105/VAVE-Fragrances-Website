@@ -459,9 +459,18 @@ export default function ProductDetailPage() {
                     <Button
                       onClick={() => {
                         const itemsText = `• *${product.name}* (${selectedSize}ml) x ${quantity} - ₹${(product.sizeOptions.find(s => s.size === selectedSize)?.price || product.price) * quantity}`;
-                        const messageText = `🛍️ *NEW ORDER INQUIRY*\n\n` +
-                          `I'm interested in purchasing:\n${itemsText}\n\n` +
-                          `Please help me with the checkout. Thank you!`;
+                        const messageText = 
+                          `✧ *VAVE FRAGRANCES • OFFICIAL ORDER* ✧\n\n` +
+                          `Hello Vave Team,\n\n` +
+                          `I would like to place an order for the following:\n` +
+                          `----------------------------------\n` +
+                          `📦 *Item:* ${product.name}\n` +
+                          `📏 *Size:* ${selectedSize}ml\n` +
+                          `🔢 *Quantity:* ${quantity}\n` +
+                          `💰 *Price:* ₹${(product.sizeOptions.find(s => s.size === selectedSize)?.price || product.price) * quantity}\n` +
+                          `----------------------------------\n\n` +
+                          `✅ I'm ready for the next steps. Please confirm my order.\n\n` +
+                          `_Sent from Vave Official Website_`;
                         const whatsappUrl = `https://wa.me/919328701508?text=${encodeURIComponent(messageText)}`;
                         window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
                       }}

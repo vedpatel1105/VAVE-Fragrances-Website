@@ -188,18 +188,22 @@ export default function Cart() {
       const displayId = typeof orderId === 'string' && orderId.includes('-') ? orderId.slice(-8).toUpperCase() : orderId
 
       const messageText = 
-        `🛍️ *NEW COD ORDER CONFIRMATION*\n\n` +
+        `✧ *VAVE FRAGRANCES • OFFICIAL ORDER* ✧\n\n` +
+        `Hello Vave Team,\n` +
+        `I've just placed a COD order through the website. Here are my verified details:\n\n` +
         `🆔 *Order ID:* #${displayId}\n` +
-        `👤 *Customer Details:*\n` +
-        `Name: ${shippingAddress.name}\n` +
-        `Phone: ${shippingAddress.phone}\n\n` +
-        `📦 *Order Details:*\n` +
-        `${itemsText}\n\n` +
-        `💰 *Total Amount:* ₹${total}\n\n` +
+        `👤 *Customer:* ${shippingAddress.name}\n` +
+        `📞 *Contact:* ${shippingAddress.phone}\n` +
+        `----------------------------------\n` +
+        `📦 *Items Ordered:*\n` +
+        `${itemsText}\n` +
+        `----------------------------------\n` +
+        `💰 *Final Amount:* ₹${total}\n\n` +
         `📍 *Delivery Address:*\n` +
         `${shippingAddress.address}\n` +
         `${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}\n\n` +
-        `Please confirm my COD order. Thank you!`;
+        `✅ I confirm this Cash on Delivery order. Please process it at the earliest. Thank you!\n\n` +
+        `_Sent from Vave Official Website_`;
 
       const whatsappUrl = `https://wa.me/919328701508?text=${encodeURIComponent(messageText)}`;
       
