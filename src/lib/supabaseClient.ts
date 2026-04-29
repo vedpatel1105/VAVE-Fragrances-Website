@@ -14,6 +14,7 @@ const supabaseAnon = envSupabaseAnonKey || "placeholder-anon-key";
 
 // Singleton instance with lazy initialization - THIS IS THE ONLY SAFE WAY
 let supabaseInstance: any = null;
+let supabaseAdminInstance: any = null;
 
 export const getSupabaseClient = () => {
   if (supabaseInstance) return supabaseInstance;
@@ -24,6 +25,31 @@ export const getSupabaseClient = () => {
     supabaseInstance = createClient(supabaseUrl, supabaseAnon);
   }
   return supabaseInstance;
+};
+
+/**
+ * Highly privileged client using service_role key.
+ * ONLY use in server-side routes (API, Middleware, Server Actions).
+ * NEVER use on client-side or export to components.
+ */
+export const getSupabaseAdmin = () => {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!serviceKey) {
+    console.warn("SUPABASE_SERVICE_ROLE_KEY is missing. Falling back to anon client.");
+    return getSupabaseClient();
+  }
+
+  if (supabaseAdminInstance) return supabaseAdminInstance;
+  
+  supabaseAdminInstance = createClient(supabaseUrl, serviceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+  
+  return supabaseAdminInstance;
 };
 
 // WE ARE REMOVING THE STATIC 'supabase' EXPORT TO PREVENT INITIALIZATION CRASHES

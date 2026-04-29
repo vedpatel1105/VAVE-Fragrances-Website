@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
+import { getSupabaseAdmin } from '@/src/lib/supabaseClient';
 
 export async function POST(request: NextRequest) {
   try {
@@ -76,38 +77,22 @@ export async function POST(request: NextRequest) {
     console.log('[verify-payment] Signature verified. Looking up order in DB...');
 
     // Verification is done using the Razorpay order ID which was shared between client and server
-    // We also check against user_id if authenticated, or null for guests
+    const adminClient = getSupabaseAdmin();
 
     // Get the order from database
-    // NOTE: Supabase JS v2 query builder returns NEW objects on each chain call,
-    // so we must build the full chain before calling .single()
-    let orderQuery = supabaseClient
+    let orderQuery = adminClient
       .from('orders')
       .select('*')
       .eq('razorpay_order_id', razorpay_order_id);
 
-    if (user) {
-      orderQuery = orderQuery.eq('user_id', user.id);
-    }
-    // For guest orders, we skip the user_id filter entirely so the lookup
-    // succeeds regardless of whether user_id is null or not set
+    // With admin client, we can remove the user_id filter as we are verifying the 
+    // Razorpay order ID which is unique and cryptographically verified already.
+    // This makes the verification flow much more robust against session changes.
 
     const { data: order, error: orderError } = await orderQuery.single();
 
     if (orderError || !order) {
       console.error('[verify-payment] Order lookup failed:', orderError || 'Order not found');
-      // If order not found by user_id filter, try finding it without user_id filter just to be sure 
-      // (in case session changed)
-      const { data: globalOrder } = await supabaseClient
-        .from('orders')
-        .select('id, user_id, status')
-        .eq('razorpay_order_id', razorpay_order_id)
-        .single();
-      
-      if (globalOrder) {
-        console.warn(`[verify-payment] Order found but restricted. Global status: ${globalOrder.status}`);
-      }
-
       return NextResponse.json(
         { error: 'Order not found or access denied' },
         { status: 404 }
@@ -126,7 +111,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update order status
-    const { error: updateError } = await supabaseClient
+    const { error: updateError } = await adminClient
       .from('orders')
       .update({ status: 'paid' })
       .eq('id', order.id);
@@ -134,7 +119,7 @@ export async function POST(request: NextRequest) {
     if (updateError) throw updateError;
 
     // Create transaction record
-    const { error: transactionError } = await supabaseClient
+    const { error: transactionError } = await adminClient
       .from('transactions')
       .insert([
         {

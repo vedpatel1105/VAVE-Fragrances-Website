@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import Razorpay from 'razorpay';
-import { getSupabaseClient } from '@/src/lib/supabaseClient';
+import { getSupabaseClient, getSupabaseAdmin } from '@/src/lib/supabaseClient';
 import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 
@@ -222,8 +222,9 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        // Start a database transaction
-        const { data: newOrder, error: orderError } = await supabaseClient
+        // Create order in database using Admin client to bypass RLS
+        const adminClient = getSupabaseAdmin();
+        const { data: newOrder, error: orderError } = await adminClient
             .from('orders')
             .insert([
                 {
