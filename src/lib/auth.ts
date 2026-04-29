@@ -5,7 +5,7 @@ import { isSupabaseConfigured, getSupabaseClient } from "./supabaseClient";
 interface User {
     user_metadata: any;
     id: string;
-    email: string;
+    email?: string;
     full_name?: string;
     phone?: string;
     role?: string;
@@ -141,11 +141,16 @@ const createAuthStore = (set: any, get: any) => ({
             });
             if (authError) throw authError;
             
+            const user = authData.user;
+            if (!user) throw new Error("Verification successful but no user returned");
+
             const newUser: User = {
-                id: authData.user!.id,
-                email: authData.user!.email || "",
-                phone: formattedPhone,
-                user_metadata: authData.user!.user_metadata
+                id: user.id,
+                email: user.email,
+                phone: user.phone || formattedPhone,
+                full_name: user.user_metadata?.full_name || "",
+                role: user.user_metadata?.role,
+                user_metadata: user.user_metadata || {}
             };
             set({ user: newUser, isAuthenticated: true, isLoading: false });
             return { success: true, user: newUser };
@@ -204,9 +209,11 @@ const createAuthStore = (set: any, get: any) => ({
                 set({
                     user: {
                         id: session.user.id,
-                        email: session.user.email!,
+                        email: session.user.email,
+                        phone: session.user.phone,
                         full_name: session.user.user_metadata?.full_name || "",
-                        user_metadata: session.user.user_metadata
+                        role: session.user.user_metadata?.role,
+                        user_metadata: session.user.user_metadata || {}
                     },
                     isAuthenticated: true,
                     isLoading: false,

@@ -14,7 +14,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useAuthStore } from "@/src/lib/auth"
 
 function LoginForm() {
-  const { login, loginWithGoogle, isAuthenticated, signInWithPhone, verifyPhoneOtp } = useAuthStore()
+  const { user, login, loginWithGoogle, isAuthenticated, signInWithPhone, verifyPhoneOtp } = useAuthStore()
   const [activeTab, setActiveTab] = useState<"email" | "phone">("email")
   const [loginStep, setLoginStep] = useState<"form" | "otp">("form")
   const [isLoading, setIsLoading] = useState(false)
@@ -32,10 +32,18 @@ function LoginForm() {
 
   // If already authenticated, redirect
   useEffect(() => {
-    if (isAuthenticated) {
-      router.replace(redirectTo)
+    if (isAuthenticated && user) {
+      const checkAdminAndRedirect = async () => {
+        const isAdmin = await adminService.isAdmin(user)
+        if (redirectTo === '/profile' && isAdmin) {
+          router.replace('/admin')
+        } else {
+          router.replace(redirectTo)
+        }
+      }
+      checkAdminAndRedirect()
     }
-  }, [isAuthenticated, redirectTo, router])
+  }, [isAuthenticated, user, redirectTo, router])
 
   // Show error from OAuth redirect if present
   useEffect(() => {
@@ -88,7 +96,8 @@ function LoginForm() {
       toast({ title: "Welcome back!", description: "Signed in successfully." })
       
       // If no specific redirect and user is admin, go to admin dashboard
-      if (redirectTo === '/profile' && (result.user?.role === 'admin' || result.user?.email === 'admin@vavefragrances.dev')) {
+      const isAdmin = result.user ? await adminService.isAdmin(result.user) : false
+      if (redirectTo === '/profile' && isAdmin) {
         router.replace('/admin')
       } else {
         router.replace(redirectTo)
@@ -120,7 +129,8 @@ function LoginForm() {
           toast({ title: "Success", description: "Identity verified successfully." })
           
           // If no specific redirect and user is admin, go to admin dashboard
-          if (redirectTo === '/profile' && (result.user?.role === 'admin' || result.user?.email === 'admin@vavefragrances.dev')) {
+          const isAdmin = result.user ? await adminService.isAdmin(result.user) : false
+          if (redirectTo === '/profile' && isAdmin) {
             router.replace('/admin')
           } else {
             router.replace(redirectTo)

@@ -1,4 +1,5 @@
 import { getSupabaseClient, isSupabaseConfigured } from './supabaseClient'
+import { useAuthStore } from './auth'
 
 export interface User {
   id: string
@@ -14,17 +15,24 @@ export const adminService = {
     return getSupabaseClient()
   },
 
-  async getCurrentUserRole(): Promise<'user' | 'admin' | 'viewer'> {
+  async getCurrentUserRole(passedUser?: any): Promise<'user' | 'admin' | 'viewer'> {
+    if (!isSupabaseConfigured) return 'user'
+    
+    // Check passed user metadata first
+    if (passedUser?.user_metadata?.role) {
+      return passedUser.user_metadata.role
+    }
+
     const client = this.getSupabase()
     if (!client) return 'user'
 
-    const { data: { session } } = await client.auth.getSession()
-    if (!session?.user) return 'user'
+    const user = passedUser || (await client.auth.getUser()).data.user
+    if (!user) return 'user'
 
     const { data, error } = await client
       .from('user_roles')
       .select('role')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .single()
 
     if (error) return 'user'
@@ -34,7 +42,7 @@ export const adminService = {
   async isAdmin(passedUser?: any): Promise<boolean> {
     if (!isSupabaseConfigured) return false
     try {
-      const user = passedUser || (await this.getSupabase().auth.getUser()).data.user
+      const user = passedUser || useAuthStore.getState().user || (await this.getSupabase().auth.getUser()).data.user
       if (!user) return false
 
       // 1. Check for specific recovery ID
@@ -47,7 +55,7 @@ export const adminService = {
       if (user.user_metadata?.role === 'admin') return true;
 
       // 4. Check database role
-      const role = await this.getCurrentUserRole()
+      const role = await this.getCurrentUserRole(user)
       return role === 'admin'
     } catch (error) {
       return false
@@ -57,18 +65,18 @@ export const adminService = {
   async isViewer(passedUser?: any): Promise<boolean> {
     if (!isSupabaseConfigured) return false
     try {
-      // 1. Check passed user for recovery ID or admin email
-      if (passedUser?.id === '00000000-0000-0000-0000-000000000000') return true;
-      if (passedUser?.email === 'admin@vavefragrances.dev') return true;
+      const user = passedUser || useAuthStore.getState().user || (await this.getSupabase().auth.getUser()).data.user
+      if (!user) return false
 
-      // 2. Check session for recovery ID
-      const client = this.getSupabase();
-      const { data: { session } } = await client.auth.getSession();
-      if (session?.user?.id === '00000000-0000-0000-0000-000000000000') return true;
-      if (session?.user?.email === 'admin@vavefragrances.dev') return true;
+      // 1. Check for specific recovery ID or admin email
+      if (user.id === '00000000-0000-0000-0000-000000000000') return true;
+      if (user.email === 'admin@vavefragrances.dev') return true;
+
+      // 2. Check user metadata role
+      if (user.user_metadata?.role === 'admin' || user.user_metadata?.role === 'viewer') return true;
 
       // 3. Check database role
-      const role = await this.getCurrentUserRole()
+      const role = await this.getCurrentUserRole(user)
       return role === 'admin' || role === 'viewer'
     } catch (error) {
       return false

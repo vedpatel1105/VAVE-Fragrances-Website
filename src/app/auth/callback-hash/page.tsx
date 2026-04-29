@@ -17,7 +17,17 @@ export default function CallbackHashPage() {
     const params = new URLSearchParams(hash.replace(/^#/, ""));
     const access_token = params.get("access_token");
     const refresh_token = params.get("refresh_token");
-    const redirectParam = new URLSearchParams(window.location.search).get("redirect") || "/profile";
+    const type = params.get("type") || new URLSearchParams(window.location.search).get("type");
+    
+    let redirectParam = new URLSearchParams(window.location.search).get("redirect");
+    
+    if (!redirectParam) {
+      if (type === "recovery") {
+        redirectParam = "/auth/reset-password";
+      } else {
+        redirectParam = "/profile";
+      }
+    }
 
     if (!access_token) {
       router.replace("/auth/login?error=no_access_token_in_hash");

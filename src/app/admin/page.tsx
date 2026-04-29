@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
         const isAdmin = await adminService.isAdmin(user)
         const isViewer = await adminService.isViewer(user)
         if (isAdmin || isViewer) {
-          router.replace('/admin/analytics')
+          router.replace('/admin/orders')
         }
       }
     }

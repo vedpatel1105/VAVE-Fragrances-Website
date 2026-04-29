@@ -87,8 +87,9 @@ export async function GET(request: Request) {
     } else {
       // No code and no token — maybe provider returned #fragment instead of query string
       console.warn("No code or access_token found; redirecting to fallback handler.");
-      const hashUrl = new URL("/auth/callback-hash", origin);
-      hashUrl.search = requestUrl.search;
+      
+      const searchParams = requestUrl.searchParams.toString();
+      const hashUrl = new URL(`/auth/callback-hash${searchParams ? `?${searchParams}` : ''}`, origin);
       return NextResponse.redirect(hashUrl);
     }
 
