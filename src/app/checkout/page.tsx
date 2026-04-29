@@ -211,6 +211,8 @@ function CheckoutContent() {
           if (!response.ok) throw new Error(data.error || 'Payment verification failed');
           
           clearCart();
+          setPaymentStep('form');
+          setIsProcessing(false);
           setSuccessOrderId(data.orderId);
           setShowSuccessModal(true);
         } catch (err: any) {
@@ -503,6 +505,8 @@ function CheckoutContent() {
             items: checkoutItems.map(i => i.name)
           });
 
+          setPaymentStep('form');
+          setIsProcessing(false);
           setSuccessOrderId(verificationData.orderId);
           setShowSuccessModal(true);
         },
