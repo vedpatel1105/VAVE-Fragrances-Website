@@ -134,6 +134,10 @@ export const initializeRazorpayCheckout = async (
             throw new Error('Razorpay key is not configured');
         }
 
+        // Flag to prevent ondismiss from calling onError after a successful payment.
+        // Razorpay fires ondismiss even when it auto-closes after a successful payment.
+        let paymentSucceeded = false;
+
         const options: RazorpayOptions = {
             key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
             amount: orderData.amount,
@@ -147,6 +151,8 @@ export const initializeRazorpayCheckout = async (
                 contact: orderData.customerPhone,
             },
             handler: async (response: RazorpayVerificationResponse) => {
+                // Mark as succeeded immediately so ondismiss doesn't interfere
+                paymentSucceeded = true;
                 try {
                     const client = getSupabaseClient();
                     const { data: { session } } = await client.auth.getSession();
@@ -193,8 +199,14 @@ export const initializeRazorpayCheckout = async (
             },
             modal: {
                 ondismiss: () => {
-                    console.log('Razorpay modal dismissed by user');
-                    onError(new Error('Payment cancelled by user'));
+                    // Only treat as cancellation if payment hasn't already succeeded.
+                    // Razorpay fires ondismiss even after auto-closing on successful payment.
+                    if (!paymentSucceeded) {
+                        console.log('Razorpay modal dismissed by user (no payment)');
+                        onError(new Error('Payment cancelled by user'));
+                    } else {
+                        console.log('Razorpay modal closed after successful payment — ignoring dismiss event');
+                    }
                 }
             }
         };
