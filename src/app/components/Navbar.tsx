@@ -131,7 +131,7 @@ export default function Navbar({ setIsCartOpen, cartItemsCount = 0 }: NavbarProp
             </motion.a>
 
             <motion.a
-              href="https://instagram.com/Vavefragrances"
+              href="https://www.instagram.com/vavefragrances/"
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.1 }}
@@ -275,7 +275,7 @@ export default function Navbar({ setIsCartOpen, cartItemsCount = 0 }: NavbarProp
                     <MessageCircle className="h-5 w-5 text-white" />
                   </a>
                   <a
-                    href="https://instagram.com/Vave_perfumes"
+                    href="https://www.instagram.com/vavefragrances/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="p-2 rounded-full transition-colors bg-white/10 hover:bg-pink-500/20 block"

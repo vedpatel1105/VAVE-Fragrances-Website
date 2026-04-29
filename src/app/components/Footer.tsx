@@ -93,7 +93,7 @@ export default function Footer() {
                 <Twitter strokeWidth={1.5} className="w-5 h-5" />
               </Link>
               <Link
-                href="https://www.instagram.com/Vavefragrances"
+                href="https://www.instagram.com/vavefragrances/"
                 className="text-white/40 hover:text-white transition-all duration-300 hover:scale-110"
               >
                 <Instagram strokeWidth={1.5} className="w-5 h-5" />

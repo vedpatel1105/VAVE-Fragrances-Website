@@ -95,6 +95,11 @@ function CheckoutContent() {
     state: "",
     pincode: ""
   });
+
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof ShippingAddress, string>>>({});
   const [isLoadingAddress, setIsLoadingAddress] = useState(true);
   const [shippingCharge, setShippingCharge] = useState<number>(0);

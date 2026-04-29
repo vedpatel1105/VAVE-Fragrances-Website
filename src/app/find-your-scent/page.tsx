@@ -41,63 +41,113 @@ export default function ScentFinder() {
 
   const handleAnswer = (answer: string) => {
     const newAnswers = [...answers, answer]
-    setAnswers(newAnswers as any)
+    setAnswers(newAnswers)
 
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1)
     } else {
-      // Process the answers to determine a scent recommendation
-      const recommendation = {
-        name: "Havoc",
-        description:
-          "A bold fragrance with notes of cedar and amber. Perfect for those who enjoy sophisticated scents.",
-        image: "/placeholder.svg?height=500&width=500",
-      }
+      // Logic-based recommendation
+      const family = newAnswers[0];
+      let recommendationSlug = "havoc"; // Default
+      
+      if (family === "Floral") recommendationSlug = "vave-noir";
+      if (family === "Woody") recommendationSlug = "the-boss";
+      if (family === "Oriental") recommendationSlug = "saffron-wood";
+      if (family === "Fresh") recommendationSlug = "havoc";
 
-      // Redirect to a product page or show a modal with the recommendation
-      router.push(`/product/1`)
+      router.push(`/product/${recommendationSlug}`)
     }
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-zinc-950 text-white selection:bg-white/10 selection:text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.02)_0%,transparent_100%)] pointer-events-none" />
+      
       <Navbar
-        setIsCartOpen={(isOpen: boolean) => {
-          /* handle cart open state */
-        }}
+        setIsCartOpen={() => {}}
       />
-      <div className="container mx-auto px-4 py-24">
-        <h1 className="text-3xl font-bold mb-8">Find Your Perfect Scent</h1>
-        <div className="max-w-2xl mx-auto">
-          {currentQuestion < questions.length ? (
-            <motion.div
-              key={currentQuestion}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-            >
-              <h2 className="text-xl font-semibold mb-4">{questions[currentQuestion].text}</h2>
-              <div className="grid grid-cols-2 gap-4">
-                {questions[currentQuestion].options.map((option, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleAnswer(option)}
-                    className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow"
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          ) : (
-            <div className="text-center">
-              <h2 className="text-xl font-semibold mb-4">Thank you for completing the scent finder!</h2>
-              <p>We&apos;re analyzing your preferences to find your perfect scent.</p>
-            </div>
-          )}
+      
+      <div className="container mx-auto px-6 py-40 max-w-4xl relative z-10">
+        <div className="text-center mb-20">
+          <motion.h2 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-[10px] uppercase tracking-[0.5em] text-white/40 mb-6 font-mono"
+          >
+            Digital Sommelier
+          </motion.h2>
+          <motion.h1 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-4xl md:text-6xl font-serif text-white tracking-tight"
+          >
+            Find Your Signature
+          </motion.h1>
+        </div>
+
+        <div className="bg-zinc-900/40 backdrop-blur-3xl border border-white/5 p-8 md:p-16 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          
+          <AnimatePresence mode="wait">
+            {currentQuestion < questions.length ? (
+              <motion.div
+                key={currentQuestion}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                className="space-y-12"
+              >
+                <div className="flex justify-between items-end mb-4">
+                  <span className="text-[10px] font-mono text-white/20 uppercase tracking-[0.3em]">
+                    Question {questions[currentQuestion].id} of {questions.length}
+                  </span>
+                </div>
+                
+                <h2 className="text-2xl md:text-3xl font-serif text-white leading-tight">
+                  {questions[currentQuestion].text}
+                </h2>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {questions[currentQuestion].options.map((option, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleAnswer(option)}
+                      className="group relative p-6 text-left border border-white/5 bg-white/[0.02] hover:bg-white hover:text-black transition-all duration-500 overflow-hidden"
+                    >
+                      <span className="relative z-10 text-[11px] uppercase tracking-[0.2em] font-bold">
+                        {option}
+                      </span>
+                      <div className="absolute top-1/2 right-6 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:translate-x-2">
+                        <ArrowRight size={14} />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }}
+                className="text-center py-20"
+              >
+                <div className="w-12 h-12 border-2 border-white/10 border-t-white rounded-full animate-spin mx-auto mb-8" />
+                <h2 className="text-2xl font-serif text-white mb-4">Analyzing Your Essence</h2>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-white/40">Curating your personalized recommendation...</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <div className="mt-20 text-center">
+          <p className="text-[9px] uppercase tracking-[0.4em] text-white/20 font-mono">
+            Vave Fragrances • Olfactory Intelligence v1.0
+          </p>
         </div>
       </div>
-    </>
+    </div>
   )
 }
+
+import { ArrowRight } from "lucide-react"
