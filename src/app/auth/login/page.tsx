@@ -23,6 +23,7 @@ function LoginForm() {
   const [phoneForm, setPhoneForm] = useState({ phone: "", otp: "" })
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; phone?: string; otp?: string }>({})
   const [loginError, setLoginError] = useState("")
+  const [resendTimer, setResendTimer] = useState(0)
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
@@ -53,6 +54,33 @@ function LoginForm() {
       setLoginError(details || `Authentication error: ${error}`)
     }
   }, [searchParams])
+
+  // Resend Timer Logic
+  useEffect(() => {
+    let timer: any
+    if (resendTimer > 0) {
+      timer = setInterval(() => setResendTimer(t => t - 1), 1000)
+    }
+    return () => clearInterval(timer)
+  }, [resendTimer])
+
+  const handleResendOtp = async () => {
+    if (resendTimer > 0) return
+    setIsLoading(true)
+    try {
+      const result = await signInWithPhone(phoneForm.phone)
+      if (result.success) {
+        setResendTimer(60)
+        toast({ title: "OTP Resent", description: "Verification code sent to your phone." })
+      } else {
+        setLoginError(result.error || "Failed to resend OTP")
+      }
+    } catch (error: any) {
+      setLoginError(error.message || "An error occurred")
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const validateEmailForm = (): boolean => {
     const errors: { email?: string; password?: string } = {}
@@ -364,6 +392,16 @@ function LoginForm() {
                       {fieldErrors.otp && (
                         <p className="text-[10px] text-red-500 font-medium uppercase tracking-widest">{fieldErrors.otp}</p>
                       )}
+                      <div className="flex justify-center">
+                        <button
+                          type="button"
+                          onClick={handleResendOtp}
+                          disabled={isLoading || resendTimer > 0}
+                          className="text-[10px] uppercase tracking-[0.2em] text-white/40 hover:text-white transition-colors disabled:opacity-30"
+                        >
+                          {resendTimer > 0 ? `Resend code in ${resendTimer}s` : "Didn't receive code? Resend"}
+                        </button>
+                      </div>
                     </div>
                     <Button 
                       type="submit" 

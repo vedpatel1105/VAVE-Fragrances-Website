@@ -49,6 +49,7 @@ export default function RegisterPage() {
   
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [registerError, setRegisterError] = useState("");
+  const [resendTimer, setResendTimer] = useState(0);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -60,6 +61,33 @@ export default function RegisterPage() {
       setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
     }
     if (registerError) setRegisterError("");
+  };
+
+  // Resend Timer Logic
+  useEffect(() => {
+    let timer: any;
+    if (resendTimer > 0) {
+      timer = setInterval(() => setResendTimer((t) => t - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendTimer]);
+
+  const handleResendOtp = async () => {
+    if (resendTimer > 0) return;
+    setIsLoading(true);
+    try {
+      const result = await signInWithPhone(formData.phone);
+      if (result.success) {
+        setResendTimer(60);
+        toast({ title: "OTP Resent", description: "A new code has been dispatched." });
+      } else {
+        setRegisterError(result.error || "Failed to resend OTP");
+      }
+    } catch (error: any) {
+      setRegisterError(error.message || "An error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const validateEmailFlow = (): boolean => {
@@ -308,6 +336,16 @@ export default function RegisterPage() {
                       <Button className="w-full bg-white text-black h-16 rounded-none uppercase tracking-[0.4em] font-bold" disabled={isLoading}>
                         Verify Code
                       </Button>
+                      <div className="flex justify-center pt-2">
+                        <button
+                          type="button"
+                          onClick={handleResendOtp}
+                          disabled={isLoading || resendTimer > 0}
+                          className="text-[10px] uppercase tracking-[0.2em] text-white/40 hover:text-white transition-colors disabled:opacity-30"
+                        >
+                          {resendTimer > 0 ? `Resend code in ${resendTimer}s` : "Resend Verification Code"}
+                        </button>
+                      </div>
                    </div>
                 )}
 

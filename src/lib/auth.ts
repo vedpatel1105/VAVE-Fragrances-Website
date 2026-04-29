@@ -119,15 +119,29 @@ const createAuthStore = (set: any, get: any) => ({
         try {
             set({ isLoading: true });
             const client = getSupabaseClient();
+            
+            // Normalize phone number: remove all non-numeric characters except '+'
+            const cleanPhone = phone.replace(/[^\d+]/g, "");
+            
+            // If it doesn't start with '+', assume '+91' (India)
+            const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : `+91${cleanPhone}`;
+            
+            console.log("Attempting to send OTP to:", formattedPhone);
+            
             const { error } = await client.auth.signInWithOtp({
-                phone: phone.startsWith('+') ? phone : `+91${phone}`,
+                phone: formattedPhone,
             });
-            if (error) throw error;
+            
+            if (error) {
+                console.error("Supabase OTP send error:", error);
+                throw error;
+            }
+            
             set({ isLoading: false });
             return { success: true };
         } catch (error: any) {
             set({ isLoading: false });
-            return { success: false, error: error.message };
+            return { success: false, error: error.message || "Failed to send OTP" };
         }
     },
 
@@ -135,11 +149,23 @@ const createAuthStore = (set: any, get: any) => ({
         try {
             set({ isLoading: true });
             const client = getSupabaseClient();
-            const formattedPhone = phone.startsWith('+') ? phone : `+91${phone}`;
+            
+            // Normalize phone number for verification as well
+            const cleanPhone = phone.replace(/[^\d+]/g, "");
+            const formattedPhone = cleanPhone.startsWith('+') ? cleanPhone : `+91${cleanPhone}`;
+            
+            console.log("Verifying OTP for:", formattedPhone);
+            
             const { data: authData, error: authError } = await client.auth.verifyOtp({
-                phone: formattedPhone, token, type: 'sms'
+                phone: formattedPhone, 
+                token, 
+                type: 'sms'
             });
-            if (authError) throw authError;
+            
+            if (authError) {
+                console.error("Supabase OTP verify error:", authError);
+                throw authError;
+            }
             
             const user = authData.user;
             if (!user) throw new Error("Verification successful but no user returned");
@@ -156,7 +182,7 @@ const createAuthStore = (set: any, get: any) => ({
             return { success: true, user: newUser };
         } catch (error: any) {
             set({ isLoading: false });
-            return { success: false, error: error.message };
+            return { success: false, error: error.message || "Invalid or expired code" };
         }
     },
 
