@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import Razorpay from 'razorpay';
-import { getSupabaseClient, getSupabaseAdmin } from '@/src/lib/supabaseClient';
+import { getSupabaseClient } from '@/src/lib/supabaseClient';
+import { getSupabaseAdmin } from '@/src/lib/supabaseServer';
 import { createClient } from '@supabase/supabase-js';
 import { headers } from 'next/headers';
 

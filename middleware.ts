@@ -1,6 +1,6 @@
+import { createServerClient } from "@supabase/ssr"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs'
 
 // Add protected routes that require authentication
 const protectedRoutes = [
@@ -10,9 +10,7 @@ const protectedRoutes = [
   '/wishlist',
   '/order-success',
   '/track-order',
-  '/track-order/:path*',
   '/admin',
-  '/admin/:path*',
   '/settings',
 ]
 
@@ -25,83 +23,92 @@ const authRoutes = [
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-
-  // Create a response to modify
-  const res = NextResponse.next()
   
-  // Create a Supabase client configured to use cookies
-  const supabase = createMiddlewareClient({ req: request, res })
+  // We need to create a response first so we can set cookies on it
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
 
-  // Refresh session if expired
-  const { data: { session } } = await supabase.auth.getSession()
-
-  // Store original URL to redirect after login
-  const redirectToOriginalUrl = (redirectTo: string = '/auth/login') => {
-    const redirectUrl = new URL(redirectTo, request.url)
-    if (pathname !== '/auth/login') {
-      const fullPath = request.nextUrl.search ? `${pathname}${request.nextUrl.search}` : pathname;
-      redirectUrl.searchParams.set('redirect', fullPath)
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          )
+        },
+      },
     }
+  )
+
+  // This will refresh the session if it's expired
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Helper to redirect to login with the current path as a redirect param
+  const redirectToLogin = () => {
+    const redirectUrl = new URL('/auth/login', request.url)
+    const fullPath = request.nextUrl.search ? `${pathname}${request.nextUrl.search}` : pathname
+    redirectUrl.searchParams.set('redirect', fullPath)
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Check if the path matches any protected route pattern
+  // Check if it's a protected route
   const isProtectedRoute = protectedRoutes.some(route => {
-    if (route.includes(':path*')) {
-      const basePath = route.split('/:path*')[0]
+    if (route.endsWith('/:path*')) {
+      const basePath = route.replace('/:path*', '')
       return pathname.startsWith(basePath)
     }
-    return pathname === route
+    return pathname === route || pathname.startsWith(route + '/')
   })
-
-  // Check if it's an auth route
-  const isAuthRoute = authRoutes.some(route => pathname === route)
 
   // Handle protected routes
   if (isProtectedRoute) {
-    if (!session) {
-      return redirectToOriginalUrl()
+    if (!user) {
+      return redirectToLogin()
     }
 
     // Special handling for admin routes
-    if (pathname.startsWith('/admin') && pathname !== '/admin') {
-      const { data } = await supabase
+    if (pathname.startsWith('/admin')) {
+      const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', session.user.id)
+        .eq('user_id', user.id)
         .single()
 
-      if (!data || (data.role !== 'admin' && data.role !== 'viewer')) {
-        return NextResponse.redirect(new URL('/admin', request.url))
+      if (!roleData || (roleData.role !== 'admin' && roleData.role !== 'viewer')) {
+        // If not an admin but trying to access deep admin routes, redirect to main admin or home
+        if (pathname !== '/admin') {
+          return NextResponse.redirect(new URL('/admin', request.url))
+        }
       }
     }
   }
 
-  // Handle auth routes - redirect to home if already authenticated
-  if (isAuthRoute && session) {
-    // Check if there's a redirect URL in the query params
-    const redirectTo = request.nextUrl.searchParams.get('redirect') || '/'
+  // Handle auth routes - redirect to home/profile if already authenticated
+  const isAuthRoute = authRoutes.some(route => pathname === route)
+  if (isAuthRoute && user) {
+    const redirectTo = request.nextUrl.searchParams.get('redirect') || '/profile'
     return NextResponse.redirect(new URL(redirectTo, request.url))
   }
 
-  // Return the response with the session
-  return res
+  return response
 }
 
 export const config = {
   matcher: [
-    '/checkout',
-    '/profile',
-    '/my-orders',
-    '/wishlist',
-    '/order-success',
-    '/track-order',
-    '/track-order/:path*',
-    '/admin',
-    '/admin/:path*',
-    '/settings',
-    '/auth/login',
-    '/auth/register',
-    '/auth/forgot-password',
-  ]
-}
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}

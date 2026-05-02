@@ -12,25 +12,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useAuthStore } from "@/src/lib/auth"
 import { adminService } from "@/src/lib/adminService"
 
-// Translate raw Supabase errors into friendly messages
-function friendlyError(raw: string): { message: string; action?: 'login' } {
-  const r = raw?.toLowerCase() || ''
-  if (r.includes('invalid login credentials') || r.includes('invalid email or password'))
-    return { message: 'Incorrect email or password. Please try again.' }
-  if (r.includes('email not confirmed'))
-    return { message: 'Please verify your email first. Check your inbox for a confirmation link.' }
-  if (r.includes('user not found'))
-    return { message: 'No account found with this email. Please sign up.' }
-  if (r.includes('too many requests') || r.includes('rate limit'))
-    return { message: 'Too many attempts. Please wait a few minutes and try again.' }
-  if (r.includes('network') || r.includes('fetch'))
-    return { message: 'Network error. Please check your connection and try again.' }
-  if (r.includes('invalid otp') || r.includes('token has expired') || r.includes('otp expired'))
-    return { message: 'Invalid or expired code. Please request a new OTP.' }
-  if (r.includes('sms') || r.includes('phone'))
-    return { message: 'Could not send OTP. Please check your phone number or try email login.' }
-  return { message: raw || 'Something went wrong. Please try again.' }
-}
+import { friendlyError, normalizePhone, isValidIndianPhone } from "@/src/lib/auth-utils"
 
 function LoginForm() {
   const { login, loginWithGoogle, isAuthenticated, signInWithPhone, verifyPhoneOtp } = useAuthStore()
@@ -39,9 +21,9 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [emailForm, setEmailForm] = useState({ email: "", password: "" })
-  const [phoneForm, setPhoneForm] = useState({ phone: "+91 ", otp: "" })
+  const [phoneForm, setPhoneForm] = useState({ phone: "", otp: "" })
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; phone?: string; otp?: string }>({})
-  const [loginError, setLoginError] = useState<{ message: string; action?: 'signup' }>()
+  const [loginError, setLoginError] = useState<{ message: string; action?: 'login' | 'signup' }>()
   const [resendTimer, setResendTimer] = useState(0)
   const [otpSentTo, setOtpSentTo] = useState("")
   const router = useRouter()
@@ -51,8 +33,8 @@ function LoginForm() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const { user } = useAuthStore.getState()
       const go = async () => {
+        const { user } = useAuthStore.getState()
         const isAdmin = user ? await adminService.isAdmin(user) : false
         window.location.href = (redirectTo === '/profile' && isAdmin) ? '/admin' : redirectTo
       }
@@ -88,12 +70,10 @@ function LoginForm() {
     try {
       const result = await login(emailForm.email.trim(), emailForm.password)
       if (!result.success) {
-        const fe = friendlyError(result.error || '')
-        setLoginError(fe)
+        setLoginError(friendlyError(result.error || ''))
         return
       }
-      const isAdmin = result.user ? await adminService.isAdmin(result.user) : false
-      window.location.href = (redirectTo === '/profile' && isAdmin) ? '/admin' : redirectTo
+      // Redirect happens in useEffect
     } catch (error: any) {
       setLoginError(friendlyError(error.message))
     } finally {
@@ -104,20 +84,22 @@ function LoginForm() {
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoginError(undefined)
-    const rawPhone = phoneForm.phone.replace(/^\+91\s?/, '').replace(/\s/g, '')
-    if (!rawPhone || !/^[6-9]\d{9}$/.test(rawPhone)) {
-      setFieldErrors({ phone: "Enter a valid 10-digit Indian mobile number" })
+    
+    if (!isValidIndianPhone(phoneForm.phone)) {
+      setFieldErrors({ phone: "Enter a valid 10-digit mobile number" })
       return
     }
+    
     setFieldErrors({})
     setIsLoading(true)
     try {
-      const result = await signInWithPhone(phoneForm.phone)
+      const formattedPhone = normalizePhone(phoneForm.phone)
+      const result = await signInWithPhone(formattedPhone)
       if (result.success) {
         setLoginStep("otp")
-        setOtpSentTo(phoneForm.phone)
+        setOtpSentTo(formattedPhone)
         setResendTimer(60)
-        toast({ title: "OTP Sent", description: `Code sent to ${phoneForm.phone}` })
+        toast({ title: "OTP Sent", description: `Code sent to ${formattedPhone}` })
       } else {
         setLoginError(friendlyError(result.error || ''))
       }
@@ -138,10 +120,10 @@ function LoginForm() {
     setFieldErrors({})
     setIsLoading(true)
     try {
-      const result = await verifyPhoneOtp(phoneForm.phone, phoneForm.otp)
+      const formattedPhone = normalizePhone(phoneForm.phone)
+      const result = await verifyPhoneOtp(formattedPhone, phoneForm.otp)
       if (result.success) {
-        const isAdmin = result.user ? await adminService.isAdmin(result.user) : false
-        window.location.href = (redirectTo === '/profile' && isAdmin) ? '/admin' : redirectTo
+        // Redirect happens in useEffect
       } else {
         setLoginError(friendlyError(result.error || ''))
       }
@@ -156,7 +138,8 @@ function LoginForm() {
     if (resendTimer > 0) return
     setIsLoading(true)
     try {
-      const result = await signInWithPhone(phoneForm.phone)
+      const formattedPhone = normalizePhone(phoneForm.phone)
+      const result = await signInWithPhone(formattedPhone)
       if (result.success) {
         setResendTimer(60)
         toast({ title: "OTP Resent", description: "A new code has been sent." })
@@ -166,6 +149,13 @@ function LoginForm() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const switchTab = (tab: "email" | "phone") => {
+    setActiveTab(tab)
+    setLoginStep("form")
+    setLoginError(undefined)
+    setFieldErrors({})
   }
 
   return (
@@ -210,7 +200,7 @@ function LoginForm() {
               {(["email", "phone"] as const).map(tab => (
                 <button
                   key={tab}
-                  onClick={() => { setActiveTab(tab); setLoginStep("form"); setLoginError(undefined); setFieldErrors({}) }}
+                  onClick={() => switchTab(tab)}
                   className={`flex-1 py-3 text-[10px] uppercase tracking-[0.25em] font-bold transition-all ${activeTab === tab ? 'bg-white text-zinc-950' : 'text-zinc-500 hover:text-white'}`}
                 >
                   {tab === "email" ? "Email" : "Phone / OTP"}
@@ -309,9 +299,9 @@ function LoginForm() {
                           </label>
                           <Input
                             type="tel"
-                            placeholder="+91 98765 43210"
+                            placeholder="Enter 10-digit mobile number"
                             value={phoneForm.phone}
-                            onChange={e => { setPhoneForm(p => ({...p, phone: e.target.value})); setFieldErrors({}) }}
+                            onChange={e => { setPhoneForm(p => ({...p, phone: e.target.value.replace(/[^\d+]/g, '')})); setFieldErrors({}) }}
                             className={`bg-zinc-950 border-white/10 text-white h-12 rounded-none focus:border-white/30 focus:ring-0 placeholder:text-zinc-600 text-base ${fieldErrors.phone ? 'border-red-500' : ''}`}
                             autoComplete="tel"
                             disabled={isLoading}

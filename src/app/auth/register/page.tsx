@@ -23,24 +23,7 @@ interface AuthError {
   action?: 'login'
 }
 
-function friendlyError(raw: string): AuthError {
-  const r = raw?.toLowerCase() || ''
-  if (r.includes('user already registered') || r.includes('already registered') || r.includes('already exists'))
-    return { message: 'An account with this email already exists.', action: 'login' }
-  if (r.includes('password') && r.includes('short'))
-    return { message: 'Password must be at least 6 characters long.' }
-  if (r.includes('invalid email'))
-    return { message: 'Please enter a valid email address.' }
-  if (r.includes('too many requests') || r.includes('rate limit'))
-    return { message: 'Too many attempts. Please wait a few minutes and try again.' }
-  if (r.includes('sms') || r.includes('phone') || r.includes('otp'))
-    return { message: 'Could not send OTP. Please check the number or try email registration.' }
-  if (r.includes('invalid otp') || r.includes('token has expired'))
-    return { message: 'Invalid or expired code. Please request a new OTP.' }
-  if (r.includes('network') || r.includes('fetch'))
-    return { message: 'Network error. Please check your connection.' }
-  return { message: raw || 'Something went wrong. Please try again.' }
-}
+import { friendlyError, normalizePhone, isValidIndianPhone } from "@/src/lib/auth-utils"
 
 function RegisterForm() {
   const { loginWithGoogle, register, signInWithPhone, verifyPhoneOtp, updateUserMetadata } = useAuthStore()
@@ -48,7 +31,7 @@ function RegisterForm() {
   const [step, setStep] = useState<"form" | "otp" | "details">("form")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [formData, setFormData] = useState({ name: "", email: "", phone: "+91 ", password: "", otp: "" })
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", password: "", otp: "" })
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [authError, setAuthError] = useState<AuthError>()
   const [resendTimer, setResendTimer] = useState(0)
@@ -108,21 +91,21 @@ function RegisterForm() {
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault()
-    const rawPhone = formData.phone.replace(/^\+91\s?/, '').replace(/\s/g, '')
-    if (!rawPhone || !/^[6-9]\d{9}$/.test(rawPhone)) {
-      setFieldErrors({ phone: "Enter a valid 10-digit Indian mobile number" })
+    if (!isValidIndianPhone(formData.phone)) {
+      setFieldErrors({ phone: "Enter a valid 10-digit mobile number" })
       return
     }
     setFieldErrors({})
     setIsLoading(true)
     setAuthError(undefined)
     try {
-      const result = await signInWithPhone(formData.phone)
+      const formattedPhone = normalizePhone(formData.phone)
+      const result = await signInWithPhone(formattedPhone)
       if (result.success) {
         setStep("otp")
-        setOtpSentTo(formData.phone)
+        setOtpSentTo(formattedPhone)
         setResendTimer(60)
-        toast({ title: "OTP Sent", description: `Code sent to ${formData.phone}` })
+        toast({ title: "OTP Sent", description: `Code sent to ${formattedPhone}` })
       } else {
         setAuthError(friendlyError(result.error || ''))
       }
@@ -142,9 +125,10 @@ function RegisterForm() {
     setIsLoading(true)
     setAuthError(undefined)
     try {
-      const result = await verifyPhoneOtp(formData.phone, formData.otp)
+      const formattedPhone = normalizePhone(formData.phone)
+      const result = await verifyPhoneOtp(formattedPhone, formData.otp)
       if (result.success) {
-        if (!result.user?.full_name) {
+        if (!result.user?.full_name && !formData.name) {
           setStep("details")
         } else {
           window.location.href = '/profile'
@@ -184,12 +168,20 @@ function RegisterForm() {
     if (resendTimer > 0) return
     setIsLoading(true)
     try {
-      const result = await signInWithPhone(formData.phone)
+      const formattedPhone = normalizePhone(formData.phone)
+      const result = await signInWithPhone(formattedPhone)
       if (result.success) { setResendTimer(60); toast({ title: "Code Resent" }) }
       else setAuthError(friendlyError(result.error || ''))
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const switchTab = (tab: "email" | "phone") => {
+    setActiveTab(tab)
+    setStep("form")
+    setAuthError(undefined)
+    setFieldErrors({})
   }
 
   return (
@@ -235,7 +227,7 @@ function RegisterForm() {
                 {(["email", "phone"] as const).map(tab => (
                   <button
                     key={tab}
-                    onClick={() => { setActiveTab(tab); setStep("form"); setAuthError(undefined); setFieldErrors({}) }}
+                    onClick={() => switchTab(tab)}
                     className={`flex-1 py-3 text-[10px] uppercase tracking-[0.25em] font-bold transition-all ${activeTab === tab ? 'bg-white text-zinc-950' : 'text-zinc-500 hover:text-white'}`}
                   >
                     {tab === "email" ? "Email" : "Phone / OTP"}
@@ -334,7 +326,7 @@ function RegisterForm() {
                 <motion.form key="phone-send" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onSubmit={handleSendOtp} className="space-y-5">
                   <div className="space-y-2">
                     <label className="text-[11px] uppercase tracking-[0.2em] text-zinc-400 flex items-center gap-2"><Phone size={11} /> Mobile Number</label>
-                    <Input name="phone" type="tel" placeholder="+91 98765 43210" value={formData.phone} onChange={change} disabled={isLoading}
+                    <Input name="phone" type="tel" placeholder="Enter 10-digit mobile number" value={formData.phone} onChange={e => { setFormData(p => ({...p, phone: e.target.value.replace(/[^\d+]/g, '')})); setFieldErrors({}) }} disabled={isLoading}
                       className={`bg-zinc-950 border-white/10 text-white h-12 rounded-none focus:border-white/30 focus:ring-0 placeholder:text-zinc-600 text-base ${fieldErrors.phone ? 'border-red-500' : ''}`} />
                     {fieldErrors.phone && <p className="text-xs text-red-400">{fieldErrors.phone}</p>}
                     <p className="text-[10px] text-zinc-600 uppercase tracking-widest">We'll send a 6-digit SMS code</p>

@@ -1,5 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createBrowserClient } from "@supabase/ssr";
 
 const envSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const envSupabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -12,45 +11,20 @@ export const isSupabaseConfigured = Boolean(envSupabaseUrl &&
 const supabaseUrl = envSupabaseUrl || "https://tuqdytehmpzhlbxfvylv.supabase.co";
 const supabaseAnon = envSupabaseAnonKey || "placeholder-anon-key";
 
-// Singleton instance with lazy initialization - THIS IS THE ONLY SAFE WAY
-let supabaseInstance: any = null;
-let supabaseAdminInstance: any = null;
+/**
+ * Client-side Supabase client using @supabase/ssr
+ * Uses a singleton pattern to prevent multiple instances
+ */
+let supabaseBrowserClient: any = null;
 
 export const getSupabaseClient = () => {
-  if (supabaseInstance) return supabaseInstance;
-  
-  if (typeof window !== "undefined") {
-    supabaseInstance = createClientComponentClient();
-  } else {
-    supabaseInstance = createClient(supabaseUrl, supabaseAnon);
-  }
-  return supabaseInstance;
-};
-
-/**
- * Highly privileged client using service_role key.
- * ONLY use in server-side routes (API, Middleware, Server Actions).
- * NEVER use on client-side or export to components.
- */
-export const getSupabaseAdmin = () => {
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
-  if (!serviceKey) {
-    console.warn("SUPABASE_SERVICE_ROLE_KEY is missing. Falling back to anon client.");
-    return getSupabaseClient();
+  if (typeof window === "undefined") {
+    // Return a basic client if called server-side (should ideally use getSupabaseServer instead)
+    return createBrowserClient(supabaseUrl, supabaseAnon);
   }
 
-  if (supabaseAdminInstance) return supabaseAdminInstance;
+  if (supabaseBrowserClient) return supabaseBrowserClient;
   
-  supabaseAdminInstance = createClient(supabaseUrl, serviceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  });
-  
-  return supabaseAdminInstance;
+  supabaseBrowserClient = createBrowserClient(supabaseUrl, supabaseAnon);
+  return supabaseBrowserClient;
 };
-
-// WE ARE REMOVING THE STATIC 'supabase' EXPORT TO PREVENT INITIALIZATION CRASHES
-// ALL FILES MUST NOW USE getSupabaseClient()

@@ -99,19 +99,20 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL("/auth/login?error=no_user_in_session", origin));
     }
 
-    // Upsert profile (non-fatal)
+    // Upsert profile in 'users' table
     try {
       await supabase
-        .from("profiles")
+        .from("users")
         .upsert({
           id: user.id,
-          email: (user.email as string) ?? "",
+          email: user.email ?? "",
           full_name: user.user_metadata?.full_name ?? user.user_metadata?.name ?? "",
-          avatar_url: user.user_metadata?.avatar_url ?? user.user_metadata?.picture ?? "",
+          phone: user.phone ?? user.user_metadata?.phone ?? "",
+          is_active: true,
           updated_at: new Date().toISOString(),
         }, { onConflict: "id" });
     } catch (upsertErr) {
-      console.error("Profile upsert failed (non-fatal):", upsertErr);
+      console.error("User upsert failed (non-fatal):", upsertErr);
     }
 
     // Safe redirect (prevent open redirect)

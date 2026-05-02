@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
-import { getSupabaseAdmin } from '@/src/lib/supabaseClient';
+import { getSupabaseAdmin } from '@/src/lib/supabaseServer';
 
 export async function POST(request: NextRequest) {
   try {
